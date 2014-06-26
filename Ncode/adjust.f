@@ -235,9 +235,13 @@
           FAC = 1.0 + (0.5*NNBMAX - NNB)/(0.5*FLOAT(NNBMAX))
           ALPHA = FAC*ALPHA
       END IF
-*
+*     
 *       Define tidal radius for isolated system (2*RTIDE used in ESCAPE).
-      IF (KZ(14).EQ.0) RTIDE = 10.0*RSCALE
+      IF (KZ(14).EQ.0) RTIDE = 10.0*RSCALE    
+*** FlorentR - set the tidal radius
+      IF (KZ(14).EQ.9) RTIDE = 10.0*RSCALE
+*** FRenaud
+
 *       Redefine the crossing time for 3D cluster orbit or Plummer/bulge.
       IF ((KZ(14).EQ.3.OR.KZ(14).EQ.4).AND.ZKIN.GT.0.0) THEN
           TCR = 2.0*RSCALE/SQRT(2.0*ZKIN/ZMASS)

@@ -1,15 +1,36 @@
+########################################################################
+######### NBODY6TT  - Florent Renaud
+########################################################################
+
+########################################################################
+######### Compiler options, directives and paths
+########################################################################
+
+### curie
 FC = gfortran
-#FC = gfortran44
-FFLAGS = -O3 -Wall -fopenmp
-#FFLAGS = -O3 -fbounds-check
-#FFLAGS -pg
-CXX = g++ -O3 -Wall -march=core2
-#CXX += pg
-CUDA_PATH = /usr/local/cuda
-SDK_PATH = /usr/local/cuda_sdk
-NVCC = $(CUDA_PATH)/bin/nvcc --host-compilation C++ -Xcompiler "-Wall -O3 -fopenmp" -I $(SDK_PATH)/common/inc/
+FFLAGS = -O3 -fopenmp
+CXX = g++ -O3 -march=core2 -I /usr/local/boost-1.47.0/gcc-4.4.4/include -L /usr/local/boost-1.47.0/gcc-4.4.4/lib
+CUDA_PATH = /usr/local/cuda-4.0
+SDK_PATH = /usr/local/cuda-4.0/sdk/C
+NVCC = $(CUDA_PATH)/bin/nvcc --host-compilation C++ -Xcompiler "-O3 -fopenmp" -I $(SDK_PATH)/common/inc/
 NVCC += -arch sm_20 -Xptxas -dlcm=cg
-RUNDIR = ./run
+RUNDIR = .
+
+
+### nbody6 options
+#FC = gfortran
+#FFLAGS = -O3 -Wall -fopenmp
+#CXX = g++ -O3 -Wall -march=core2
+#CUDA_PATH = /usr/local/cuda
+#SDK_PATH = /usr/local/cuda_sdk
+#NVCC = $(CUDA_PATH)/bin/nvcc --host-compilation C++ -Xcompiler "-Wall -O3 -fopenmp" -I $(SDK_PATH)/common/inc/
+#NVCC += -arch sm_20 -Xptxas -dlcm=cg
+#RUNDIR = ./run
+
+
+########################################################################
+######### Common variables and targets
+########################################################################
 
 OBJECTS = $(SOURCE:.f=.o)
 

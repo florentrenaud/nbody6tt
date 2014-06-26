@@ -72,6 +72,11 @@
      &                        F6.3,'  ETAU =',F6.3,'  DTMIN =',1P,E8.1,
      &                             '  RMIN =',E8.1,'  NCRIT =',0P,I5,/)
       END IF
+*** FlorentR - restart with new tensors
+      IF (J.EQ.14.AND.KZ(14).EQ.9) THEN
+        CALL TTINIT
+      ENDIF
+*** FRenaud
 *
 *       Perform a simple validation check on main input parameters.
       CALL VERIFY

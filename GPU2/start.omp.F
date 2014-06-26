@@ -39,6 +39,9 @@
 *       Check option for external force.
       IF (KZ(14).GT.0) THEN 
           CALL XTRNL0
+*** FlorentR - initialize the tensors
+          IF (KZ(14).EQ.9) CALL TTINIT
+*** FRenaud
       END IF 
 *
 *       Check optional scaling to hot system.

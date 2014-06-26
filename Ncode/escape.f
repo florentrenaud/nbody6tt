@@ -154,6 +154,10 @@
           RTIDE = (ZMASS/TIDAL(1))**0.3333
       ELSE IF (KZ(14).EQ.4.OR.KZ(14).EQ.3) THEN
           RTIDE = RTIDE0*ZMASS**0.3333
+*** FlorentR - include case of tidal tensor
+      ELSE IF (KZ(14).EQ.9) THEN
+          RTIDE = 10.*RSCALE
+*** FRenaud
       END IF
       EI = ZK - BODY(I)*POTI
 *

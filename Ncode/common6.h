@@ -72,3 +72,8 @@
      &               KSLOW(KMAX),NAME(NMAX),LIST(LMAX,NMAX)
 *
       COMMON/LISTS/  ILIST(NMAX),JLIST(NMAX),JPERT(5*LMAX)
+
+*** FlorentR - New block used for tt treatment
+      COMMON/TT/     TTENS(3,3,NBTTMAX),TTEFF(3,3),DTTEFF(3,3),
+     &               TTTIME(NBTTMAX),TTUNIT, NBTT
+*** FRenaud
