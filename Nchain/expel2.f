@@ -306,7 +306,7 @@
               DO 62 L = 1,NCH
                   JPERT(L) = JLIST(L)
    62         CONTINUE
-              CALL KICK(I1,1,KW1)
+              CALL KICK(I1,1,KW1,DM)
               DO 65 L = 1,NCH
                   JLIST(L) = JPERT(L)
    65         CONTINUE

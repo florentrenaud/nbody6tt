@@ -53,12 +53,12 @@
 *
 *       Obtain the tidal potential energy for linearized external field. 
       IF (KZ(14).EQ.0) THEN
-*       Note: ETIDE holds accumulated tidal energy if KZ(14) = 3 or 5.
+*       Note: ETIDE holds accumulated tidal energy if KZ(14) = 3.
           ETIDE = 0.0D0
       ELSE
 *       Employ general expression sum {m*r*F} for virial energy.
           CALL XTRNLV(1,N)
-*       Form tidal energy with Plummer potential (note ETIDE use for #14=3/5).
+*       Form tidal energy with Plummer potential (note ETIDE use for #14=3).
           IF (KZ(14).EQ.4) THEN
               ETIDE = 0.0
               DO 50 I = 1,N

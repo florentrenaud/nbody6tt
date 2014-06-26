@@ -2,9 +2,9 @@ FC = gfortran
 #FC = gfortran44
 FFLAGS = -O3 -Wall -fopenmp
 #FFLAGS = -O3 -fbounds-check
-#FFLAGS -pg
+#FFLAGS = -p
 CXX = g++ -O3 -Wall -march=core2
-#CXX += pg
+#CXX += p
 CUDA_PATH = /usr/local/cuda
 SDK_PATH = /usr/local/cuda_sdk
 NVCC = $(CUDA_PATH)/bin/nvcc --host-compilation C++ -Xcompiler "-Wall -O3 -fopenmp" -I $(SDK_PATH)/common/inc/
@@ -15,14 +15,14 @@ OBJECTS = $(SOURCE:.f=.o)
 
 all: gpu sse
 
-gpu: gpunb.gpu.o gpupot.gpu.o intgrt.o gpucor.o nbintp.o cnbint.o nbint.o start.o fpoly2a.o adjust.o energy2.o phicor.o cmfirr.o cmfirr2.o checkl2.o kspert.o swap.o scale.o wtime.o cxvpred.o gpuirr.o jpred.o fpcorr2.o repair.o sweep2.o
+gpu: gpunb.gpu.o gpupot.gpu.o intgrt.o gpucor.o nbintp.o cnbint.o nbint.o start.o fpoly2a.o adjust.o energy2.o phicor.o cmfirr.o cmfirr2.o checkl2.o kspert.o swap.o scale.o wtime.o cxvpred.o gpuirr.o jpred.o jpred2.o fpcorr2.o repair.o sweep2.o ksres3.o
 	cp -f gpunb.gpu.o gpunb.o
 	cp -f gpupot.gpu.o gpupot.o
 	cp -f *.o ../Ncode
 	make gpu -C ../Ncode -f ../GPU2/Makefile_gpu -j4
 	mv -f ../Ncode/nbody6 $(RUNDIR)/nbody6.gpu
 
-sse: gpunb.sse.o gpupot.sse.o intgrt.o gpucor.o nbintp.o cnbint.o nbint.o start.o fpoly2a.o adjust.o energy2.o phicor.o cmfirr.o cmfirr2.o checkl2.o kspert.o swap.o scale.o wtime.o cxvpred.o gpuirr.o jpred.o fpcorr2.o repair.o sweep2.o
+sse: gpunb.sse.o gpupot.sse.o intgrt.o gpucor.o nbintp.o cnbint.o nbint.o start.o fpoly2a.o adjust.o energy2.o phicor.o cmfirr.o cmfirr2.o checkl2.o kspert.o swap.o scale.o wtime.o cxvpred.o gpuirr.o jpred.o jpred2.o fpcorr2.o repair.o sweep2.o ksres3.o
 	cp -f gpunb.sse.o gpunb.o
 	cp -f gpupot.sse.o gpupot.o
 	cp -f *.o ../Ncode

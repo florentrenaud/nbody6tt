@@ -38,3 +38,5 @@ The file opt6.pdf contains information about some option changes.
 Dec 2009: NB! Options expanded to 50! Please ensure extra line of 10 zeros.
 
 mcluster.tar.gz holds files for mcluster.c developed by Andreas Kupper.
+
+May 2012: nbody6-gpu.pdf is the GPU paper with Keigo accepted by MNRAS.

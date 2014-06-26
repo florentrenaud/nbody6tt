@@ -138,6 +138,7 @@
 *
 *       Form sum of inverse separations to evaluate mass segregation.
       POT0 = 0.0
+      LX0 = MAX(LX0,1)
       DO 44 L = LX0,NP-1
           I = ILIST(L)
           DO 42 LL = L+1,NP
@@ -308,6 +309,7 @@
      &                           F7.1,I5,I6,I7,1X,5F7.3)
 *
       IF (N14.GT.1.OR.N13.GT.1) THEN
+          N14 = MAX(N14,1)
           WRITE (6,80)  TIME+TOFF, TPHYS, N14, ZMBH/FLOAT(N14), RBH,
      &                  SEMI, N13, R13, RX
    80     FORMAT (/,' BH/NS SUBSYSTEM:    T TPHYS NBH <MBH> RBH A ',

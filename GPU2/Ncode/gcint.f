@@ -24,22 +24,14 @@
           RGVG = RGVG + RG(K)*VG(K)
    10 CONTINUE
 *
-*       Obtain force and first derivative of galaxy model.
-      IF (GMG.GT.0.0D0) THEN
+*       Obtain force and first derivative of point-mass galaxy.
+      IF (KZ(14).EQ.3.AND.GMG.GT.0.0D0) THEN
           CALL FNUC(RG,VG,FM,FD)
       ELSE
-          DO 12 K = 1,3
+          DO 20 K = 1,3
               FM(K) = 0.0
               FD(K) = 0.0
-   12     CONTINUE
-      END IF
-*
-      IF (GMB.GT.0.0D0) THEN
-          CALL FBULGE(RG,VG,FS,FSD)
-          DO 15 K = 1,3
-              FM(K) = FM(K) + FS(K)
-              FD(K) = FD(K) + FSD(K)
-   15     CONTINUE
+   20     CONTINUE
       END IF
 *
 *       Include optional Miyamoto disk component (Book eq. 8.52).

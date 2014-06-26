@@ -40,6 +40,7 @@
               VI2 = XDOT(K,I)**2
               X(K,I) = X(K,I) - CMR(K)
               XDOT(K,I) = XDOT(K,I) - CMRDOT(K)
+*       Note TIDAL(K) = 0 for KZ(14) = 3, hence no skip on ERRX is needed.
               ERRX = ERRX - TIDAL(K)*BODY(I)*(X(K,I)**2 - XI2)
               ERRV = ERRV + BODY(I)*(XDOT(K,I)**2 - VI2)
    35     CONTINUE
@@ -98,7 +99,7 @@
    65     CONTINUE
    70 CONTINUE
 *
-*       Perform differential correction.
+*       Check differential correction for Plummer potential.
       IF (KZ(14).EQ.4) THEN
           CALL PLPOT1(PHI2)
           EMDOT = EMDOT + (PHI1 - PHI2)

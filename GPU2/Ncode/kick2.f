@@ -24,7 +24,7 @@
 *
 *       Implement kick velocity for single component (mass loss in ROCHE).
       KW = KSTAR(I)
-      CALL KICK(I,1,KW)
+      CALL KICK(I,1,KW,0.0D0)
 *
 *       Copy block-step time to prevent SMALL STEP problem (19/3/12).
       TIME = TBLOCK

@@ -137,6 +137,9 @@
           IF (MPDOT.GT.0.0D0.AND.TIME + TOFF.GT.TDELAY) THEN
               CALL PLPOT1(PHI1)
               MP = MP0/(1.0 + MPDOT*(TIME + TOFF - TDELAY))
+*       Replace by exponential mass loss for faster decrease.
+*             DT = TIME + TOFF - TDELAY
+*             MP = MP0*EXP(-MPDOT*DT)
               CALL PLPOT1(PHI2)
 *       Add differential correction for energy conservation.
               EMDOT = EMDOT + (PHI1 - PHI2)
@@ -376,7 +379,7 @@
       NTIMER = 0
       NSTEPS = NSTEPS + NMAX
 *
-      IF (NSTEPS.GE.10*N.AND.N.GT.1000.AND.NSUB.EQ.0) THEN
+      IF (NSTEPS.GE.100*NMAX.AND.NSUB.EQ.0) THEN
           NSTEPS = 0
           IF (KZ(1).GT.1) CALL MYDUMP(1,1)
       END IF

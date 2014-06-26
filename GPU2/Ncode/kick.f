@@ -1,14 +1,14 @@
-      SUBROUTINE KICK(I,ICASE,KW)
+      SUBROUTINE KICK(I,ICASE,KW,DM)
 *
 *
 *       Velocity kick for WD, neutron stars or black holes.
 *       ---------------------------------------------------
 *
       INCLUDE 'common6.h'
+      PARAMETER (VFAC=2.0D0)
       REAL*8  RAN2,VK(4)
       SAVE  IPAIR, KC, VDIS, RI
       DATA  IPAIR,KC /0,0/
-      PARAMETER (VFAC=2.0D0)
 *       WD velocity kicks: Fellhauer et al. 2003, ApJ Letters 595, L53.
 *
 *
@@ -25,9 +25,7 @@
           END IF
           KSTAR(IN) = -KSTAR(IN)
 *
-*       Determine mass loss and actual disruption velocity.
-          DM = BODY(IN) - 1.4/ZMBAR
-          IF (KW.LT.13) DM = 0.0
+*       Determine disruption velocity after mass loss.
           VD2 = 2.0*(BODY(N+IPAIR) - DM)/R(IPAIR)
           VDIS = SQRT(VD2)*VSTAR
 *       Set cluster escape velocity (add twice central potential).

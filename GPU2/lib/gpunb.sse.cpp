@@ -1,7 +1,4 @@
-// SSE version with velocity crit.
-// #include <iostream>
-#include <cstdio>
-#include <cstdlib>
+#include <iostream>
 #include <cmath>
 #include <cassert>
 #include <vector>
@@ -50,7 +47,6 @@ struct myvector{
 	}
 	void free(){
 		delete [] val;
-		val = NULL;
 	}
 	void push_back(const T &t){
 		val[num++] = t;
@@ -94,29 +90,20 @@ static myvector<int> nblist[TMAX][4];
 static int nbody, nbodymax;
 
 void GPUNB_open(int nbmax){
+	// std::cout << "Open GPUNB " << nbmax << std::endl;
 	time_send = time_grav = 0.0;
 	numInter = 0;
 	nbodymax = nbmax;
 	jp_host = new Jparticle[nbmax+3];
-	static int numCPU;
 #pragma omp parallel
 	{
 		int nth = omp_get_num_threads();
 		assert(nth <= TMAX);
 		int tid = omp_get_thread_num();
-		if(!tid) numCPU = nth;
 		for(int v=0; v<4; v++){
 			nblist[tid][v].reserve(nbmax);
 		}
 	}
-#ifdef PROFILE
-	fprintf(stderr, "***********************\n");
-	fprintf(stderr, "Opened NBODY6/SSE (velcrit) library\n");
-	fprintf(stderr, "#CPU %d, #GPU %d\n", numCPU, 0);
-	fprintf(stderr, "\n");
-	fprintf(stderr, "nbmax = %d\n", nbmax);
-	fprintf(stderr, "***********************\n");
-#endif
 }
 
 void GPUNB_close(){
@@ -137,13 +124,11 @@ void GPUNB_close(){
 	nbodymax = 0;
 
 #ifdef PROFILE
-	fprintf(stderr, "Closed NBODY6/SSE library\n");
-	fprintf(stderr, "***********************\n");
-	fprintf(stderr, "time send   : %f sec\n", time_send);
-	fprintf(stderr, "time grav   : %f sec\n", time_grav);
-	fprintf(stderr, "time regtot : %f sec\n", time_send + time_grav);
-	fprintf(stderr, "%f Gflops (gravity part only)\n", 60.e-9 * numInter / time_grav);
-	fprintf(stderr, "***********************\n");
+	std::cerr << "***********************" << std::endl;
+	std::cerr << "time send : " << time_send << " sec " << std::endl;
+	std::cerr << "time grav : " << time_grav << " sec " << std::endl;
+	std::cerr << 60.e-9 * numInter / time_grav << " Gflops (gravity part only)" << std::endl;
+	std::cerr << "***********************" << std::endl;
 #endif
 }
 
@@ -194,7 +179,15 @@ void GPUNB_regf(
 		v4sf vyi = {vid[i+0][1], vid[i+1][1], vid[i+2][1], vid[i+3][1]}; 
 		v4sf vzi = {vid[i+0][2], vid[i+1][2], vid[i+2][2], vid[i+3][2]}; 
 		v4sf h2i = {h2d[i+0], h2d[i+1], h2d[i+2], h2d[i+3]}; 
-		v4sf dti = {dtr[i+0], dtr[i+1], dtr[i+2], dtr[i+3]}; 
+		static const v4sf h2mask[5] = {
+			{0.0, 0.0, 0.0, 0.0},
+			{1.0, 0.0, 0.0, 0.0},
+			{1.0, 1.0, 0.0, 0.0},
+			{1.0, 1.0, 1.0, 0.0},
+			{1.0, 1.0, 1.0, 1.0},
+		};
+		h2i *= h2mask[nii];
+		v4sf dtri = {dtr[i+0], dtr[i+1], dtr[i+2], dtr[i+3]}; 
 		v4sf Ax = {0.f, 0.f, 0.f, 0.f};
 		v4sf Ay = {0.f, 0.f, 0.f, 0.f};
 		v4sf Az = {0.f, 0.f, 0.f, 0.f};
@@ -207,32 +200,31 @@ void GPUNB_regf(
 			v4sf jp0 = jpp[0];
 			v4sf jp1 = jpp[1];
 
-			v4sf xj  = __builtin_ia32_shufps(jp0, jp0, 0x00);
-			v4sf yj  = __builtin_ia32_shufps(jp0, jp0, 0x55);
-			v4sf zj  = __builtin_ia32_shufps(jp0, jp0, 0xaa);
-			v4sf mj  = __builtin_ia32_shufps(jp0, jp0, 0xff);
+			v4sf xj = __builtin_ia32_shufps(jp0, jp0, 0x00);
+			v4sf yj = __builtin_ia32_shufps(jp0, jp0, 0x55);
+			v4sf zj = __builtin_ia32_shufps(jp0, jp0, 0xaa);
+			v4sf mj = __builtin_ia32_shufps(jp0, jp0, 0xff);
 			v4sf vxj = __builtin_ia32_shufps(jp1, jp1, 0x00);
 			v4sf vyj = __builtin_ia32_shufps(jp1, jp1, 0x55);
 			v4sf vzj = __builtin_ia32_shufps(jp1, jp1, 0xaa);
 
-			v4sf dx  = xj - xi;
-			v4sf dy  = yj - yi;
-			v4sf dz  = zj - zi;
+			v4sf dx = xj - xi;
+			v4sf dy = yj - yi;
+			v4sf dz = zj - zi;
 			v4sf dvx = vxj - vxi;
 			v4sf dvy = vyj - vyi;
 			v4sf dvz = vzj - vzi;
 
+			v4sf dxp = dx + dtri * dvx;
+			v4sf dyp = dy + dtri * dvy;
+			v4sf dzp = dz + dtri * dvz;
+
 			v4sf r2 = dx*dx + dy*dy + dz*dz;
-#if 1
-			v4sf dxp = dx + dti * dvx;
-			v4sf dyp = dy + dti * dvy;
-			v4sf dzp = dz + dti * dvz;
-			v4sf r2p = dxp*dxp + dyp*dyp + dzp*dzp;
-#else
-			v4sf r2p = r2;
-#endif
 			v4sf rv = dx*dvx + dy*dvy + dz*dvz;
-			v4sf mask = (v4sf)__builtin_ia32_cmpltps(r2p, h2i);
+			v4sf r2p = dxp*dxp + dyp*dyp + dzp*dzp;
+			// v4sf mask = (v4sf)__builtin_ia32_cmpltps(r2, h2i);
+			v4sf mask = (v4sf)__builtin_ia32_cmpltps(
+					__builtin_ia32_minps(r2,r2p), h2i);
 			int bits = __builtin_ia32_movmskps(mask);
 			// mj = __builtin_ia32_andnps(mask, mj);
 			if(bits){

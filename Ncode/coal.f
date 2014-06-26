@@ -191,8 +191,10 @@
          NAME(I1) = NAME2
       ENDIF
       T0(I1) = TIME
-      T0(I2) = TADJ + DTADJ
-      CALL DTCHCK(TIME,STEP(I2),DTK(40))
+      T0(I2) = TADJ + DTADJ 
+      IF (KZ(23).EQ.0.OR.RTIDE.GT.1000.0*RSCALE) T0(I2) = 1.0D+10
+*     CALL DTCHCK(TIME,STEP(I2),DTK(40))
+      STEP(I2) = 1.0D+06
 *
 *       Start new star from current time unless ROCHE case with TEV0 > TIME.
       TEV0(I1) = MAX(TEV0(I1),TEV0(I2))

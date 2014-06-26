@@ -61,13 +61,13 @@
    30     FORMAT (/,5X,'NDISS  NTIDE  NSYNC  NCOLL  NCOAL  NDD  NCIRC',
      &                 '  NROCHE  NRO  NCE  NHYP  NHYPC    EBIN ',
      &                 '  EMERGE  ECOLL  EMDOT  ECDOT  EKICK  ESESC ',
-     &                 '  EBESC  EMESC  DEGRAV   EBIND  MAXM  TURN')
+     &                 '  EBESC  EMESC  DEGRAV   EBIND  MAXM')
           WRITE (6,35)  NDISS, NTIDE, NSYNC, NCOLL, NCOAL, NDD, NCIRC,
      &                  NROCHE, NRO, NCE, NHYP, NHYPC, EBIN, EMERGE,
      &                  ECOLL, EMDOT, ECDOT, EKICK, ESESC, EBESC,
-     &                  EMESC, DEGRAV, E(3), ZMX*SMU, TURN
+     &                  EMESC, DEGRAV, E(3), ZMX*SMU
    35     FORMAT (' #5',I8,I6,3I7,I5,I7,I8,2I5,I6,I7,3F8.3,4F7.3,F8.3,
-     &                  F7.3,2F8.3,2F6.1)
+     &                  F7.3,2F8.3,F6.1)
       END IF
 *
       RETURN

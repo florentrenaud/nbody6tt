@@ -59,7 +59,7 @@
   53     -   Not used
   54     *   Close encounter inside 5 maximum radii (ksint.f)
   55     *   Encounter inside tidal capture radius (# 27; ksint.f)
-  56     -   Not used
+  56     -   Plotting file for TIME, TPHYS, <R>, MASS, NCOLL (# 44 > 0).
   57     -   Not used
   58     -   Not used
   59     -   Not used

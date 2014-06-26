@@ -63,9 +63,9 @@
 *
 *       Initialize new force times and predict to previous TIME.
       IF (IPHASE.EQ.1) THEN
-*       Treat case of new KS.
+*       Treat case of new KS with components from ICOMP0 & JCOMP0.
           I = ICOMP0
-*       Avoid updating unchanged locations (note ICOMP0 & JCOMP0).
+*       Avoid updating unchanged locations.
  1000     IF (I.GE.IFIRST) THEN
               TNEW(I) = T0(I) + STEP(I)
               TPRED(I) = -1.0
@@ -96,8 +96,9 @@
 *       Remove ICOMP0 & JCOMP0 from LISTQ and add NTOT.
           CALL REPAIR(ICOMP0,JCOMP0,NTOT,0,NQ,LISTQ,TMIN)
 *
-*       Check KS termination (locations IFIRST & IFIRST + 1.
+*       Check KS termination (locations IFIRST & IFIRST + 1).
       ELSE IF (IPHASE.EQ.2) THEN
+*       Update relevant variables for the KS components and later c.m.
           I1 = IFIRST
           I2 = I1 + 1
  1015     DO 1030 I = I1,I2
@@ -106,23 +107,23 @@
               CALL JPRED(I)
               CALL GPUIRR_SET_JP(I,X0(1,I),X0DOT(1,I),F(1,I),FDOT(1,I),
      &                                                BODY(I),T0(I))
-*       Note we also need some loop for I > N (check further).
-              DO 1025 J = IFIRST,NTOT
-                  RIJ2 = 0.0
-                  DO 1020 K = 1,3
-                      RIJ2 = RIJ2 + (X(K,I) - X(K,J))**2
- 1020             CONTINUE
-                  DX = MAX(RS(I),RS(J))
-                  IF (RIJ2.LT.1.2*DX**2) THEN
-                      CALL GPUIRR_SET_LIST(J,LIST(1,J))
-                  END IF
- 1025         CONTINUE
  1030     CONTINUE
-          IF (I1.EQ.IFIRST.AND.KSPAIR.LE.NPAIRS) THEN
+*
+*       Include all the more recent c.m. bodies.
+          IF (I1.EQ.IFIRST) THEN
               I1 = N + KSPAIR
               I2 = NTOT
               GO TO 1015
+*       Note loop is ignored for case of last c.m. (KSPAIR = NPAIRS + 1).
           END IF
+*
+*       Re-send all neighbour lists using parallel directive (cheap loop).
+!$omp parallel do private(I)
+          DO 1035 I = IFIRST,NTOT
+              CALL GPUIRR_SET_LIST(I,LIST(1,I))
+ 1035     CONTINUE
+!$omp end parallel do
+*
 *       Add two first single particles to LISTQ and remove terminated c.m.
           CALL REPAIR(N+KSPAIR,0,IFIRST,IFIRST+1,NQ,LISTQ,TMIN)
       END IF
@@ -170,7 +171,6 @@
 *
 *       Check updating new list of block steps with T0 + STEP =< TLISTQ.
     1 ICALL = ICALL + 1
-*     TT1 = DBLTIM()
 *       Reset TMIN second & third time after change to catch new chain step.
       IF (TIME.GE.TLISTQ.OR.ICALL.LE.3) THEN
 *       Update interval by optimization at major times (sqrt of N-NPAIRS).
@@ -215,23 +215,27 @@
           IF (LQ.LE.15.AND.NQ.LE.2) LQ = LQ - 1
       END IF
 *
-*     TTT = TIME
-*       Find all particles in next block (TNEW = TMIN) and set TIME.
-      CALL INEXT(NQ,LISTQ,TMIN,NXTLEN,NXTLST)
+*     TTT = TIME     ! Used for profiling (needs wtime.o).
+*     TLAST = TIME   ! Activate on negative time test.
 *
-*     TLAST = TIME
+*       Find all particles in next block (TNEW = TMIN) and set TIME.
+      CALL  INEXT(NQ,LISTQ,TMIN,NXTLEN,NXTLST)
+*
 *       Set new time and save block time (for regularization terminations).
       I = NXTLST(1)
       TIME = T0(I) + STEP(I)
       TBLOCK = TIME
 *
+*       Include diagnostics for negative TIME and block-step diagnostics.
 *     IF (TIME.LT.TLAST.AND.TIME.LT.TLISTQ) THEN
 *     WRITE (6,1300) NXTLEN, NQ, TIME, TIME-TLAST,STEP(I)
 *1300 FORMAT (' NEGATIVE!    LEN NQ T T-TL S ',2I6,F10.5,1P,2E10.2)
-*     END IF
+*     CALL FLUSH(6)
 *     WRITE (6,22)  I, NXTLEN, NSTEPU, NSTEPI, TIME, STEP(I), STEPR(I)
 *  22 FORMAT (' INTGRT   I LEN #U #I T S SR  ',2I6,2I11,F10.4,1P,2E10.2)
 *     CALL FLUSH(6)
+*
+*       Terminate on small irregular time-step (means problems).
       IF (STEP(I).LT.1.0D-11) THEN
           WRITE (6,24)  I, NAME(I), NXTLEN, NSTEPR, STEP(I), STEPR(I)
    24     FORMAT (' SMALL STEP!!    I NAME LEN #R SI SR ',
@@ -305,7 +309,7 @@
 *       See whether to advance ARchain or KS at first new time.
       IF (TIME.GT.TPREV) THEN
           CALL SUBINT(IQ,I10)
-*       Check collision/coalescence indicator (note IPHASE = 0).
+*       Check collision/coalescence indicator.
           IF (IQ.LT.0) GO TO 999
       END IF
 *
@@ -478,7 +482,7 @@
 *
 *       Evaluate current irregular forces by vector procedure.
           CALL GPUIRR_FIRR_VEC(NI,IREG(II),GF(1,1),GFD(1,1))
-*       NB! Note suppression of paralell procedure here and for nbintp.f.
+*       NB! Note suppression of parallel procedure here and for nbintp.f.
 *!$omp parallel do private(I, LX)
           DO 57 LL = 1,NI
               I = IREG(JNEXT+LL)

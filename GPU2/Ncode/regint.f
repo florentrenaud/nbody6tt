@@ -159,6 +159,11 @@
 *    &                            (FDR(K) + FD(K))*PX
 *       Second-order term derived by Douglas Heggie (Aug/03).
    24         CONTINUE
+*       Accumulate tidal energy change for general galactic potential.
+*             ETIDE = ETIDE - BODY(I)*((ONE6*W3DOT*DTR - 0.5*W2DOT)*DTR
+*    &                                                 + WDOT)*DTR
+*       Note Taylor series at end of interval with negative argument.
+              ETIDE = ETIDE + BODY(I)*(0.5*W2DOT*DTR - WDOT)*DTR
           END IF
       END IF
 *

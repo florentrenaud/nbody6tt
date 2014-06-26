@@ -144,7 +144,6 @@
                   JCOMP = J
               END IF
    70     CONTINUE
-*       Increase pointer for rejected separation (include possible exit).
           IF (SQRT(RX2).GT.RMIN) THEN
               KSPAIR = KSPAIR + 1
               IF (KSPAIR.GT.NPAIRS) GO TO 80
@@ -152,7 +151,7 @@
           END IF
 *       Evaluate PCRIT for R0(NPAIRS) in MERGE since IMPACT is bypassed.
           CALL HISTAB(KSPAIR,JCOMP,PMIN,RSTAB)
-*       Initialize the triple (satisfies R < RMIN without stability test).
+*       Initialize the triple (constructed to be stable in HIPOP).
           IPHASE = 6
           CALL MERGE
 *       Examine the same ICM (moved up after successful MERGE).
