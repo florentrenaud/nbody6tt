@@ -1,0 +1,17 @@
+*       Include galaxy point mass term for body #I in differential form.
+          IF (GMG.GT.0.0D0.and.kz(14).eq.3) THEN
+             ET = ET + GMG*(1.0/SQRT(RI2) - 1.0/SQRT(RG2))
+
+          else if (GMG.GT.0.0D0.and.kz(14).eq.5) then
+             IF (B.NE.2) THEN
+                RRG = 1.0-(1.0+A/sqrt(RG2))**(B-2.0)
+                RRI = 1.0-(1.0+A/sqrt(RI2))**(B-2.0)
+                ET = ET + GMG/(A*(2.0-B))*(RRI-RRG)
+             else
+                RRG = 1.0 + A/sqrt(RG2)
+                RRI = 1.0 + A/sqrt(RI2)
+                ET = ET + GMG/A*LOG(RRG/RRI)
+             endif
+
+          endif
+
