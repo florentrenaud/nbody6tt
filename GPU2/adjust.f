@@ -259,6 +259,9 @@
 *
 *       Define tidal radius for isolated system (2*RTIDE used in ESCAPE).
       IF (KZ(14).EQ.0) RTIDE = 10.0*RSCALE
+*** FlorentR - set the tidal radius
+      IF (KZ(14).EQ.9) RTIDE = 10.0*RSCALE
+*** FRenaud
 *       Redefine the crossing time for 3D cluster orbit or Plummer model.
       IF ((KZ(14).EQ.3.OR.KZ(14).EQ.4).
      &    AND.ZKIN.GT.0.0) THEN

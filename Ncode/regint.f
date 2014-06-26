@@ -133,8 +133,11 @@
 *
 *       See whether an external force should be added.
       IF (KZ(14).GT.0) THEN
-*       Save current values for deriving work done by tides (#14 = 3).
-          IF (KZ(14).EQ.3) THEN
+*** FlorentR - include the case of tidal tensor
+*       Save current values for deriving work done by tides (#14 = 3 or 9).
+       IF (KZ(14).EQ.3.OR.KZ(14).EQ.9) THEN
+*       IF (KZ(14).EQ.3) THEN
+*** FRenaud
               DO 22 K = 1,3
                   FRX(K) = FREG(K)
                   FDX(K) = FDR(K)

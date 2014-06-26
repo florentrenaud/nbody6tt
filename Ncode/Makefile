@@ -1,14 +1,34 @@
-.KEEP_STATE:
-#suggested by Keigo Nitadori 11/06/08.
-FFLAGS = -O3 -Wall -ffast-math
-#FFLAGS += -O3 -fbounds-check
-#FFLAGS = -O3 -pg
-CFLAGS = -O3
-#FFLAGS = -O3
-#FC = f77
-#LD = f77
+########################################################################
+######### NBODY6TT  - Florent Renaud
+########################################################################
+.KEEP_STATE: #suggested by Keigo Nitadori 11/06.
+
+########################################################################
+######### Compiler options, directives and paths
+########################################################################
+
+### curie
+CFLAGS = -O3 -ffast-math
+FFLAGS = -O3
 FC = gfortran
 LD = gfortran -lstdc++ -fopenmp
+
+### titane, oort
+#CFLAGS = -O3
+#FFLAGS = -O3
+#FC = gfortran
+#LD = gfortran -lstdc++ -fopenmp
+
+### nbody6 options
+#FFLAGS = -O3 -Wall -ffast-math
+#CFLAGS = -O3
+#FC = gfortran
+#LD = gfortran -lstdc++ -fopenmp
+
+
+########################################################################
+######### Common variables and targets
+########################################################################
 
 VPATH = ../Chain:../Nchain
 
@@ -53,10 +73,15 @@ swcond.f switch.f transk.f transq.f transx.f vector.f xtf.f xtrnlu.f \
 ycopy.f ysave.f \
 absorb.f chaos2.f chdata.f chfind.f chfirr.f chinit.f chlist.f chmod.f \
 chpert.f chpot.f chterm.f expel2.f fchain.f ghost.f giant2.f kcpert.f \
-reduce.f reinit.f renew.f setsys.f tchain.f xcpred.f xtpert.f
-
+reduce.f reinit.f renew.f setsys.f tchain.f xcpred.f xtpert.f \
+ttcal.f ttinit.f
+### FlorentR - add ttinit.f and ttcal.f (above)
 
 OBJECTS = $(SOURCE:.f=.o)
+
+### FlorentR - add an "all" target
+all:	nbody6
+### FRenaud
 
 nbody6:	$(OBJECTS)
 	$(LD) $(FFLAGS) $(OBJECTS) -o nbody6
@@ -67,3 +92,7 @@ print:
 
 clean:
 	rm *.o
+
+
+
+

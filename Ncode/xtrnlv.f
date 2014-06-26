@@ -95,6 +95,21 @@
               ET = ET + 0.5*V02*(LOG(RI2) - LOG(RG2))
           END IF
           ET = BODY(I)*ET
+*** FlorentR - case of tidal tensor
+      ELSE IF (KZ(14).EQ.9) THEN
+         DO I = I1,I2
+           ETI = 0.0D0
+           DO K=1,3
+             XI(K) = X(K,I)
+           END DO
+           DO 26 K = 1,3
+             DO 25 J = 1,3
+               ETI = ETI - XI(J) * TTEFF(J,K) * XI(K) * 0.5D0
+   25        CONTINUE
+   26      CONTINUE
+           ET = ET + BODY(I) * ETI  
+         END DO
+*** FRenaud
       END IF
 *
 *       Place sum in ETIDE and single particle contribution in HT.

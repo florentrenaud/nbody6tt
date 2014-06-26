@@ -9,7 +9,11 @@
 *     PARAMETER  (NMAX=34010,KMAX=2010,LMAX=500,MMAX=100,
 *     PARAMETER  (NMAX=25020,KMAX=1010,LMAX=300,MMAX=10,
       PARAMETER  (NMAX=4010,KMAX=1010,LMAX=100,MMAX=10,
-     &            MLD=22,MLR=22,MLV=10,MCL=10,NCMAX=10,NTMAX=100)
+*** FlorentR - maximum number of tensors to read
+*     &            MLD=22,MLR=22,MLV=10,MCL=10,NCMAX=10,NTMAX=100)
+     &     MLD=22,MLR=22,MLV=10,MCL=10,NCMAX=10,NTMAX=100,
+     &     NBTTMAX=100000)
+*** FRenaud
 *
 *
 *       ------------------------------------------------------

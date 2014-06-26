@@ -11,6 +11,9 @@
      &    NS=44*MMAX)
       REAL*4  A,B,C,D,E,G,L,M,O,P,Q,S
       INTEGER K,I,NTSAVE
+*** FlorentR - File name used for secured saving
+      CHARACTER(LEN=8) FILENAME
+*** FRenaud
 *
       COMMON/NAMES/  NTOT,NPAIRS,NTTOT,A(NA)
       COMMON/COUNTS/ B(NB)
@@ -42,6 +45,10 @@
      &               R(KMAX),R0(KMAX),GAMMA(KMAX),SF(7,KMAX),H0(KMAX),
      &               FP0(4,KMAX),FD0(4,KMAX),TBLIST,DTB,KBLIST(KMAX),
      &               KSLOW(KMAX),NAME(NMAX),LIST(LMAX,NMAX)
+*** FlorentR - New block used for tt treatment
+      COMMON/TT/     TTENS(3,3,NBTTMAX),TTEFF(3,3),DTTEFF(3,3),
+     &               TTTIME(NBTTMAX),TTUNIT, NBTT
+*** FRenaud
 *
 *       Open unit #J by reading dummy and rewinding.
       REWIND J
@@ -89,12 +96,28 @@
      *    (kblist(i),i=1,kmax),(kslow(i),i=1,npairs),(name(i),i=1,ntot)
 
         write (J) ((list(k,i),k=1,list(1,i)+1),i=1,ntot)
+*** FlorentR
+        write (J) ttunit, nbtt, indtt
+        write (J) (((ttens(k,i,kk),k=1,3),i=1,3),kk=1,nbtt),
+     *      ((tteff(k,i),k=1,3),i=1,3),((dtteff(k,i),k=1,3),i=1,3),
+     *      (tttime(i),i=1,nbtt)
+*** FRenaud
 
         END FILE J
         CLOSE (UNIT=J)
+*** FlorentR - There is a risk that the code stops before fort.x
+*       (x=1 or 2) is fully writen. To avoid that, fort.x is renamed 
+*       into restart.tmp when it is complete.
+        WRITE(FILENAME,'("fort.",I1)') J
+	CALL RENAME(FILENAME,'restart.tmp')
+*** FRenaud
 *       Restore standard array pointer.
         NTOT = NTSAVE
       else
+*** FlorentR - open explicitely
+        OPEN(UNIT=J,FILE='restart.dat',STATUS='UNKNOWN',
+     *     FORM='UNFORMATTED')
+*** FRenaud
 
         READ (J) ntot,npairs,nttot,a,b,c,d,e,g,l,m,o,p,q,s
 
@@ -143,6 +166,20 @@
      *    (kblist(i),i=1,kmax),(kslow(i),i=1,npairs),(name(i),i=1,ntot)
 
         read (J) (list(1,i),(list(k,i),k=2,list(1,i)+1),i=1,ntot)
+*** FlorentR
+        read (J) ttunit, nbtt
+
+        if (nbtt.gt.nbttmax) then
+          write (*,*) "DANGER NBTT > NBTTMAX !"
+          stop
+        end if
+
+        read (J) (((ttens(k,i,kk),k=1,3),i=1,3),kk=1,nbtt),
+     *    ((tteff(k,i),k=1,3),i=1,3),((dtteff(k,i),k=1,3),i=1,3),
+     *    (tttime(i),i=1,nbtt)
+
+        CLOSE(J)
+*** FRenaud
         NTOT = NTSAVE
       END IF
 *

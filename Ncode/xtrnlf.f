@@ -25,6 +25,21 @@
               FDR(3) = FDR(3) + TIDAL(3)*XIDOT(3)
           END IF
       END IF
+*** FlorentR - Tidal forces and derivative computed from tidal tensor
+*** no irregular forces used (i.e. KCASE > 0).
+      IF (KZ(14).EQ.9.AND.KCASE.GT.0) THEN
+* update the tidal tensor
+        CALL TTCAL
+        DO 36 J = 1,3
+          DO 35 K = 1,3
+            FREG(J) = FREG(J) + TTEFF(J,K) * XI(K)
+            FDR(J) = FDR(J) + DTTEFF(J,K) * XI(K) 
+     &             + TTEFF(J,K) * XIDOT(K)
+   35     CONTINUE
+   36   CONTINUE
+      END IF
+*** FRenaud
+
 *
 *       Consider point-mass, disk and/or logarithmic halo model.
       IF (KZ(14).EQ.3.AND.KCASE.GT.0) THEN
