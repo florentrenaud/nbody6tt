@@ -19,7 +19,10 @@
           FIRST = .FALSE.
           GO TO 30
 *       Treat all cases uniformly (but note Coliolis term in FIRR).
-      ELSE IF (KZ(14).LE.4.AND.I2.NE.I1) THEN
+*** FlorentR - case of tidal tensor
+      ELSE IF ((KZ(14).LE.4.OR.KZ(14).EQ.9).AND.I2.NE.I1) THEN
+*      ELSE IF (KZ(14).LE.4.AND.I2.NE.I1) THEN
+*** FRenaud
           VIR = 0.0
           DO 5 I = I1,I2
               DO 2 K = 1,3
@@ -39,7 +42,11 @@
     4         CONTINUE
     5     CONTINUE
 *       Quit for pure 3D tidal field (case of full N summation).
-          IF (KZ(14).EQ.3) GO TO 40
+*** FlorentR - case of tidal tensor
+          IF (KZ(14).EQ.3.OR.KZ(14).EQ.9) GO TO 40
+*          IF (KZ(14).EQ.3) GO TO 40
+*** FRenaud
+
       END IF
 *
 *       See whether to include a linearized galactic tidal force.
@@ -64,19 +71,6 @@
               ET = ET + GMG*(1.0/SQRT(RI2) - 1.0/SQRT(RG2))
           END IF
 *
-*       Check contribution from gamma/eta bulge potential.
-          IF (GMB.GT.0.0D0) THEN
-              IF (GAM.NE.2.0D0) THEN
-                  RRG = 1.0 - (1.0 + AR/SQRT(RG2))**(GAM-2.0)
-                  RRI = 1.0 - (1.0 + AR/SQRT(RI2))**(GAM-2.0)
-                  ET = ET + GMB/(AR*(2.0-GAM))*(RRI-RRG)
-              ELSE
-                  RRG = 1.0 + AR/SQRT(RG2)
-                  RRI = 1.0 + AR/SQRT(RI2)
-                  ET = ET + GMB/AR*LOG(RRG/RRI)
-              ENDIF
-          END IF
-*
 *       Add optional Miyamoto disk potential.
           IF (DISK.GT.0.0D0) THEN
               R2 = (RG(1) + XI(1))**2 + (RG(2) + XI(2))**2
@@ -90,12 +84,11 @@
 *
 *       Check addition of differential logarithmic potential.
           IF (V02.GT.0.0D0) THEN
-              RI2 = RI2 + RL2
-              RG2 = RG2 + RL2
               ET = ET + 0.5*V02*(LOG(RI2) - LOG(RG2))
           END IF
+*       Form the differential potential energy due to tides.
           ET = BODY(I)*ET
-*** FlorentR - case of tidal tensor
+*** FlorentR - case of tidal tensor (never used)
       ELSE IF (KZ(14).EQ.9) THEN
          DO I = I1,I2
            ETI = 0.0D0
@@ -107,7 +100,7 @@
                ETI = ETI - XI(J) * TTEFF(J,K) * XI(K) * 0.5D0
    25        CONTINUE
    26      CONTINUE
-           ET = ET + BODY(I) * ETI  
+           ET = ET + BODY(I) * ETI
          END DO
 *** FRenaud
       END IF

@@ -26,7 +26,7 @@
           END IF
       END IF
 *** FlorentR - Tidal forces and derivative computed from tidal tensor
-*** no irregular forces used (i.e. KCASE > 0).
+* no irregular forces used (i.e. KCASE > 0).
       IF (KZ(14).EQ.9.AND.KCASE.GT.0) THEN
 * update the tidal tensor
         CALL TTCAL
@@ -39,7 +39,6 @@
    36   CONTINUE
       END IF
 *** FRenaud
-
 *
 *       Consider point-mass, disk and/or logarithmic halo model.
       IF (KZ(14).EQ.3.AND.KCASE.GT.0) THEN

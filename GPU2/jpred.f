@@ -27,10 +27,12 @@
       IF (I.GT.N) THEN
           JPAIR = I - N
           IF (LIST(1,2*JPAIR-1).GT.0) THEN
+!$omp critical
               ZZ = 1.0
 *       Distinguish between low and high-order prediction of U & UDOT.
               IF (GAMMA(JPAIR).GT.1.0D-04) ZZ = 0.0
               CALL KSRES2(JPAIR,J1,J2,ZZ)
+!$omp end critical
           END IF
       END IF
 *

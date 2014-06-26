@@ -7,6 +7,7 @@
       INCLUDE 'common6.h'
       COMMON/PREDICT/ TPRED(NMAX)
       REAL*8  FIRR(3),FD(3),DX(3),DV(3),FP(6),FPD(6),FCM(3),FCMD(3)
+      REAL*8  CMX(3),CMV(3),XK(6),VK(6)
 *
 *
 *       Set perturber number and KS indices.
@@ -18,19 +19,41 @@
 *       Form irregular force components for perturbed KS pair.
       DO 50 LL = 2,NP+1
           J = LIST(LL,I1)
-*       See whether perturber has been resolved (at irregular force time).
-          IF (TPRED(J).NE.TIME) THEN
-              CALL JPRED(J)
+*       Obtain coordinates & velocity by prediction or copying.
+          IPRED = 1
+          IF (TPRED(J).EQ.TIME) IPRED = 0
+          IF (J.LE.N) THEN
+              CALL JPRED2(J,IPRED,CMX,CMV)
+              K = J
+          ELSE
+              JPAIR = J - N
+              J1 = 2*JPAIR - 1
+              IF (LIST(1,J1).EQ.0) THEN
+                  CALL JPRED2(J,IPRED,CMX,CMV)
+                  K = J
+              ELSE
+                  CALL KSRES3(JPAIR,J1,J2,IPRED,CMX,CMV,XK,VK)
+                  K = J1
+              END IF
           END IF
+*
+*       Copy c.m. values for case of single or unperturbed KS.
+          IF (K.EQ.J) THEN
+              DO 10 L = 1,3
+                  XK(L) = CMX(L)
+                  VK(L) = CMV(L)
+   10         CONTINUE
+          END IF
+*
 *       Obtain individual c.m. force with single particle approximation.
-          A1 = X(1,J) - X(1,I)
-          A2 = X(2,J) - X(2,I)
-          A3 = X(3,J) - X(3,I)
+          A1 = CMX(1) - X(1,I)
+          A2 = CMX(2) - X(2,I)
+          A3 = CMX(3) - X(3,I)
           RIJ2 = A1*A1 + A2*A2 + A3*A3
 *
-          DV(1) = XDOT(1,J) - XDOT(1,I)
-          DV(2) = XDOT(2,J) - XDOT(2,I)
-          DV(3) = XDOT(3,J) - XDOT(3,I)
+          DV(1) = CMV(1) - XDOT(1,I)
+          DV(2) = CMV(2) - XDOT(2,I)
+          DV(3) = CMV(3) - XDOT(3,I)
           DR2I = 1.0/RIJ2
           DR3I = BODY(J)*DR2I*SQRT(DR2I)
           DRDV = 3.0*(A1*DV(1) + A2*DV(2) + A3*DV(3))*DR2I
@@ -43,25 +66,12 @@
           FCMD(2) = (DV(2) - A2*DRDV)*DR3I
           FCMD(3) = (DV(3) - A3*DRDV)*DR3I
 *
-*       See whether to resolve binary components.
-          IF (J.GT.N) THEN
-              J1 = 2*(J - N) - 1
-*       Adopt c.m. of unperturbed binary for consistency.
-              IF (LIST(1,J1).EQ.0) THEN
-                  K = J
-              ELSE
-                  K = J1
-              END IF
-          ELSE
-              K = J
-          END IF
-*
 *       Evaluate perturbation on first component due to body #K.
    20     dr2 = 0.0
           drdv = 0.0
           DO 25 L = 1,3
-              dx(L) = X(L,K) - X(L,I1)
-              dv(L) = XDOT(L,K) - XDOT(L,I1)
+              dx(L) = XK(L) - X(L,I1)
+              dv(L) = VK(L) - XDOT(L,I1)
               dr2 = dr2 + dx(L)**2
               drdv = drdv + dx(L)*dv(L)
    25     CONTINUE
@@ -79,8 +89,8 @@
           dr2 = 0.0
           drdv = 0.0
           DO 32 L = 1,3
-              dx(L) = X(L,K) - X(L,I2)
-              dv(L) = XDOT(L,K) - XDOT(L,I2)
+              dx(L) = XK(L) - X(L,I2)
+              dv(L) = VK(L) - XDOT(L,I2)
               dr2 = dr2 + dx(L)**2
               drdv = drdv + dx(L)*dv(L)
    32     CONTINUE
@@ -107,6 +117,8 @@
               DO 45 L = 1,3
                   FCM(L) = 0.0
                   FCMD(L) = 0.0
+                  XK(L) = XK(L+3)
+                  VK(L) = VK(L+3)
    45         CONTINUE
               K = K + 1
               GO TO 20

@@ -9,7 +9,7 @@
      &                LISTC(LMAX)
       COMMON/PREDICT/ TPRED(NMAX)
       REAL*8  XI(3),XIDOT(3),FIRR(3),FREG(3),FD(3),FDUM(3),DX(3),DV(3)
-      REAL*8  FCM(3),FCMD(3),FP(6),FPD(6)
+      REAL*8  CMX(3),CMV(3),XK(6),VK(6),FCM(3),FCMD(3),FP(6),FPD(6)
 *
 *
       CALL JPRED(I)
@@ -104,25 +104,20 @@
           IF (LIST(1,J1).EQ.0) THEN
               GO TO 50
           END IF
-          IF (TPRED(J).EQ.TIME) THEN
-!$omp critical
-              ZZ = 1.0
-              IF (GAMMA(JPAIR).GT.1.0D-04) ZZ = 0.0
-              CALL KSRES2(JPAIR,J1,J2,ZZ)
-!$omp end critical
-          ELSE
-              CALL JPRED(J)
-          END IF
-          J2 = J1 + 1
+*       Prepare prediction on the fly for c.m. and the components.
+          IPRED = 1
+          IF (TPRED(J).EQ.TIME) IPRED = 0
+          CALL KSRES3(JPAIR,J1,J2,IPRED,CMX,CMV,XK,VK)
+*
 *       Obtain individual c.m. force with single particle approximation.
-          A1 = X(1,J) - X(1,I)
-          A2 = X(2,J) - X(2,I)
-          A3 = X(3,J) - X(3,I)
+          A1 = CMX(1) - X(1,I)
+          A2 = CMX(2) - X(2,I)
+          A3 = CMX(3) - X(3,I)
           RIJ2 = A1*A1 + A2*A2 + A3*A3
 *
-          DV(1) = XDOT(1,J) - XDOT(1,I)
-          DV(2) = XDOT(2,J) - XDOT(2,I)
-          DV(3) = XDOT(3,J) - XDOT(3,I)
+          DV(1) = CMV(1) - XDOT(1,I)
+          DV(2) = CMV(2) - XDOT(2,I)
+          DV(3) = CMV(3) - XDOT(3,I)
           DR2I = 1.0/RIJ2
           DR3I = BODY(J)*DR2I*SQRT(DR2I)
           DRDV = 3.0*(A1*DV(1) + A2*DV(2) + A3*DV(3))*DR2I
@@ -138,8 +133,8 @@
           dr2 = 0.0
           drdv = 0.0
           DO 42 L = 1,3
-              dx(L) = X(L,J1) - X(L,I)
-              dv(L) = XDOT(L,J1) - XDOT(L,I)
+              dx(L) = XK(L) - X(L,I)
+              dv(L) = VK(L) - XDOT(L,I)
               dr2 = dr2 + dx(L)**2
               drdv = drdv + dx(L)*dv(L)
    42     CONTINUE
@@ -153,12 +148,12 @@
               FPD(L) = (dv(L) - dx(L)*drdv)*dr3i
    45     CONTINUE
 *
-*       Evaluate perturbation on second component due to body #K.
+*       Evaluate perturbation on second component due to body #J.
           dr2 = 0.0
           drdv = 0.0
           DO 46 L = 1,3
-              dx(L) = X(L,J2) - X(L,I)
-              dv(L) = XDOT(L,J2) - XDOT(L,I)
+              dx(L) = XK(L+3) - X(L,I)
+              dv(L) = VK(L+3) - XDOT(L,I)
               dr2 = dr2 + dx(L)**2
               drdv = drdv + dx(L)*dv(L)
    46     CONTINUE
@@ -181,7 +176,7 @@
 *
 *       Include differential force treatment for regularized subsystem.
    60 IF (NCH.GT.0) THEN
-!$omp critical
+*!$omp critical
 *       Distinguish between chain c.m. and any other particle.
           IF (NAME(I).EQ.0) THEN
               CALL CHFIRR(I,0,XI,XIDOT,FIRR,FD)
@@ -198,7 +193,7 @@
    65         CONTINUE
           END IF
    69     CONTINUE
-!$omp end critical
+*!$omp end critical
       END IF 
 *
 *       Check option for external tidal field using predicted FREG.

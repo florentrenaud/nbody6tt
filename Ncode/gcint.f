@@ -24,22 +24,20 @@
           RGVG = RGVG + RG(K)*VG(K)
    10 CONTINUE
 *
-*       Obtain force and first derivative of galaxy model.
-      IF (GMG.GT.0.0D0) THEN
+*** FlorentR - Compute the force from the user-definition of the pot.
+      IF( (KZ(14).EQ.9).AND.(.NOT. TTMODE).AND.(DT.NE.0) ) THEN
+        CALL TTFORCE(RG,FM,FD,DT)
+        GO TO 35
+      END IF
+*** FRenaud
+*       Obtain force and first derivative of point-mass galaxy.
+      IF (KZ(14).EQ.3.AND.GMG.GT.0.0D0) THEN
           CALL FNUC(RG,VG,FM,FD)
       ELSE
-          DO 12 K = 1,3
+          DO 20 K = 1,3
               FM(K) = 0.0
               FD(K) = 0.0
-   12     CONTINUE
-      END IF
-*
-      IF (GMB.GT.0.0D0) THEN
-          CALL FBULGE(RG,VG,FS,FSD)
-          DO 15 K = 1,3
-              FM(K) = FM(K) + FS(K)
-              FD(K) = FD(K) + FSD(K)
-   15     CONTINUE
+   20     CONTINUE
       END IF
 *
 *       Include optional Miyamoto disk component (Book eq. 8.52).
@@ -60,6 +58,9 @@
    30     CONTINUE
       END IF
 *
+*** FlorentR - add a continue statement
+   35 CONTINUE
+*** FRenaud
 *       Set time factors for corrector.
       DT13 = ONE3*DT
       DTSQ12 = ONE12*DT**2  

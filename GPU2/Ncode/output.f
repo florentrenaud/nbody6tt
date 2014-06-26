@@ -193,14 +193,21 @@
           CALL LAGR2(RDENS)
       END IF
 *
+*       Check optional plotting file for main cluster parameters.
+      IF (KZ(44).GT.0) THEN
+          WRITE (56,77) TPHYS, TIME+TOFF, RSCALE*RBAR, ZMASS*SMU, NCOLL
+   77     FORMAT (' ',1P,4E12.4,0P,I5)
+          CALL FLUSH(56)
+      END IF
+*
 *       Include diagnostics about cluster orbit in general external field.
       IF (KZ(14).EQ.3) THEN
           GZ = RG(1)*VG(2) - RG(2)*VG(1)
           SX = RBAR/1000.0
-          WRITE (6,78)  TTOT*TSTAR, NTAIL, (RG(K)*SX,K=1,3),
-     &                  (VG(K)*VSTAR,K=1,3), GZ, ETIDE
-   78     FORMAT (/,5X,'CLUSTER ORBIT    TPH NT RG VG JZ ET ',
-     &                            F7.1,I5,3F7.2,2X,3F7.1,1P,E16.8,E9.1)
+          WRITE (6,78)  NTAIL, (RG(K)*SX,K=1,3), (VG(K)*VSTAR,K=1,3),
+     &                  GZ, ETIDE
+   78     FORMAT (/,5X,'CLUSTER ORBIT    NT RG VG JZ ET ',
+     &                                 I5,3F7.2,2X,3F7.1,1P,E16.8,E10.2)
       END IF
       IF (KZ(14).EQ.4) THEN
           WRITE (6,80)  TTOT, N, RSCALE, ZMASS, MP, DETOT

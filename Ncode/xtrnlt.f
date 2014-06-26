@@ -10,18 +10,11 @@
       REAL*8  XI(3),XIDOT(3),FREG(3),FDR(3),FM(3),FMD(3)
 *
 *
-*       Consider point-mass, bulge, disk and/or logarithmic halo model.
+*       Consider point-mass, disk and/or logarithmic halo model.
       IF (KZ(14).EQ.3) THEN
 *       Employ global instead of linearized forms for better accuracy.
           IF (GMG.GT.0.0D0) THEN
               CALL FNUC(XI,XIDOT,FM,FMD)
-              DO 5 K = 1,3
-                  FREG(K) = FREG(K) + FM(K)
-                  FDR(K) = FDR(K) + FMD(K)
-    5         CONTINUE
-          END IF
-          IF (GMB.GT.0.0D0) THEN
-              CALL FBULGE(XI,XIDOT,FM,FMD)
               DO 10 K = 1,3
                   FREG(K) = FREG(K) + FM(K)
                   FDR(K) = FDR(K) + FMD(K)
@@ -46,6 +39,18 @@
    30         CONTINUE
           END IF
       END IF
+
+*** FlorentR - Compute the force from the user-definition of the pot.
+      IF( (KZ(14).EQ.9).AND.(.NOT. TTMODE) ) THEN
+* the time derivative of the force is not taken into account for now.
+        CALL TTTAIL(XI,FM,FMD)
+          DO 40 K = 1,3
+            FREG(K) = FREG(K) + FM(K)
+            FDR(K) = FDR(K) + FMD(K)
+   40     CONTINUE
+      END IF
+*** FRenaud
+
 *
       RETURN
 *

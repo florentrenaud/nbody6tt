@@ -173,6 +173,9 @@
           NAMES(L,ISUB) = NAMES(L+1,ISUB)
    70 CONTINUE
 *
+*       Ensure current coordinates & velocities for chain components.
+      CALL XCPRED(1)
+*
 *       Initialize neighbour list using current radius of (old) #ICH.
       CALL NBLIST(ICH,RS0)
 *
@@ -286,9 +289,6 @@
           WRITE (6,97)  TIME+TOFF, (CG(K),K=1,6)
    97     FORMAT (' REDUCE:   T CG ',F12.5,1P,6E9.1)
       END IF
-*
-*       Ensure current coordinates & velocities for chain components.
-      CALL XCPRED(1)
 *
   100 RETURN
 *

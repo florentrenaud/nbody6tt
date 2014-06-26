@@ -115,7 +115,7 @@ tested since it was first developed around 1992.
 This code is mainly intended for laptops and workstations with the {\tt UNIX}
 operating system.
 A parallel implementation called {\ZZ{NBODY6\plusplus}} for Beowulf PC
-clusters and the T3E supercomputer is also available [Spurzem \etal 2003].
+clusters and the T3E supercomputer is also available [Spurzem 1999].
 
 The code relies on many features of the classical {\ZZ{NBODY5}} which dates
 back to the late 1970s.
@@ -159,11 +159,11 @@ tar file.\footnote{\tt http://www.ast.cam.ac.uk/research.nbody.}
 
 \section{Code structure}
 
-The whole code consists of some 50,000 lines including comments and layout
+The whole code consists of some 55,000 lines including comments and layout
 space.
 It is written in {\ZZ{FORTRAN}} and is f77 compliant but also compiles
 with g77, Intel or F95 (ignore warning messages of non-standard expressions).
-There are about 296 routines altogether, mostly with mnemonic names of
+There are about 330 routines altogether, mostly with mnemonic names of
 maximum six characters.
 Likewise, almost all the {\ZZ{FORTRAN}} statements are in upper case while
 the comments are in lower case.
@@ -217,9 +217,8 @@ The present modest choice of parameters ($N_{\rm max} = 4010$) produces a
 {\tt common} block of about 4~Mb.
 
 Before compiling, check the {\ZZ {FORTRAN}} directives in the {\tt Makefile},
-\ie whether {\tt f77} or {\tt g77} and use the highest optimization level.
-Compile by the command `{\tt make nbody6}' which should produce the
-executable {\tt nbody6}.
+\ie whether {\tt f77} or {\tt gfortran} and use the highest optimization level.
+Compile by `{\tt make nbody6}' which should produce the executable {\tt nbody6}.
 One possible reason for failure could be the {\tt CPU} timer function
 {\tt etime} in routine {\tt cputim.f} which is system dependent.
 Any other complaints and strange run-time behaviour should be reported after
@@ -229,7 +228,7 @@ It is also a good idea to save the original files when making changes.
 
 To start a test run, place the executable and a template input file
 {\tt input} in one directory and type the command
-`{\tt nbody6 $<$ input $>$ output \&}'.
+`{\tt nbody6 $<$ input $>$ output \&}' (or '{\tt time}' first).
 Although the results are machine- and compiler-dependent, it is expected that
 the run will finish normally but there is always a chance that some difficult
 configuration may occur.
@@ -249,7 +248,7 @@ Also note the possibility of reading some new parameters at restart if
 file {\tt rs}).
 Before restarting in the same directory, any important output files in
 capitals ({\it e.g.} {\tt ESC, OUT9}) must be renamed and/or deleted
-(likewise any fort.82 and fort.83).
+(likewise any fort.82 and fort.83 with \#~12).
 
 The code includes an optional provision for automatic error checking.
 Thus if option \#~2 = 2, any output interval with relative energy error
@@ -640,7 +639,7 @@ More recently, a general three-body stability criterion has been developed
 from first principles [Mardling 2008].
 It is valid for a wide mass range and all inclinations and the robustness
 has been verified by numerical tests.
-We also mention that the code now includes an averaging method
+We also mention that the code now includes an optional averaging method
 to model the eccentricity oscillations (Kozai cycles) induced by high
 inclinations.
 
@@ -670,7 +669,7 @@ index is simply given by $I_{\rm p} = j - N$.
 For stability purposes, triples may be considered as degenerate quadruples
 and a small correction term is included for the smallest binary.
 Although rare, higher-order systems also occur and are treated in an
-analogous manner (their data structure is discussed in the book). 
+analogous manner (their data structure is discussed in a book appendix). 
 
 Further stability checks are made at each apocentre passage because the outer
 orbit may have changed due to perturbations.
@@ -884,9 +883,9 @@ full 3D galactic model has been implemented (\#~14~= 3).
 Note that the external effect is only included in {\tt xtrnlf.f} for the
 direct integration, consistent with treating binaries in the c.m.
 approximation here.
-We adopt a composite galaxy model consisting of three components:
-(i) central point mass, (ii) Miyamoto--Nagai (1975) disk, and (iii)
-logarithmic potential.
+We adopt a composite galaxy model consisting of four components:
+(i) central point mass, (ii) bulge (gamma/eta model), (iii) Miyamoto--Nagai
+(1975) disk and (iv) logarithmic potential.
 This model gives a good representation of the Galaxy and satisfies the
 requirement of being computationally convenient for the Hermite scheme.
 In order to provide more flexibility, any combination of the components may
@@ -902,7 +901,7 @@ Consequently, the cluster motion is known to high accuracy throughout
 the calculation.
 As before, distant stars may be considered as escapers and are removed if
 \#~23~$>$~0.
-Unless specified initially, a value {\tt RTIDE} = 50~pc is adopted for
+Unless specified initially, a value {\tt RTIDE} = 10 is adopted for
 the tidal radius.
 Alternatively, the ejected members may be added to a test population forming
 the tidal tail and integrated by a fast method (see below).
@@ -956,8 +955,7 @@ A consistent expression for the latter can be derived from first principles
 (based on summing $m {\bf r} \cdot {\bf F}$) which leads to combining the
 potential and virial energies in the denominator.
 Finally, total energy conservation is achieved by adding the sum of tidal
-energy contributions in the usual way at output time (\cf {\tt ETIDE} in
-routine {\tt adjust.f}).
+energy contributions at output time.
 
 \section{Tidal tails}
 
@@ -972,7 +970,7 @@ the tidal tail particles saved in unused parts of the arrays (which
 necessitates making a suitable declaration of maximum array size).
 In fact, the standard size of the {\tt common} blocks remains unchanged,
 with four counters or pointers replacing part of a redundant integer array.
-There are only three new routines of modest size and another five are
+There are only four new routines of modest size and another five are
 modified slightly.
 
 Each tidal tail member is initialized for integration at the time of
@@ -1056,9 +1054,9 @@ evolution when the central density is smaller and more complex hierarchical
 configurations are formed.
 In order to investigate a given problem, it is useful to halt the
 calculation before including some diagnostics.
-This can be achieved by typing `{\tt touch STOP}' at an arbitrary time,
-whereupon a {\tt common} save will occur on {\tt fort.1}, from which a
-restart can be made.
+This can be achieved by typing `{\tt touch STOP}' at any time,
+whereupon a {\tt common} save will occur on {\tt fort.1} if \#~1~$>$ 0),
+from which a restart can be made.
 
 Although the external energy binding the cluster may be feeble, superhard
 binaries tend to have strong interactions enhanced by their gravitational
@@ -1067,13 +1065,11 @@ Even if not present initially, such binaries may form via tidal
 circularization.
 In any case, some shrinkage by dynamical means is possible before ejection
 by recoil intervenes.
-Thus a small deviation of the total energy may give rise to a
+Thus a small deviation of the total energy would rise to a
 disproportionately large relative error because the external energy appears
 in the denominator.
 If larger, the relative error is therefore replaced by 100 times the actual
-change.
-%In this connection, note that the accumulated energy change is
-%given at the end of a calculation.
+change (only GPU version).
 
 Finally, a word of warning concerning output time intervals.
 Thus it is highly desirable to employ quantized values like 0.125 or 1.0
@@ -1092,7 +1088,7 @@ The following colleagues have made substantial contributions to the code:
 \end{itemize}
 
 \bigskip
-Version 7.3.0 12/2009.
+Version 7.3.0 12/2009; updated 6/2012.
 
 \newpage
 \section*{References}
@@ -1100,177 +1096,178 @@ Version 7.3.0 12/2009.
 \medskip
 \noindent
 Aarseth, S.J. [1972], `Direct integration methods for the $N$-body problem',
-in {\it Gravitational $N$-Body Problem} ed. M. Lecar (D. Reidel), 373--87.
+in {\it Gravitational $N$-Body Problem} ed. M. Lecar (D. Reidel), 373--87
 
 \medskip
 \noindent
 Aarseth, S.J. [1985], `Direct methods for $N$-body simulations',
 in {\it Multiple Time Scales} ed. J.U. Brackbill \& B.I. Cohen
-(Academic Press), 377--418.
+(Academic Press), 377--418
 
 \medskip
 \noindent
 Aarseth, S.J. [1999], `From NBODY1 to NBODY6: the growth of an industry',
-{\it PASP} {\bf 111}, 1333--46.
+{\it PASP} {\bf 111}, 1333--46
 
 \medskip
 \noindent
 Aarseth, S.J. [2001a], `NBODY2: a direct $N$-body integration code',
-{\it New Astron.} {\bf 6}, 277--91.
+{\it New Astron.} {\bf 6}, 277--91
 
 \medskip
 \noindent
 Aarseth, S.J. [2001b], `Regularization methods for the $N$-body problem',
 in {\it The Restless Universe}, ed. B.A. Steves \& A.J. Maciejewski
-(Inst. Phys. Publ.), 93--108.
+(Inst. Phys. Publ.), 93--108
 
 \medskip
 \noindent
-Aarseth, S.J. [2003], {\it Gravitational N-Body Simulations} (Cambridge University Press).
+Aarseth, S.J. [2003], {\it Gravitational N-Body Simulations} (Cambridge University Press)
 
 \medskip
 \noindent
 Aarseth, S.J. \& Zare, K. [1974], `A regularization of the three-body problem',
-{\it Celes. Mech.} {\bf 10}, 185--205.
+{\it Celes. Mech.} {\bf 10}, 185--205
 
 \medskip
 \noindent
 Ahmad, A. \& Cohen, L. [1973], `A numerical integration scheme for the $N$-body
-gravitational problem', {\it J. Comput. Phys.} {\bf 12}, 389--402.
+gravitational problem', {\it J. Comput. Phys.} {\bf 12}, 389--402
 
 \medskip
 \noindent
 Bulirsch, R. \& Stoer, J. [1966], `Numerical treatment of ordinary differential
 equations by extrapolation methods',
-{\it Num. Math.} {\bf 8}, 1--13.
+{\it Num. Math.} {\bf 8}, 1--13
 
 \medskip
 \noindent
 Eggleton, P.P., Fitchett, M.J. \& Tout, C.A. [1989], `The distribution of visual
 binaries with two bright components',
-\APJ {\bf 347}, 998-1012. (Also see Errata in \APJ {\bf 354}, 387.)
+\APJ {\bf 347}, 998-1012 (Also see Errata in \APJ {\bf 354}, 387)
 
 \medskip
 \noindent
 Hansen, B.M.S. \& Phinney, E.S. [1997], `The pulsar kick velocity distribution',
-\MN {\bf 291}, 569--77.
+\MN {\bf 291}, 569--77
 
 \medskip
 \noindent
 Heggie, D.C. [1974], `A global regularisation of the gravitational N-body problem',
-{\it Celes. Mech.} {\bf 10}, 217--41.
+{\it Celes. Mech.} {\bf 10}, 217--41
 
 \medskip
 \noindent
 Heggie, D.C. \& Ramamani, N. [1995], `Approximate self-consistent models for
 tidally truncated star clusters',
-\MN {\bf 272}, 317--22.
+\MN {\bf 272}, 317--22
 
 \medskip
 \noindent
 Hurley, J.R., Pols, O.R. \& Tout, C.A. [2000], `Comprehensive analytical formulae
 for stellar evolution as a function of mass and metallicity',
-\MN {\bf 315}, 543--69.
+\MN {\bf 315}, 543--69
 
 \medskip
 \noindent
 Hurley, J.R. [2008], `$N$-body stellar evolution',
 in {\it The Cambridge $N$-Body Lectures}, ed. S.J. Aarseth, C.A. Tout,
-R.A. Mardling (Springer), 283--296.
+R.A. Mardling (Springer), 283--296
 
 \medskip
 \noindent
 Kustaanheimo, P. \& Stiefel, E. [1965], `Perturbation theory of Kepler motion
 based on spinor regularization',
-{\it J. Reine Angew. Math.} {\bf 218}, 204--19.
+{\it J. Reine Angew. Math.} {\bf 218}, 204--19
 
 \medskip
 \noindent
 Kroupa, P., Tout, C.A. \& Gilmore, G. [1993], `The distribution of low-mass stars
 in the Galactic disc',
-\MN {\bf 262}, 545--87.
+\MN {\bf 262}, 545--87
 
 \medskip
 \noindent
 Kroupa, P., Aarseth, S.J. \& Hurley, J. [2001], `The formation of a bound star
-cluster: from the Orion Cluster to the Pleiades', \MN {\bf 321}, 699--712.
+cluster: from the Orion Cluster to the Pleiades', \MN {\bf 321}, 699--712
 
 \medskip
 \noindent
 Makino, J. [1991], `Optimal order and time-step criterion for Aarseth-type
-$N$-body integrators', \APJ {\bf 369}, 200--12.
+$N$-body integrators', \APJ {\bf 369}, 200--12
 
 \medskip
 \noindent
 Makino, J. \& Aarseth, S.J. [1992], `On a Hermite integrator with Ahmad--Cohen
 scheme for gravitational many-body problems',
-{\it Publ. Astron. Soc. Japan} {\bf 44}, 141--51.
+{\it Publ. Astron. Soc. Japan} {\bf 44}, 141--51
 
 \medskip
 \noindent
-Mardling, R.A. [2008], `A general three-body stability criterion', \MN {\bf xxx}, yyy--zzz.
+Mardling, R.A. [2008], `A general three-body stability criterion',
+in {\it The Cambridge $N$-Body Lectures}, ed. S.J. Aarseth, C.A. Tout,
+R.A. Mardling (Springer), 59--96
 
 \medskip
 \noindent
 Mardling, R.A. \& Aarseth, S.J. [1999], `Dynamics and stability of three-body systems',
 in {\it The Dynamics of Small Bodies in the Solar System}, ed. B.A. Steves \& A. Roy
-(Kluwer), 385--92.
+(Kluwer), 385--92
 
 \medskip
 \noindent
 Mardling, R.A. \& Aarseth, S.J. [2001], `Tidal interactions in star cluster simulations',
-\MN {\bf 321}, 398--420.
+\MN {\bf 321}, 398--420
 
 \medskip
 \noindent
 Mikkola, S. [1985], `A practical and regular formulation of the $N$-body equations',
-\MN {\bf 215}, 171--7.
+\MN {\bf 215}, 171--7
 
 \medskip
 \noindent
 Mikkola, S. and Aarseth, S.J. [1990], `A chain regularization method for the
 few-body problem',
-\CMD {\bf 47}, 375--90.
+\CMD {\bf 47}, 375--90
 
 \medskip
 \noindent
 Mikkola, S. \& Aarseth, S.J. [1993], `An implementation of $N$-body chain
 \hbox{regularization',}
-\CMD {\bf 57}, 439--59.
+\CMD {\bf 57}, 439--59
 
 \medskip
 \noindent
 Mikkola, S. \& Aarseth, S.J. [1996], `A slow-down treatment for close binaries',
-\CMD {\bf 64}, 197--208.
+\CMD {\bf 64}, 197--208
 
 \medskip
 \noindent
 Mikkola, S. \& Aarseth, S.J. [1998], `An efficient integration method for
 binaries in $N$-body simulations',
-{\it New Astron.} {\bf 3}, 309--20.
+{\it New Astron.} {\bf 3}, 309--20
 
 \medskip
 \noindent
 Miyamoto, M. \& Nagai, R. [1975], `Three-dimensional models for the distribution
-of mass in galaxies', {\it Publ. Astron. Soc. Japan} {\bf 27}, 533--43.
+of mass in galaxies', {\it Publ. Astron. Soc. Japan} {\bf 27}, 533--43
 
 \medskip
 \noindent
 Portegies Zwart, S.F., Hut, P., McMillan, S.L.W. \& Verbunt, F. [1997],
 `Star cluster ecology, II. Binary evolution with single-star encounters',
-{\it Astron. Astrophys.} {\bf 328}, 143--57.
+{\it Astron. Astrophys.} {\bf 328}, 143--57
 
 \medskip
 \noindent
-Spurzem, R., Baumgardt, H. \& Ibold, N. [2003], `A parallel implementation of an
-$N$-body integrator on general and special-purpose computers',
-\MN in press.
+Spurzem, R. [1999], `Direct N-body simulations',
+{\it J. Comp. Appl. Maths}, {\bf 109}, 407--32
 
 \medskip
 \noindent
 Tout, C.A., Aarseth, S.J., Pols, O. \& Eggleton, P. [1997], `Rapid binary
 star evolution for $N$-body simulations and population synthesis',
-\MN {\bf 291}, 732--48.
+\MN {\bf 291}, 732--48
 
 \newpage
 
@@ -1365,17 +1362,17 @@ the $N$-body directories (or just 'KZ' in the directory {\tt Chain}).
 19 &Synthetic stellar evolution with mass loss ($>$=3) \\
 20 &Different types of initial mass functions (=0: standard) \\
 21 &Extra output line ({\ZZ{MODEL\, \#,\, CPU,\, DMIN,\, AMIN,\, RMAX)}} \\
-22 &Initial conditions $m_i, {\bf r}_i, \dot{\bf r}_i$ on unit \#10 (=2, -1) \\
+22 &Initial conditions $m_i, {\bf r}_i, \dot{\bf r}_i$ on unit \#10 (=2, 3, -1) \\
 23 &Removal of distant escapers (isolated or tidal) \\
 26 &Slow-down of KS and/or chain regularization (=1, 2, 3) \\
 27 &Tidal circularization (=1: sequential; =2: chaos; =3: GR capture) \\
 28 &GR radiation for NS \& BH binaries (with \#19 = 3; choice of \#27) \\
 30 &Chain regularization ($>$ 1: special diagnostics) \\
 32 &Increase of output interval (limited by $t_{\rm cr}$) \\
-33 &Distribution of block-steps at output (1 or 2) \\
-34 &Roche-lobe overflow ($< $2: synhronization) \\
+33 &Distribution of block-steps at output (=1 or 2) \\
+34 &Roche-lobe overflow (=1: synhronization) \\
 35 &Integration time offset (standard = 100 time units) \\
-36 &Step reduction for hierarchies (not recommended!) \\
+36 &Step reduction for hierarchies (suppressed) \\
 37 &Neighbour additions ($> 0$: high-velocity; $> 1$: not rec.) \\
 38 &Force polynomial corrections (=0: I $>$ N; not rec.) \\
 40 &Neighbour number control ($>=2$: fine-tuning to {\ZZ{NNBMAX}}/5) \\

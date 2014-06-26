@@ -6,7 +6,7 @@
 *
       IMPLICIT REAL*8  (A-H,O-Z)
       INCLUDE 'params.h'
-      PARAMETER  (NA=84,NB=168,NC=530,ND=392+MLR+MLD+MLV,NE=24,NM=60,
+      PARAMETER  (NA=84,NB=168,NC=530,ND=392+MLR+MLD+MLV,NE=24,NM=40,
      &    NG=84+2*KMAX,NL=99,NO=20*MCL+16,NP=32*NTMAX,NQ=31*MMAX,
      &    NS=44*MMAX)
       REAL*4  A,B,C,D,E,G,L,M,O,P,Q,S
@@ -47,7 +47,7 @@
      &               KSLOW(KMAX),NAME(NMAX),LIST(LMAX,NMAX)
 *** FlorentR - New block used for tt treatment
       COMMON/TT/     TTENS(3,3,NBTTMAX),TTEFF(3,3),DTTEFF(3,3),
-     &               TTTIME(NBTTMAX),TTUNIT, NBTT
+     &               TTTIME(NBTTMAX), TTUNIT, NBTT, TTMODE, TTDX
 *** FRenaud
 *
 *       Open unit #J by reading dummy and rewinding.
@@ -97,7 +97,7 @@
 
         write (J) ((list(k,i),k=1,list(1,i)+1),i=1,ntot)
 *** FlorentR
-        write (J) ttunit, nbtt, indtt
+        write (J) ttunit, nbtt, ttmode, ttdx
         write (J) (((ttens(k,i,kk),k=1,3),i=1,3),kk=1,nbtt),
      *      ((tteff(k,i),k=1,3),i=1,3),((dtteff(k,i),k=1,3),i=1,3),
      *      (tttime(i),i=1,nbtt)
@@ -118,7 +118,6 @@
         OPEN(UNIT=J,FILE='restart.dat',STATUS='UNKNOWN',
      *     FORM='UNFORMATTED')
 *** FRenaud
-
         READ (J) ntot,npairs,nttot,a,b,c,d,e,g,l,m,o,p,q,s
 
         if (ntot.gt.nmax) then
@@ -167,9 +166,9 @@
 
         read (J) (list(1,i),(list(k,i),k=2,list(1,i)+1),i=1,ntot)
 *** FlorentR
-        read (J) ttunit, nbtt
+        read (J) ttunit, nbtt, ttmode, ttdx
 
-        if (nbtt.gt.nbttmax) then
+        if (nbtt.gt.nbttmax.AND.TTMODE.EQ.TRUE) then
           write (*,*) "DANGER NBTT > NBTTMAX !"
           stop
         end if

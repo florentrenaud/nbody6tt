@@ -55,7 +55,7 @@
 *
 *       Save KS parameters for WD or neutron star kick (routine FCORR).
    30 IF (IKICK.GT.0) THEN
-          CALL KICK(IPAIR,0,0)
+          CALL KICK(IPAIR,0,0,0.0D0)
       END IF
 *
       RETURN

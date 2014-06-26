@@ -73,7 +73,14 @@
     3             CONTINUE
               END IF
           END IF
+          DT1 = STEP(I1)
           CALL UNPERT(IPAIR)
+*
+*       Check updating of unperturbed relativistic KS binary.
+          IF (KZ(11).NE.0.AND.NCH.EQ.0.AND.LIST(1,I1).EQ.0) THEN
+              CALL BRAKE4(I1,I2,DT1)
+              IF (IPHASE.LT.0) GO TO 100
+          END IF
 *
 *       Try re-initialize chain WD/BH system after dormant KS (#11 only).
           IF (KZ(11).NE.0.AND.NCH.EQ.0.AND.LIST(1,I1).GT.0) THEN
@@ -136,7 +143,7 @@
 *       Initialize termination indicator and check for large perturbation.
       IQ = .FALSE.
       IF (GI.GT.0.25) GO TO 2
-      IF (GI.LT.0.1) THEN
+      IF (GI.LT.0.03) THEN
           JCOMP = 0
           GO TO 20
       END IF
@@ -150,7 +157,7 @@
               CALL IMPACT(I)
               IF (IPHASE.GT.0) GO TO 100
           END IF
-      ELSE IF (ITERM.EQ.2.AND.KZ(11).EQ.0) THEN
+      ELSE IF (ITERM.EQ.2) THEN
           IQ = .TRUE.
           GO TO 20
       ELSE
@@ -281,7 +288,7 @@
           STEP(I1) = ZMOD*STEP(I1)
       END IF
 *
-*       Check diagnostic print option.
+*       Check diagnostics print option.
       IF (KZ(10).GE.3) THEN
           WRITE (6,40)  IPAIR, TIME+TOFF, H(IPAIR), RI, DTAU(IPAIR),
      &                  GI, STEP(I1), LIST(1,I1), IMOD
@@ -293,16 +300,16 @@
 *       Terminate if apocentre perturbation > 0.25 (R > SEMI) or GI > 0.25.
           IF (HI.LT.0.0) THEN
               SEMI = -0.5*BODY(I)/HI
-              ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
-              A0 = SEMI*(1.0 + SQRT(ECC2))/RI
+*             ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
+*             A0 = SEMI*(1.0 + SQRT(ECC2))/RI
+*       Replace eccentricity calculation with typical value.
+              A0 = 1.5*SEMI/RI
               GA = GI*A0*A0*A0
-              IF (RI.GT.20*RMIN.AND.GA.GT.0.05) THEN
-*       Terminate if not sufficient perturbers.
-                  IF (NNB0.GT.0.8*LIST(1,I)) IQ = .TRUE.
-              END IF
               IF (GA.GT.0.25.AND.RI.GT.SEMI) IQ = .TRUE.
+              IF (RI.GT.20*RMIN.AND.NNB0.GT.0.8*LIST(1,I)) IQ = .TRUE.
               IF (GI.GT.0.1.AND.RI.GT.RMIN) IQ = .TRUE.
               IF (GI.GT.0.25) IQ = .TRUE.
+*       Include extra condition for planet case.
               IF (MIN(BODY(I1),BODY(I2)).LT.0.05*BODYM) THEN
                   IF (GI.GT.2.0D-04) IQ = .TRUE.
               END IF
@@ -323,21 +330,18 @@
 *
 *       Check standard termination criterion (suppress on IQ = .true.).
       IF (RI.GT.R0(IPAIR).AND.RI.GT.2.0*RMIN.AND..NOT.IQ) THEN
-*
-*       See whether termination can be delayed for intermediate energies.
-          IF (RI.GT.RMIN) THEN
 *       Include termination for rare tidal capture starting at pericentre.
-              IF (KSTAR(I).LT.0.AND.RI.GT.5.0*RMIN) GO TO 90
-*       Adopt typical apocentre of 1.5*SEMI to estimate max perturbation.
-              A3 = 0.75*BODY(I)/(ABS(HI)*RI)
-              A3 = MAX(A3,1.0D0)
-              IF (GI.LT.A3*A3*A3*GMAX) GO TO 60
+          IF (KSTAR(I).LT.0.AND.RI.GT.5.0*RMIN) GO TO 90
+*       Impose a limit using size of neighbour sphere (100*R > 0.80*RS).
+          IF (RI.GT.8.0D-03*RS(I).AND.GI.GT.1.0D-04) GO TO 90
+*       See whether termination can be delayed for sufficient perturbers.
+          IF (NNB0.LT.0.80*LIST(1,I).AND.GI.LT.0.1) GO TO 60
 *       Check updating of R0 for newly hardened binary orbit.
-              IF (HI.LT.-ECLOSE) THEN
-                  SEMI = -0.5*BODY(I)/HI
-                  R0(IPAIR) = MAX(RMIN,2.0D0*SEMI) 
-                  GO TO 70
-              END IF
+          IF (HI.LT.-ECLOSE) THEN
+              SEMI = -0.5*BODY(I)/HI
+              R0(IPAIR) = MAX(RMIN,2.0D0*SEMI) 
+              R0(IPAIR) = MIN(R0(IPAIR),5.0*RMIN)
+              GO TO 70
           END IF
 *
 *         IF (KZ(4).GT.0.AND.GI.GT.GPRINT(1)) THEN
@@ -580,9 +584,17 @@
           IF (MIN(BODY(I1),BODY(I2)).LT.0.05*BODYM) THEN
               IF (RP.LT.R0(IPAIR)) GO TO 90
           END IF
-*       Include optional Kozai diagnostics (large EMAX).
+*       Include optional Kozai diagnostics (large EMAX) & circularization.
           IF (KZ(42).GT.0) THEN
               CALL KOZAI(IPAIR,IM,ECC,SEMI,ITERM)
+*       Check merger termination and perform circularization or collision.
+              IF (ITERM.GT.0) THEN
+                  IPHASE = 7
+                  KSPAIR = IPAIR
+                  CALL RESET
+                  IF (ITERM.GT.1) CALL CIRC
+                  GO TO 100
+              END IF
           END IF
 *       Assess the stability inside critical pericentre (safety factor 1.04).
           IF (RP.LT.1.04*R0(IPAIR)) THEN
@@ -638,6 +650,7 @@
           IF (KMOD.GT.1.OR.IMOD.GT.1) THEN
               CALL KSMOD(IPAIR,KMOD)
               IF (KMOD.LT.0) GO TO 100
+              GO TO 82
           END IF
       END IF
 *
@@ -653,7 +666,7 @@
       END IF
 *
 *       Select new perturbers (J = N adopted for unperturbed Chaos).
-      CALL KSLIST(IPAIR)
+   82 CALL KSLIST(IPAIR)
 *
 *       Check rectification of chaotic spiral at start of unperturbed motion.
       IF (KSTAR(I).EQ.-2.AND.LIST(1,I1).EQ.0) THEN
@@ -665,9 +678,8 @@
       END IF
 *
 *       See whether a massive BH subsystem can be selected.
-      IF (KZ(24).EQ.0) GO TO 88
       IF (NAME(I).GT.0.AND.BODY(I).GT.0.0003.AND.NCH.EQ.0.AND.
-     &    KZ(11).NE.0.AND.LIST(1,I1).LE.5.AND.SEMI.LT.0.5*RMIN) THEN
+     &    KZ(11).NE.0.AND.LIST(1,I1).LE.5.AND.SEMI.LT.RMIN) THEN
 *
 *       Check optional BH condition (prevents mass-loss complications).
           IF (KZ(11).LE.-2) THEN

@@ -5,6 +5,7 @@
 *       ------------------------
 *
       INCLUDE 'common6.h'
+*
 *** FlorentR - The evaluation of the number of stars and the mass is
 ***    done iteratively, according to an energy criterion. 
 ***    Idea from Mark Gieles.
@@ -24,7 +25,6 @@
       ZMESC2 = 0
 
 *** FRenaud
-*
 *
 *       Specify escape energy (tidal field or isolated system).
       IF (KZ(14).GT.0.AND.KZ(14).LE.2) THEN

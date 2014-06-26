@@ -115,8 +115,11 @@
 *
 *       See whether an external force should be added.
       IF (KZ(14).GT.0) THEN
-*       Save current values for deriving work done by tides (#14 = 3).
-          IF (KZ(14).EQ.3) THEN
+*** FlorentR - include the case of tidal tensor
+*       Save current values for deriving work done by tides (#14 = 3 or 9).
+       IF (KZ(14).EQ.3.OR.KZ(14).EQ.9) THEN
+*       IF (KZ(14).EQ.3) THEN
+*** FRenaud
               DO 22 K = 1,3
                   FRX(K) = FREG(K)
                   FDX(K) = FDR(K)
@@ -127,7 +130,10 @@
           CALL XTRNLF(XI,XIDOT,FIRR,FREG,FD,FDR,1)
 *
 *       Form rate of tidal energy change during last regular step.
-          IF (KZ(14).EQ.3) THEN
+*** FlorentR - include the case of tidal tensor (really needed?)
+*          IF (KZ(14).EQ.3) THEN
+          IF (KZ(14).EQ.3.OR.KZ(14).EQ.9) THEN
+*** FRenaud
               WDOT = 0.0
               W2DOT = 0.0
 *             W3DOT = 0.0
@@ -343,7 +349,10 @@
       NBGAIN = 0
 *
 *       Accumulate tidal energy change for general galactic potential.
-      IF (KZ(14).EQ.3) THEN
+*** FlorentR - include the case of tidal tensor (really needed?)
+*          IF (KZ(14).EQ.3) THEN
+          IF (KZ(14).EQ.3.OR.KZ(14).EQ.9) THEN
+*** FRenaud
 *       Note: Taylor series at end of interval with negative argument.
 *         ETIDE = ETIDE - BODY(I)*((ONE6*W3DOT*DTR - 0.5*W2DOT)*DTR +
 *    &                                                   WDOT)*DTR

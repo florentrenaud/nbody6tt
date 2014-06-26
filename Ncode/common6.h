@@ -4,6 +4,9 @@
       INCLUDE 'params.h'
       IMPLICIT REAL*8  (A-H,O-Z)
       REAL*8  MP,MP0,MPDOT
+*** FlorentR - define TTMODE as a boolean
+      LOGICAL TTMODE
+*** FRenaud  
 *
       COMMON/NAMES/  NTOT,NPAIRS,NTTOT,N,NNBMAX,NCRIT,NFIX,NMERGE,NSUB,
      &               IPHASE,IFIRST,ICOMP,JCOMP,ICLOSE,JCLOSE,JCMAX,
@@ -72,8 +75,7 @@
      &               KSLOW(KMAX),NAME(NMAX),LIST(LMAX,NMAX)
 *
       COMMON/LISTS/  ILIST(NMAX),JLIST(NMAX),JPERT(5*LMAX)
-
 *** FlorentR - New block used for tt treatment
       COMMON/TT/     TTENS(3,3,NBTTMAX),TTEFF(3,3),DTTEFF(3,3),
-     &               TTTIME(NBTTMAX),TTUNIT, NBTT
+     &               TTTIME(NBTTMAX), TTUNIT, NBTT, TTMODE, TTDX
 *** FRenaud

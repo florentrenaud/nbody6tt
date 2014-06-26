@@ -383,23 +383,6 @@
    90     CONTINUE
       END IF
 *
-*       Delay regular force calculation & corrector during close encounter.
-      IF (STEP(I).LT.SMIN.AND.TIME - T0R(I).GT.0.995*STEPR(I).AND.
-     &    STEPR(I).GT.500.0*STEP(I)) THEN
-          FI2 = 0.0
-          DO 100 K = 1,3
-              FI2 = FI2 + F(K,I)**2
-  100     CONTINUE
-*       Check close encounter force for increasing regular step by 5*STEP.
-          FCL2 = (BODYM/RMIN2)**2
-          IF (FI2.GT.0.25*FCL2) THEN
-              STEPR(I) = STEPR(I) + 5.0*STEP(I)
-              STEPR(I) = MIN(STEPR(I),SMAX)
-*             WRITE (6,110)  I, FI2, STEPR(I), STEPR(I)/STEP(I)
-* 110         FORMAT (' STRETCH    I FI2 DTR DTR/DTI ',I6,1P,3E10.2)
-          END IF
-      END IF
-*
 *       Increase step counter and count perturbed c.m. steps.
 *     NSTEPI = NSTEPI + 1
       IF (I.GT.N) THEN

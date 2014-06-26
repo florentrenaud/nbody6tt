@@ -148,7 +148,10 @@
           CALL XTRNLF(XI,XIDOT,FIRR,FREG,FD,FDR,1)
 *
 *       Form rate of tidal energy change during last regular step.
-          IF (KZ(14).EQ.3) THEN
+*** FlorentR - include the case of tidal tensor (really needed?)
+*          IF (KZ(14).EQ.3) THEN
+          IF (KZ(14).EQ.3.OR.KZ(14).EQ.9) THEN
+*** FRenaud
               WDOT = 0.0
               W2DOT = 0.0
 *             W3DOT = 0.0
@@ -162,6 +165,11 @@
 *    &                            (FDR(K) + FD(K))*PX
 *       Second-order term derived by Douglas Heggie (Aug/03).
    24         CONTINUE
+*       Accumulate tidal energy change for general galactic potential.
+*             ETIDE = ETIDE - BODY(I)*((ONE6*W3DOT*DTR - 0.5*W2DOT)*DTR
+*    &                                                 + WDOT)*DTR
+*       Note Taylor series at end of interval with negative argument.
+              ETIDE = ETIDE + BODY(I)*(0.5*W2DOT*DTR - WDOT)*DTR
           END IF
       END IF
 *
@@ -348,7 +356,10 @@
       NBGAIN = 0
 *
 *       Accumulate tidal energy change for general galactic potential.
-      IF (KZ(14).EQ.3) THEN
+*** FlorentR - include the case of tidal tensor (really needed?)
+*          IF (KZ(14).EQ.3) THEN
+          IF (KZ(14).EQ.3.OR.KZ(14).EQ.9) THEN
+*** FRenaud
 *       Note: Taylor series at end of interval with negative argument.
 *         ETIDE = ETIDE - BODY(I)*((ONE6*W3DOT*DTR - 0.5*W2DOT)*DTR +
 *    &                                                   WDOT)*DTR

@@ -93,13 +93,17 @@
 *       VZROT   Z-velocity scaling factor (not used if VXROT = 0).
 *       RTIDE   Unscaled tidal radius (#14 >= 2; otherwise copied to RSPH2).
 *       SMAX    Maximum time-step (factor of 2 commensurate with 1.0).
+*
+*        if (kz(24).gt.0)
+*
+*       M, X, V Initial subsystem (unscaled; membership = KZ(24)).
 ***
 * XTRNL0: if (kz(14).eq.2)
 *
 *       GMG     Point-mass galaxy (solar masses, linearized circular orbit).
 *       RG0     Central distance (in kpc).
 *
-*         if (kz(14).eq.3)
+*        if (kz(14).eq.3)
 *
 *       GMG     Point-mass galaxy (solar masses).
 *       DISK    Mass of Miyamoto disk (solar masses).
@@ -114,12 +118,17 @@
 *       RG      Initial X,Y,Z; DISK+VCIRC=0, VG(3)=0: A(1+E)=RG(1), E=RG(2).
 *       VG      Initial cluster velocity vector (km/sec).
 *
-*         if (kz(14).eq.3.or.kz(14).eq.4)
+*        if (kz(14).eq.3.or.kz(14).eq.4)
 *
 *       MP      Total mass of Plummer sphere (in scaled units).
 *       AP      Plummer scale factor (N-body units; square saved in AP2).
 *       MPDOT   Decay time for gas expulsion (MP = MP0/(1 + MPDOT*(T-TD)).
 *       TDELAY  Delay time for starting gas expulsion (T > TDELAY).
+*** FlorentR
+* TTINIT: if (kz(14).eq.9) and no 'tt.dat' is found in the running directory
+*       RG      Initial cluster position X,Y,Z (kpc)
+*       VG      Initial cluster velocity vector (km/sec).
+***FRenaud
 ***
 * HOTSYS: if (kz(29).gt.0)
 *
@@ -150,7 +159,7 @@
 *       IEV     # idealized evolved stars.
 *       RMS     Scale factor for main-sequence radii (>0: fudge factor).
 *       REV     Scale factor for evolved radii (initial size RSTAR).
-*
+***
 * INSTAR: if (kz(12).eq.2)  Input of stellar parameters on fort.12.
 ***
 * CLOUD0: if (kz(13).gt.0)
@@ -161,6 +170,12 @@
 *       SIGMA   Velocity dispersion (#13 > 1: Gaussian).
 *       CLM     Individual cloud masses in solar masses (maximum MCL).
 *       RCL2    Half-mass radii of clouds in pc (square is saved).
+***
+* CHAIN: if (kz(11).gt.0)
+*
+*       CLIGHT  Velocity of light in N-body units (3.0D+05/VSTAR).
+*       NBH     Number of BHs for special treatment (nominal).
+*       IDIS    Stellar disruption indicator (active if > 0).
 *       ---------------------------------------------------------------------
 *
 *
@@ -192,7 +207,7 @@
 *                               >4: standard setup using RANGE & SEMI0).
 *       9  Individual bodies on unit 6 at main output (MIN(5**KZ9,NTOT)).
 *      10  Diagnostic KS output (>0: begin KS; >1: end; >=3: each step).
-*      11  (reserved for post-Newtonian code NBODY7).
+*      11  Algorithmic Chain regularization and post-Newtonian (NBODY7).
 *      12  HR diagnostics of evolving stars (> 0; interval DTPLOT);
 *               =2: input of stellar parameters on fort.12 (routine INSTAR).
 *      13  Interstellar clouds (=1: constant velocity; >1: Gaussian).
@@ -247,8 +262,11 @@
 *                     >=2: fine-tuning at NNBMAX/5; =3: reduction of NNBMAX.
 *      41  Pre-mainsequence stellar evolution (only solar metallicity).
 *      42  Kozai diagnostics on fort.42 (=1: frequency 100 & EMAX > 0.99).
-*      43  Reserved for NBODY7.
-*      45-50  Currently free.
+*      43  Small velocity kick after GR coalescence (NBODY7 only).
+*      44  Plotting file for main cluster parameters on fort.56 (OUTPUT).
+*      45  Free
+*      46  Free
+*      47  Free (experimental PN use in dir Block).
 *       ---------------------------------------------------------------------
 *
 * NBODY6: Restart from fort.1

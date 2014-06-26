@@ -31,13 +31,12 @@
       INCLUDE 'common6.h'
       EXTERNAL MERGE
 *
-*
 *** FlorentR - add a little head to the ouptut to identify the version number
       WRITE (6,*) '     ********* NBODY6TT *********'
-      WRITE (6,*) '     ********** v 3.0 ***********'
+      WRITE (6,*) '     ********** v 4.2 ***********'
       CALL FLUSH(6)
 *** FRenaud
-
+*
 *       Initialize the timers.
       CALL CPUTIM(CPU0)
       WTOT0 = 0.0

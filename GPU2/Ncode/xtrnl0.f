@@ -63,7 +63,9 @@
 *       Form total energy based on current values and ETIDE (cf. SCALE).
       ETOT = ZKIN - POT + ETIDE
       SX = E0/ETOT
+*       Exclude re-scaling for positive energy or binary Plummer cluster.
       IF (ETOT.GE.0.0) SX = 1.0
+      IF (KZ(5).EQ.2) SX = 1.0
 *
 *       Scale coordinates & velocities to yield ETOT = -0.25.
       DO 15 I = 1,N

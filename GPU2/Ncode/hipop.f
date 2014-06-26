@@ -129,8 +129,7 @@
 *
 *       Move single particles down by NHI to make room for outer components.
       L = N
-*       Use actual number of KS pairs instead of NBIN0.
-      DO 50 J = 2*NPAIRS+1,N
+      DO 50 J = 2*NBIN0+1,N
           I = NHI + L
           BODY(I) = BODY(L)
           DO 45 K = 1,3
@@ -140,9 +139,9 @@
           L = L - 1
    50 CONTINUE
 *
-*       Place hierarchical components immediately after the KS binaries.
+*       Place hierarchical components immediately after the binaries.
       DO 60 L = 1,NHI
-          I = 2*NPAIRS + L
+          I = 2*NBIN0 + L
           BODY(I) = BS(L)
           DO 55 K = 1,3
               X(K,I) = XS(K,L)
