@@ -27,7 +27,8 @@
    10 CONTINUE
 *
 *       Skip any close c.m./chain body (small STEP treated by IMPACT).
-      IF (JMIN.EQ.0.OR.JMIN.GT.N.OR.NAME(JMIN).LE.0) GO TO 30
+      IF (JMIN.EQ.0.OR.JMIN.GT.N) GO TO 30
+      IF (NAME(JMIN).LE.0) GO TO 30
 *
 *       Form inverse semi-major axis.
       VIJ2 = 0.0
@@ -41,7 +42,7 @@
           ICOMP = I
           JCOMP = JMIN
 *       Skip rare case of chain & standard c.m. as binary component.
-          IF (NAME(ICOMP).LE.0.OR.I.GT.N) GO TO 30
+          IF (NAME(ICOMP).LE.0.OR.I.GT.N.OR.NSUB.GT.0) GO TO 30
           IKS = 1
           IT = IT + 1
           IF (IT.EQ.1) GO TO 30

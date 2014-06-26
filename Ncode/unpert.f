@@ -257,7 +257,7 @@
 *
 *       Check merger condition before continuing (skip small Roche steps).
    28 IF (KZ(15).GT.0.AND.IR.GE.0.AND.TIME+STEP(I1).GT.TBLOCK) THEN
-          IF (STEP(I).LT.DTMIN) THEN
+          IF (STEP(I).LT.DTMIN.AND.JCLOSE.GT.0) THEN
               CALL IMPACT(I)
           ELSE IF (JCLOSE.GT.0.AND.STEP(I).LT.10.0*DTMIN) THEN
               CALL HISTAB(IPAIR,JCLOSE,PMIN,RSTAB)

@@ -474,6 +474,11 @@
             endif
          else
             kw = 6
+*
+* This next is a brute force fix to allow negative epochs to work
+* for SAGB stars (CAT 29 Nov 2013)
+*
+            if (aj .gt. tscls(11)- 1d0) aj = tscls(11) - 1d0
             mc = mcgbtf(aj,GB(2),GB,tscls(10),tscls(11),tscls(12))
             lum = lmcgbf(mc,GB)
 *

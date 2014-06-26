@@ -41,11 +41,12 @@
 *       Define chain membership.
       CALL SETSYS
 *
-      DO 15 L = 1,NCH
-          J = JLIST(L)
-          WRITE (6,1)  J, NAME(J), KSTAR(J), BODY(J)*SMU, RADIUS(J)*SU
-    1     FORMAT (' INITIAL MEMBER    J NM K* M R* ',2I6,I4,2F7.1)
-   15 CONTINUE
+*     DO 15 L = 1,NCH
+*         J = JLIST(L)
+*         WRITE (6,1)  J, NAME(J), KSTAR(J), BODY(J)*SMU, RADIUS(J)*SU
+*   1     FORMAT (' INITIAL MEMBER    J NM K* M R* ',2I6,I4,2F7.1)
+*  15 CONTINUE
+*     CALL FLUSH(6)
 *
 *       Initialize c.m. variables.
       DO 2 K = 1,7

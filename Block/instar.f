@@ -97,6 +97,7 @@
                 END IF
 *               IF(M0.LE.0.01D0) KW = 10
 *               IF(M0.GE.100.D0) KW = 14
+                IF (KZ(45).GT.0.AND.M0.GT.10.0.AND.I.LE.KZ(24)) KW = 14
              ENDIF
           ENDIF
           MC = 0.D0

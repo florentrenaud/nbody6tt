@@ -182,6 +182,7 @@
 *
 *       Form sum of inverse separations to evaluate mass segregation.
       POT12 = 0.0
+      RBH = 0.0
       DO 48 L = 1,N14-1
           I = ILIST(L)
           DO 47 LL = L+1,N14
@@ -197,7 +198,9 @@
    48 CONTINUE
 *       Define mean geometric distance (modified by binary 10/2/11).
       N14 = N14 + N14X
-      IF (N14.GT.1) RBH = FLOAT(N14)*(N14 - 1)/(2.0*POTBH)
+      IF (N14.GT.1.AND.POTBH.GT.0.0D0) THEN
+          RBH = FLOAT(N14)*(N14 - 1)/(2.0*POTBH)
+      END IF
 *       Omit internal binary contribution for secondary definition.
       IF (POT12.GT.0.0) THEN
           RX = FLOAT(N14-1)*(N14 - 2)/(2.0*(POTBH-POT12))

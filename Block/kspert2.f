@@ -258,8 +258,8 @@
    70     CONTINUE
       END IF
 *
-*       Include optional post-Newtonian terms in the perturbation.
-      IF (KZ(47).GT.0.AND.MAX(KSTAR(I1),KSTAR(I1+1)).GE.13) THEN
+*       Check for post-Newtonian terms in the perturbation.
+      IF (KZ(14).GT.0.AND.MAX(KSTAR(I1),KSTAR(I1+1)).GE.13) THEN
           IP = KVEC(I1)
 *       Adopt a simple distance criterion for now (weak PN).
           IF (R(IP).LT.1000.0*RZ) THEN
@@ -268,8 +268,6 @@
               IF (ABS(DH).GT.1.0D-04*ABS(H(IP))) THEN
                   IC = 0
                   HIP = H(IP)
-      WRITE (6,111)  DH, ECOLL
-  111 FORMAT (' CORRECTION    DH ECOLL  ',1P,E10.2,E12.4)
               ELSE
                   IC = IC + 1
               END IF

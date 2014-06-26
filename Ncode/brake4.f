@@ -1,4 +1,4 @@
-      SUBROUTINE BRAKE4(I1,I2,KCASE,DT)
+      SUBROUTINE BRAKE4(I1,I2,DT)
 *
 *
 *       GR analytical orbit shrinkage.
@@ -6,7 +6,6 @@
 *
       INCLUDE 'common6.h'
       COMMON/POSTN/  CVEL,TAUGR,RZ1,GAMMAZ,TKOZ,EMAX,TSP,KZ24,IGR,IPN
-      COMMON/KSPAR/  ISTAT(KMAX)
       REAL*8 M1,M2,UI(4),UIDOT(4)
       SAVE ITER
       DATA ITER /0/
@@ -14,6 +13,12 @@
 *
 *       Check relativistic conditions (at least one >= NS).
       IF (MAX(KSTAR(I1),KSTAR(I2)).LT.13) GO TO 100
+*
+*       See whether CLIGHT has been initialized in ARchain.
+      IF (ITER.EQ.0) THEN
+          READ (5,*)  CLIGHT
+          ITER = 1
+      END IF
 *
 *       Specify the basic elements from BH or KS treatments.
       M1 = BODY(I1)
@@ -46,12 +51,13 @@
 *       Evaluate the Einstein shift per orbit and check time-step.
       DW = 3.0*TWOPI*(BODY(I1) + BODY(I2))/(SEMI*CVEL**2*(1.0-E2))
       TK = TWOPI*SEMI*SQRT(SEMI/(BODY(I1) + BODY(I2)))
-*       Ensure time-scale limit of 1 % relative change.
-      DT = MIN(DT,0.01*SEMI/ADOT)
+*       Adopt time-scale of 2 % relative change (subject to c.m. step).
+      DT = MIN(0.02*SEMI/ADOT,STEP(I))
       THETA = DW*DT/TK
 *       Impose limit of time-step if THETA > TWOPI.
       IF (THETA.GT.TWOPI) THEN
           DT = TWOPI*TK/DW
+          THETA = DMOD(THETA,TWOPI)
       END IF
       STEP(I1) = DT
 *     THETA = DMOD(THETA,TWOPI)   ! original condition.
@@ -94,38 +100,40 @@
       CALL DEFORM2(IPAIR,ECC,ECC1)
 *
       ITER = ITER + 1
-      IF (ITER.LT.1000.OR.MOD(ITER,100).EQ.0) THEN
-          DA = (SEMI - SEMI1)/SEMI
-          WRITE (94,40)  TIME+TOFF, ECC, THETA, DT, DA, SEMI
-   40     FORMAT (' GR SHRINK    T E TH DT DA/A A ',
+      IF (ITER.LT.1000.OR.MOD(ITER,1000).EQ.0) THEN
+          WRITE (94,35)  TIME+TOFF, ECC, THETA, DT, TGR, SEMI
+   35     FORMAT (' GR SHRINK    T E TH DT TGR A ',
      &                           F11.4,F9.5,1P,3E9.1,E12.4)
           CALL FLUSH(94)
       END IF
 *
-*       Enforce KS termination with added perturber to activate PN.
-      IF (SEMI.LT.100.0*RZ) THEN
+*       Check KS termination with added perturber to activate PN.
+      IF (TGR.LT.0.5) THEN
+*       Note that first order Peters formulation is not valid for strong GR.
           JP = LIST(2,I)
           LIST(1,I1) = 1
           LIST(2,I1) = JP
-          WRITE (6,44)  JP, NAME(JP), STEP(I1), STEP(I), SEMI
-   44     FORMAT (' ENFORCED PERTURB    JP NM S1 SI A ',2I5,1P,4E10.2)
+*       Set PN indicator for ARCHAIN (TGR limit means small TZ).
+          IPN = 3
+          WRITE (6,40)  JP, NAME(JP), STEP(I1), STEP(I), SEMI, TGR
+   40     FORMAT (' ENFORCED PERTURB    JP NM S1 SI A TZ',2I6,1P,5E10.2)
+          IF (TGR.LT.0.01) GO TO 42
           GO TO 100
       END IF
 *
-*       Activate coalescence condition using local index.
-      JPHASE = 0
-      IF (SEMI1.LT.1.01*RZ) THEN
+*       Activate coalescence condition using COMMON index.
+   42 IF ((SEMI1.LT.100.0*RZ.AND.TGR.LT.0.1).OR.TGR.LT.0.01) THEN
           WRITE (6,45)  KSTAR(I1), KSTAR(I2), RADIUS(I1), RADIUS(I2),
      &                  SEMI1
    45     FORMAT (' PN COAL    K* R1 R2 A  ',2I4,1P,3E10.2)
           CALL FLUSH(6)
           IQCOLL = -2
-          JPHASE = -1
+          IPHASE = -1
 *         KSPAIR = IPAIR
 *         CALL CMBODY(SEMI1,2)
 *
 *       Include optional kick velocity of 3*VRMS km/s for coalescence recoil.
-          IF (KZ(43).GT.0) THEN
+          IF (KZ(43).GT.0.AND.MIN(KSTAR(I1),KSTAR(I2)).GT.13) THEN
 *       Initialize basic variables at start of new step.
               VI20 = 0.0
               DO 48 K = 1,3
@@ -146,14 +154,13 @@
    60         FORMAT (' COALESCENCE KICK    VF ECDOT VESC ',
      &                                      F7.3,F10.6,F6.1)
 *       Form neighbour list and new polynomials.
+              TIME = TBLOCK
               RS0 = RS(I)
               CALL NBLIST(I,RS0)
               CALL FPOLY1(I,I,0)
               CALL FPOLY2(I,I,0)
           END IF
       END IF
-*
-      IF (ISTAT(KCASE).EQ.0) ISTAT(KCASE) = JPHASE
 *
   100 RETURN
 *

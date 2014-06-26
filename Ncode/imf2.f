@@ -76,6 +76,13 @@ c      DATA  G1,G2,G3,G4  /0.28,1.14,0.010,0.1/
           JLIST(I) = I
           KCM(2*I-1) = KSTAR(2*I-1)
           KCM(2*I) = KSTAR(2*I)
+*> C.O. 26.03.2014
+*       Create local copies of phase space vector.
+          DO 21 K = 1,3
+              COPYX(K,I) = X(K,I)
+              COPYV(K,I) = XDOT(K,I)
+   21     CONTINUE
+*< C.O. 26.03.2014
    20 CONTINUE
 *
 *       Sort total binary masses in increasing order.
@@ -111,6 +118,14 @@ c      DATA  G1,G2,G3,G4  /0.28,1.14,0.010,0.1/
       DO 40 I = 1,NBIN0
           BODY(NBIN0-I+1) = BCM(I)
           ZMB = ZMB + BCM(I)
+*> C.O. 26.03.2014
+*       Recover the corresponding coordinates and velocities.
+          JB = JLIST(I)
+          DO 41 K = 1,3
+              X(K,NBIN0-I+1)    = COPYX(K,JB)
+              XDOT(K,NBIN0-I+1) = COPYV(K,JB)
+   41     CONTINUE
+*< C.O. 26.03.2014
    40 CONTINUE
 *
       WRITE (6,45)  NBIN0, BODY(1), BODY(NBIN0), ZMB/FLOAT(NBIN0)
@@ -125,12 +140,13 @@ c      DATA  G1,G2,G3,G4  /0.28,1.14,0.010,0.1/
           NS = NS + 1
           BCM(NS) = BODY(NBIN0+L)
           KCM(NS) = KSTAR(2*NBIN0+L)
-*TEST> C.O. 20.12.2010
+*> C.O. 20.12.2010
 *       Create local copies of phase space vector.
           DO 55 K = 1,3
               COPYX(K,NS) = X(K,NBIN0 + l)
               COPYV(K,NS) = XDOT(K,NBIN0 + l)
    55     CONTINUE
+*< C.O. 20.12.2010
           JLIST(NS) = NS
    60 CONTINUE
 *
@@ -143,13 +159,14 @@ c      DATA  G1,G2,G3,G4  /0.28,1.14,0.010,0.1/
           BODY(N-I+1) = BCM(I)
           ZMS = ZMS + BCM(I)
           KSTAR(N-I+1+NBIN0) = KCM(JLIST(I))
-*TEST> C.O. 20.12.2010
+*> C.O. 20.12.2010
 *       Recover the corresponding coordinates and velocities.
           J = JLIST(I)
           DO 65 K = 1,3
               X(K,N-I+1) = COPYX(K,J)
               XDOT(K,N-I+1) = COPYV(K,J)
    65     CONTINUE
+*< C.O. 20.12.2010
    70 CONTINUE
 *
       WRITE (6,80)  N-NBIN0, BODY(NBIN0+1), BODY(N), ZMS/FLOAT(N-NBIN0)

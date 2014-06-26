@@ -22,12 +22,12 @@
   16     *   KS rectification (ksrect.f)
   17     8   Binary evolution on BINEV (# 8 > 3)
   18     8   New binaries (binout.f)
-  19     -   Not used currently
+  19     9   Table of wide binaries (NB! option #9 < 0; also #8 >= 2)
   20    19   Symbiotic stars diagnostics (mdot.f)
   21    27   Diagnostics for circularizing binary (ksint.f)
   22    34   Degenerate Roche event (roche.f)
   23     8   Eigenevolution for primordial binaries (binpop.f)
-  24     -   Not used
+  24    11   Diagnostic output of BH-stellar disruptions (#11 < 0)
   25    27   TEV look-up warning for unperturbed binary (unpert.f)
   26    19   Second coalescence channel on COAL2
   27     7   Central velocity plot (# 7 = 5; lagr.f)
@@ -43,23 +43,24 @@
   37     -   Not used
   38    19   Stellar evolution diagnostics (comenv.f, mix.f, trflow.f)
   39    33   Diagnostics of hardest binary (# 33 >= 2; adjust.f)
-  40     -   Not used
+  40     *   Diagnostics of massive body in reduce.f (ARC).
   41     *   GPU overflow diagnostics (intgrt.omp.f)
   42    42   Kozai diagnostics.
   43    19   Warning of fast stellar radius increase (mdot.f)
   44    27   Rectification of induced eccentricity (# 27 = 2; impact.f)
-  45     -   Not used
-  46     -   Not used
+  45    45   Plotting BH orbit(s) (NAME = 1 or 2) by BHPLOT (n = KZ(24))
+  45    45   KS binary elements; also close perturber (e > 0.90, #45 > 1)
+  46    45   Binary elements for close perturber (e > 0.90, #45 > 2) 
   47    13   Interstellar cloud diagnostics (output.f)
-  48    18   Unstable triple check (check3.f from GPU adjust.f)
-  49     -   Not used
+  48    18   Unstable triple check (check3.f from GPU2 adjust.f)
+  49    45   Diagnostics for second innermost BH orbit (#45 > 3)
   50     -   Not used
-  51     -   Not used
-  52     -   Not used
-  53     -   Not used
+  51     8   Reduced eccentricity to avoid collision (BINPOP; #27 = 2)
+  52    14   Circular velocity of galactic halo model (#14 = 3)
+  53    11   Used by NBODY7 for SPIN (ARCHAIN; #11 < 0)
   54     *   Close encounter inside 5 maximum radii (ksint.f)
   55     *   Encounter inside tidal capture radius (# 27; ksint.f)
-  56     -   Plotting file for TIME, TPHYS, <R>, MASS, NCOLL (# 44 > 0).
+  56     -   Plotting file for TIME, TPHYS, <R>, MASS, NCOLL (# 44 > 0)
   57     -   Not used
   58     -   Not used
   59     -   Not used
@@ -106,4 +107,4 @@
   99    22   Initial conditions in physical units (# 22 = -1/5; scale.f)
 =========================================================================
 
-SJA 28/12/11
+SJA 28/3/14

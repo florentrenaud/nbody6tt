@@ -123,8 +123,10 @@
    22         CONTINUE
           END IF
 *
+*!$omp critical
 *       Obtain the tidal perturbation (force and first derivative).
           CALL XTRNLF(XI,XIDOT,FIRR,FREG,FD,FDR,1)
+*!$omp end critical
 *
 *       Form rate of tidal energy change during last regular step.
           IF (KZ(14).EQ.3) THEN
@@ -255,7 +257,7 @@
       RIDOT = (XI(1) - RDENS(1))*XIDOT(1) +
      &        (XI(2) - RDENS(2))*XIDOT(2) +
      &        (XI(3) - RDENS(3))*XIDOT(3)
-      IF (RI2.GT.RC2.AND.KZ(39).EQ.0.AND.RI2.LT.9.0*RH2) THEN
+      IF (RI2.GT.RC22.AND.KZ(39).EQ.0.AND.RI2.LT.9.0*RH2) THEN
           A4 = A4*(1.0 + RIDOT*DTR/RI2)
       END IF
 *
@@ -263,10 +265,11 @@
       IF (I.GT.N.AND.NNB.LT.NBMAX.AND.RI2.LT.RH2) THEN
 *       Set perturber range (soft binaries & H > 0 have short duration).
           A2 = 100.0*BODY(I)/ABS(H(I-N))
-*       Stabilize NNB on NBMAX if too few perturbers.
-          IF (A2.GT.RS(I)) THEN
+*       Stabilize NNB on NBMAX if 80 % perturber fraction exceeded.
+          J1 = 2*(I - N) - 1
+          IF (A2.GT.RS(I).AND.LIST(1,J1).GT.0.8*NNB) THEN
               A3 = MAX(1.0 - FLOAT(NNB)/FLOAT(NBMAX),0.0D0)
-*       Modify volume ratio by approximate square root factor.
+*       Increase volume ratio by approximate square root factor.
               A4 = 1.0 + 0.5*A3
           END IF
       END IF
@@ -409,13 +412,13 @@
               IF (RD*DTR.GT.ETAR*RS(I)**2) THEN
                   NBLOSS = NBLOSS + 1
                   JJLIST(NBLOSS) = J
-                  IF (STEP(J).LT.0.1*DTMIN) JMIN = J
+                  IF (STEP(J).LT.DTMIN) JMIN = J
                END IF
           ELSE
               NBLOSS = NBLOSS + 1
               JJLIST(NBLOSS) = J
 *       Check small step indicator.
-              IF (STEP(J).LT.0.1*DTMIN) JMIN = J
+              IF (STEP(J).LT.DTMIN) JMIN = J
           END IF
 *       Avoid adding a neighbour for c.m. body (CMFIRR inconsistency).
 *         IF (I.GT.N) JMIN = 0
@@ -437,7 +440,7 @@
 *       See whether any old neighbour with small step should be retained.
       IF (JMIN.EQ.0) GO TO 70
 *       Skip modifying FIRR on host for dangerous cases (close encounter).
-      IF (STEP(I).LT.DTMIN) GO TO 70
+      IF (STEP(I).LT.20.0*DTMIN) GO TO 70
 *       Note small STEPR after new COAL with close perturber.
 *
       K = 1
@@ -530,18 +533,18 @@
           FDR0 = FDR(K) - (FIDOT(K,I) - FD(K))
 *
           FRD = FRDOT(K,I)
-	  SUM = FRD + FDR0
-	  AT3 = 2.0D0*DFR + DTR*SUM
-	  BT2 = -3.0D0*DFR - DTR*(SUM + FRD)
+          SUM = FRD + FDR0
+          AT3 = 2.0D0*DFR + DTR*SUM
+          BT2 = -3.0D0*DFR - DTR*(SUM + FRD)
 *
-	  X0(K,I) = X0(K,I) + (0.6D0*AT3 + BT2)*DTSQ12
-	  X0DOT(K,I) = X0DOT(K,I) + (0.75D0*AT3 + BT2)*DTR13
+          X0(K,I) = X0(K,I) + (0.6D0*AT3 + BT2)*DTSQ12
+          X0DOT(K,I) = X0DOT(K,I) + (0.75D0*AT3 + BT2)*DTR13
 *
           FI(K,I) = FIRR(K)
-	  FR(K,I) = FREG(K)
+          FR(K,I) = FREG(K)
           F(K,I) = 0.5D0*(FREG(K) + FIRR(K))
           FIDOT(K,I) = FD(K)
-	  FRDOT(K,I) = FDR(K)
+          FRDOT(K,I) = FDR(K)
           FDOT(K,I) = ONE6*(FDR(K) + FD(K))
 *
           D0(K,I) = FIRR(K)
@@ -552,8 +555,8 @@
           D1(K,I) = FD(K)
           D1R(K,I) = FDR(K)
 *       Set second & third derivatives based on old neighbours (cf. FPCORR).
-	  D2R(K,I) = (3.0D0*AT3 + BT2)*DT2
-	  D3R(K,I) = AT3*DT6
+          D2R(K,I) = (3.0D0*AT3 + BT2)*DT2
+          D3R(K,I) = AT3*DT6
    75 CONTINUE
 *
 *       Check optional force polynomial corrections due to neighbour changes.
@@ -584,11 +587,11 @@
       TTMP = TSTEP(FREG,FDR,D2R(1,I),D3R(1,I),ETAR)
 *
 *       Impose a smooth step reduction inside compact core (superseded).
-*     IF (NC.LT.50.AND.RI2.LT.RC2) THEN
+*     IF (NC.LT.50.AND.RI2.LT.RC22) THEN
 *         TTMP = TTMP*MIN(1.0D0,0.5D0*(1.0D0 + RI2*RC2IN))
 *     END IF
 *       Avoid small steps near the centre (extra condition for DTR < SMIN).
-      IF (RI2.LT.4.0*RC2.OR.
+      IF (RI2.LT.4.0*RC22.OR.
      &   (TTMP.LT.SMIN.AND.FR2.LT.(BODYM/RS2)**2)) THEN
           TTMP = MAX(1.0D-04*RS(I),TTMP)
       END IF
@@ -656,6 +659,13 @@
           NICONV = NICONV + 1
           GO TO 110
       END IF
+*
+*       Reduce irregular step on switching from zero neighbour number.
+      IF (NNB0.EQ.0.AND.NNB.GT.0) THEN
+          STEP(I) = 0.25*STEP(I)
+          TNEW(I) = T0(I) + STEP(I)
+      END IF
+*
 *     NSTEPR = NSTEPR + 1
 *
       RETURN

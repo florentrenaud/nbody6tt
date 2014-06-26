@@ -59,6 +59,7 @@
       NCH = 0
       NBIN0 = 0
       NHI0 = 0
+      NDISR = 0
       IFIRST = 1
       IPHASE = 0
       ICOMP = 0

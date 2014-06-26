@@ -86,7 +86,7 @@
       IF (KZ(19).GT.2) THEN
           CALL INSTAR
       ELSE IF (KZ(14).GT.1) THEN
-          DT = 1.0E-03/TSCALE
+          DT = 1.0E-03/TSTAR
           CALL STEPK(DT,DTN)
           STEPX = DTN
       END IF
@@ -96,25 +96,28 @@
           CALL CLOUD0
       END IF
 *
-*       Set initial neighbour list & corresponding radius.
+*       Decide between fast initialization on GPU and standard way (#38).
       RS0 = RC
-      NNB0 = 0
-      DO 40 I = 1,N
-          CALL NBLIST(I,RS0)
-          NNB0 = NNB0 + LIST(1,I)
-   40 CONTINUE
+      IF (KZ(48).GT.0) THEN
+          CALL FPOLY0(RS0)
+      ELSE
+*       Evaluate initial neighbour list & corresponding radius on the host.
+          DO 40 I = 1,N
+              CALL NBLIST(I,RS0)
+   40     CONTINUE
 *
 *       Obtain force & first derivative.
 #if 0
-      CALL FPOLY1(1,N,0)
+          CALL FPOLY1(1,N,0)
 #else
 !$omp parallel do
-      DO I=1, N
-        CALL FPOLY1(I,I,0)
-      END DO
+          DO I=1, N
+            CALL FPOLY1(I,I,0)
+          END DO
 #endif
+      END IF
 *
-*       Obtain second & third force derivatives and set time-steps.
+*       Form second & third force derivatives and set time-steps.
 #if 0
       CALL FPOLY2(1,N,0)
 #else
@@ -178,7 +181,11 @@
       END IF
 *
 *       Check the average neighbour number.
-   80 ZNB = FLOAT(NNB0)/FLOAT(N)
+   80 NNB0 = 0
+      DO 85 I = IFIRST,NTOT
+          NNB0 = NNB0 + LIST(1,I)
+   85 CONTINUE
+      ZNB = FLOAT(NNB0)/FLOAT(NTOT-NPAIRS)
       IF (ZNB.LT.0.25*ZNBMAX.OR.ZNB.LT.0.25*SQRT(FLOAT(N))) THEN
           WRITE (6,90)  ZNB
    90     FORMAT (/,12X,'WARNING!   SMALL NEIGHBOUR NUMBERS   <NNB> =',

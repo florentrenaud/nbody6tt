@@ -20,16 +20,16 @@
 *
 *
 *       Update perturber list at frequent intervals.
-      IF (IR.GT.0) THEN
-          CALL CHLIST(ICH)
+*     IF (IR.GT.0) THEN
+*         CALL CHLIST(ICH)
 *       Note XC & UC for chain members predicted at new block-time.
-      ELSE
-          NSKIP = NSKIP + 1
-          IF (NSKIP.GE.10) THEN
-              CALL CHLIST(ICH)
-              NSKIP = 0
-          END IF
-      END IF
+*     ELSE
+*         NSKIP = NSKIP + 1
+*         IF (NSKIP.GE.10) THEN
+*             CALL CHLIST(ICH)
+*             NSKIP = 0
+*         END IF
+*     END IF
 *
 *       Subtract all close perturber forces acting on c.m. body #ICH.
       RPERT2 = CMSEP2*(0.5*RSUM)**2

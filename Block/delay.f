@@ -70,6 +70,8 @@
           IF (KCHAIN.GT.0) THEN
               IPHASE = 8
           END IF
+*       Copy index for SETSYS (JCLOSE > N suffices for B-B case).
+          JCLOSE = JC0
       END IF
 *
    10 RETURN

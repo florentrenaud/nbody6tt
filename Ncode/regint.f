@@ -271,7 +271,7 @@
       IF ((A3 - FLOAT(NNB0))*(A3 - FLOAT(NNB)).LT.0.0) A4 = SQRT(A4)
 *
 *       Modify volume ratio by radial velocity factor outside the core.
-      IF (RI2.GT.RC2.AND.KZ(39).EQ.0.AND.RI2.LT.9.0*RH2) THEN
+      IF (RI2.GT.RC22.AND.KZ(39).EQ.0.AND.RI2.LT.9.0*RH2) THEN
           RIDOT = (XI(1) - RDENS(1))*XIDOT(1) +
      &            (XI(2) - RDENS(2))*XIDOT(2) +
      &            (XI(3) - RDENS(3))*XIDOT(3)
@@ -595,7 +595,7 @@
       END IF
 *
 *       Impose a smooth step reduction inside compact core.
-      IF (NC.LT.50.AND.RI2.LT.RC2) THEN
+      IF (NC.LT.50.AND.RI2.LT.RC22) THEN
           TTMP = TTMP*MIN(1.0D0,0.5D0*(1.0D0 + RI2*RC2IN))
       END IF
 *
@@ -624,6 +624,13 @@
           NICONV = NICONV + 1
           GO TO 110
       END IF
+*
+*       Reduce irregular step on switching from zero neighbour number.
+      IF (NNB0.EQ.0.AND.NNB.GT.0) THEN
+          STEP(I) = 0.25*STEP(I)
+          TNEW(I) = T0(I) + STEP(I)
+      END IF
+*
       NSTEPR = NSTEPR + 1
 *
       RETURN

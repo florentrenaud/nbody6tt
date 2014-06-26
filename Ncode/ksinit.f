@@ -6,8 +6,9 @@
 *
       INCLUDE 'common6.h'
       REAL*8  Q(3),RDOT(3),UI(4),VI(4),A1(3,4)
-      SAVE  IPREV,EBPREV
-      DATA  IPREV,EBPREV /0,-1.0D-06/
+      INTEGER IPIPE(9)
+      SAVE  IPIPE
+      DATA  IPIPE /9*0/
 *
 *
 *       Set new global indices of the components and current pair index.
@@ -62,13 +63,13 @@
           GO TO 50
       END IF
 *
-*       Define relative coordinates and velocities in physical units.
+*       Define relative coordinates and velocities in physical scaled units.
       DO 20 K = 1,3
           Q(K) = X(K,ICOMP) - X(K,JCOMP)
           RDOT(K) = X0DOT(K,ICOMP) - X0DOT(K,JCOMP)
    20 CONTINUE
 *
-*       Introduce regularized variables using definition of 1985 paper.
+*       Introduce regularized variables using definition of Book.
       R(IPAIR) = SQRT(Q(1)**2 + Q(2)**2 + Q(3)**2)
 *
 *       Initialize the regularized coordinates according to sign of Q(1).
@@ -98,7 +99,7 @@
           TDOT2(IPAIR) = TDOT2(IPAIR) + 2.0D0*UI(K)*UDOT(K,IPAIR)
    30 CONTINUE
 *
-*       Evaluate initial binding energy per unit mass.
+*       Evaluate initial binding energy per unit mass (singular form).
       H(IPAIR) = (2.0D0*(UDOT(1,IPAIR)**2 + UDOT(2,IPAIR)**2 +
      &                   UDOT(3,IPAIR)**2 + UDOT(4,IPAIR)**2) -
      &                                              BODY(NTOT))/R(IPAIR)
@@ -127,6 +128,7 @@
                   CALL KSAPO(IPAIR)
 *       Reset TIME to quantized value (small > 0 or < 0 possible initially).
                   TIME = TIME0
+                  TIME = MAX(TIME,0.0D0)
               ELSE IF (TDOT2(IPAIR).GT.0.0) THEN
                   TDOT2(IPAIR) = -1.0E-20
               END IF
@@ -142,7 +144,7 @@
           END IF
       END IF
 *
-*       Specify zero membership and large step for second component).
+*       Specify zero membership and set large steps for second component.
       LIST(1,JCOMP) = 0
 *       Set large step for second component to avoid detection.
       STEP(JCOMP) = 1.0E+06
@@ -183,19 +185,22 @@
           WRITE (6,60)  TIME+TOFF, NAME(ICOMP), NAME(JCOMP),DTAU(IPAIR),
      &                  R(IPAIR), RI, H(IPAIR), IPAIR, GAMMA(IPAIR),
      &                  STEP(NTOT), LIST(1,ICOMP), LIST(1,NTOT)
-   60     FORMAT (/,' NEW KSREG    TIME =',F8.2,2I6,F12.3,1PE10.1,
-     &                                  0PF7.2,F9.2,I5,F8.3,1PE10.1,2I5)
+   60     FORMAT (/,' NEW KSREG    TIME =',F8.2,2I6,F12.3,1P,E10.1,
+     &                                0P,F7.2,F9.2,I5,F8.3,1P,E10.1,2I5)
       END IF
 *
-*       Include diagnostics for NS or BH hard binary formation.
+*       Include limited diagnostics for NS or BH hard binary formation.
       IF (MAX(KSTAR(ICOMP),KSTAR(JCOMP)).GE.13.AND.EB.LT.EBH.AND.
      &    IPHASE.NE.7) THEN
-*       Limit the diagnostics to significant change or new case.
-          ISUM = KSTAR(ICOMP) + KSTAR(JCOMP) + KSTAR(NTOT)
-          DEB = ABS((EB - EBPREV)/EBPREV)
-          IF (ISUM.NE.IPREV.OR.DEB.GT.0.5) THEN
-              IPREV = ISUM
-              EBPREV = EB
+          ID = 0
+          NP = IPIPE(1)
+*       See whether at least one component was recorded in previous pair.
+          DO 62 J = 2,NP+1
+              IF (IPIPE(J).EQ.NAME(ICOMP).OR.
+     &            IPIPE(J).EQ.NAME(JCOMP)) ID = ID + 1
+   62     CONTINUE
+*       Print diagnostics if NS/BH binary not listed among four last pairs.
+          IF (ID.LE.1) THEN
               PD = DAYS*SEMI*SQRT(ABS(SEMI)/BODY(NTOT))
               WRITE (6,65)  TIME+TOFF, NAME(ICOMP), NAME(JCOMP),
      &                      KSTAR(ICOMP), KSTAR(JCOMP), KSTAR(NTOT),
@@ -203,6 +208,19 @@
    65         FORMAT (' NS/BH BINARY    T NM K* E P EB ',
      &                                  F8.1,2I6,3I4,F7.3,1P,E9.1,E11.2)
           END IF
+*       Update table and membership by removing first two.
+          IF (NP.GE.8) THEN
+*       Note there are at most 4 pairs with entries in IPIPE(2:9).
+              DO 66 J = 2,6
+                  IPIPE(J) = IPIPE(J+2)
+                  IPIPE(J+1) = IPIPE(J+3)
+   66         CONTINUE
+              NP = NP - 2
+          END IF
+*       Add NAME of each component in NP+2/3 and increase membership by 2.
+          IPIPE(NP+2) = NAME(ICOMP)
+          IPIPE(NP+3) = NAME(JCOMP)
+          IPIPE(1) = NP + 2
       END IF
 *
 *       Modify the termination criterion according to value of NPAIRS.

@@ -123,37 +123,26 @@
           END IF
       END IF
 *
-*       Choose basic regularized step using binding energy or lower limit.
-      IF (ABS(HI).GT.ECLOSE) THEN
-          W1 = 0.5/ABS(HI)
-      ELSE
-          W1 = R0(IPAIR)*BODYIN
-          W2 = 0.5/ABS(HI)
-          W1 = MIN(W1,W2)
-          IF (RI.GT.R0(IPAIR)) W1 = W1*R0(IPAIR)/RI
-*       Maximum square step for soft binaries & weak hyperbolic pairs.
-          IF (HI.LT.0.0D0) THEN
-*       Include case of hard binary with massive components or merger.
-              W2 = -0.5/HI
-              IF (NAME(I).LT.0) THEN
-                  W1 = RI*BODYIN
-              END IF
-              W1 = MIN(W2,W1)
-          END IF
-      END IF
-*
-*       Include perturbation factor in predicted step.
-      IF (GI.LT.0.0005) THEN
-*       Use second-order expansion of cube root for small perturbations.
-          W3 = 333.3*GI
-          W2 = SQRT(W1)/(1.0 + W3*(1.0 - W3))
-      ELSE
-          W3 = 1.0 + 1000.0*GI
-          W2 = SQRT(W1)/W3**0.3333
-      END IF
+*       Choose basic regularized step using binding energy.
+      W1 = 0.5/ABS(HI)
+      W2 = R0(IPAIR)*BODYIN
+      W1 = MIN(W1,W2)
+      W2 = SQRT(W1)
 *
 *       Set new regularized step and convert to physical time units.
-      DTU = ETAU*W2
+      DTU = 4.0*ETAU*W2
+*
+*       Include convergence criterion DH = H'*DTU + H''*DTU**2/2 = 0.001*|H|.
+      IF (GI.GT.1.0D-05) THEN
+          DH = 1.0E-03*MAX(ABS(HI),0.1D0)
+          XF = 2.0*DH/ABS(HDOT2(IPAIR))
+          YF = HDOT(IPAIR)/HDOT2(IPAIR)
+          DTU1 = SQRT(XF + YF**2) - ABS(YF)
+          DTU = MIN(DTU1,DTU)
+      END IF
+*
+*       Convert to physical value.
+      IT = 0
    25 STEP(I1) = (((((ZZ*TDOT6*DTU + 0.2D0*TDOT5)*DTU + 0.5D0*TDOT4)*DTU
      &                     + TDOT3(IPAIR))*ONE6*DTU + TD2)*DTU + RI)*DTU
       IF (STEP(I1).LT.1.0D-12) THEN
@@ -161,7 +150,8 @@
    30     FORMAT (' NEGATIVE STEP    NM KSL H R DTU S1 G ',
      &                               I7,I4,1P,5E10.2)
           DTU = 0.5*DTU
-          GO TO 25
+          IT = IT + 1
+          IF (IT.LT.10) GO TO 25
       END IF
       DTAU(IPAIR) = DTU
 *
@@ -177,25 +167,10 @@
       CALL STEPK(DT,DTN)
       STEP(I1) = DTN
 *
-*       Adopt Newton-Raphson for all cases until further developments.
-*     IF (ABS(HI)*RI*BODYIN.GT.0.02) THEN
-      IF (N.LT.0) THEN
-          A2 = 1.0/RI
-          A3 = A2*DTN
-*       Include slow-down factor in the time interval factors.
-          IF (IMOD.GT.1) THEN
-              A3 = A3/ZMOD
-          END IF
-*       Expand regularized time interval to third order.
-          A4 = 3.0D0*TDOT2(IPAIR)**2*A2 - TDOT3(IPAIR)
-          DTAU(IPAIR) = ((ONE6*A4*A3 - 0.5D0*TDOT2(IPAIR))*A2*A3 +
-     &                                 1.0)*A3
-      ELSE
-*       Perform Newton-Raphson iteration in pericentre region.
-          DTU = DTU*DTN/DT
-          CALL NEWTON(TDOT4,TDOT5,TDOT6,IPAIR,DTU)
-          DTAU(IPAIR) = DTU
-      END IF
+*       Perform Newton-Raphson iteration.
+      DTU = DTU*DTN/DT
+      CALL NEWTON(TDOT4,TDOT5,TDOT6,IPAIR,DTU)
+      DTAU(IPAIR) = DTU
 *
 *       Check diagnostics print option.
       IF (KZ(10).GE.3) THEN
@@ -208,14 +183,15 @@
       IF (NAME(I).LT.0) THEN
 *       Terminate if apocentre perturbation > 0.25 (R > SEMI) or GI > 0.25.
           IF (HI.LT.0.0) THEN
-              SEMI = -0.5*BODY(I)/HI
+*             SEMI = -0.5*BODY(I)/HI
 *             ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
 *             A0 = SEMI*(1.0 + SQRT(ECC2))/RI
-              A0 = 1.5*SEMI/RI
-              GA = GI*A0*A0*A0
-              IF (GA.GT.0.25.AND.RI.GT.SEMI) IQ = .TRUE.
-              IF (RI.GT.20*RMIN.AND.NNB0.GT.0.8*LIST(1,I)) IQ = .TRUE.
+*             A0 = 1.5*SEMI/RI
+*             GA = GI*A0*A0*A0
+*             IF (GA.GT.0.25.AND.RI.GT.SEMI) IQ = .TRUE.
+              IF (RI.GT.10*RMIN.AND.NNB0.GT.0.8*LIST(1,I)) IQ = .TRUE.
               IF (GI.GT.0.1.AND.RI.GT.RMIN) IQ = .TRUE.
+              IF (GI.GT.0.01.AND.RI.GT.5.0*RMIN) IQ = .TRUE.
               IF (GI.GT.0.25) IQ = .TRUE.
               IF (MIN(BODY(I1),BODY(I2)).LT.0.05*BODYM) THEN
                   IF (GI.GT.2.0D-04) IQ = .TRUE.
@@ -461,8 +437,8 @@
               IF (ITERM.GT.0) THEN
                   JPHASE = 7
 *                 KSPAIR = IPAIR
-                  CALL RESET
-                  IF (ITERM.GT.1) CALL CIRC(KCASE)
+*                 CALL RESET
+*                 CALL CIRC(KCASE)
                   GO TO 100
               END IF
           END IF

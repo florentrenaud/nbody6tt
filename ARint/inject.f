@@ -49,7 +49,7 @@
 *     LISTC(NNB) = ICH
 *     DO 30 L = 2,NNB
 *     J = LISTC(L)
-*     WRITE (3,25) J, NAME(J),BODY(J), STEP(J), (X(K,J),K=1,3)
+*     WRITE (6,25) J, NAME(J),BODY(J), STEP(J), (X(K,J),K=1,3)
 *  25 FORMAT (' LISTC   J NM S M X  ',2I7,1P,2E10.2,2X,3E10.2)
 *  30 CONTINUE
 *
