@@ -138,6 +138,7 @@
 *
 *       Form sum of inverse separations to evaluate mass segregation.
       POT0 = 0.0
+      LX0 = MAX(LX0,1)
       DO 44 L = LX0,NP-1
           I = ILIST(L)
           DO 42 LL = L+1,NP

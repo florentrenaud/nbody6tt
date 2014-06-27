@@ -1,3 +1,4 @@
+
       SUBROUTINE SPINUP(IPAIR,ITERM)
 *
 *

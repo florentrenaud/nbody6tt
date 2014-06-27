@@ -89,7 +89,7 @@
       IF (KZ(19).GT.2) THEN
           CALL INSTAR
       ELSE IF (KZ(14).GT.1) THEN
-          DT = 1.0E-03/TSCALE
+          DT = 1.0E-03/TSTAR
           CALL STEPK(DT,DTN)
           STEPX = DTN
       END IF

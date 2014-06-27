@@ -12,7 +12,7 @@
       IF (IPAIR.GT.0) THEN
           THETA = 0.25D0*TWOPI
           IKICK = 0
-      ELSE
+      ELSE IF (IPAIR.LT.0) THEN
           THETA = 0.5*TWOPI*RAN2(IDUM1)
           IPAIR = -IPAIR
 *       Note new type not known here but WD case kick decided by option #25.
@@ -22,6 +22,11 @@
           T0(2*IPAIR-1) = TIME
 *       Skip hyperbolic orbit (i.e. kick for second binary component).
           IF (H(IPAIR).GT.0.0) GO TO 30
+      ELSE
+*       Include small angle for moving away from pericentre.
+          THETA = 0.02
+          IKICK = -1
+          IPAIR = KSPAIR
       END IF
 *
 *       Form transformation coefficients (Stiefel & Scheifele p. 85).

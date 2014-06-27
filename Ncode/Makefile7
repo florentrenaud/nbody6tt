@@ -1,3 +1,4 @@
+
 .KEEP_STATE: #suggested by Keigo Nitadori 11/06.
 CFLAGS = -O3 -Wall -ffast-math
 FFLAGS = -O3 -Wall -ffast-math

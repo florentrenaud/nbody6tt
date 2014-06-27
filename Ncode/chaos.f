@@ -156,8 +156,8 @@
 *       Skip initialization for difficult hierarchy and small EMAX.
               IF (LIST(1,I1).EQ.1) THEN
                   ICIRC = -1
-                  JCOMP = LIST(2,I1)
-                  CALL INDUCE(IPAIR,EMAX,EMIN,ICIRC,TC,ANGLE,TG,EDAV)
+                  JCL = LIST(2,I1)
+                 CALL INDUCE(IPAIR,JCL,EMAX,EMIN,ICIRC,TC,ANGLE,TG,EDAV)
                   IF (EMAX.LT.0.9) THEN
                       NCHAOS = NCHAOS - 1
                       KSTAR(I) = 0

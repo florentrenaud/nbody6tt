@@ -824,6 +824,7 @@
 *       Predict current KS variables and save at end of routine RESOLV.
                   CALL RESOLV(KSPAIR,3)
                   IPHASE = 2
+                  IPOLY = -1
                   JCOMP = 0
                   CALL KSTERM
                   KS = 1
