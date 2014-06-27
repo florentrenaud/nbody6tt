@@ -40,3 +40,5 @@ Dec 2009: NB! Options expanded to 50! Please ensure extra line of 10 zeros.
 mcluster.tar.gz holds files for mcluster.c developed by Andreas Kupper.
 
 May 2012: nbody6-gpu.pdf is the GPU paper with Keigo accepted by MNRAS.
+
+April 2013: The directory GPU2 now contains Makefile for AVX.

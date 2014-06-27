@@ -128,8 +128,8 @@
           RHOD = 1.0
           RHOM = 1.0
           RC = RSCALE
-          RC2 = RC**2
-          RC2IN = 1.0/RC2
+          RC22 = RC**2
+          RC2IN = 1.0/RC22
       END IF
 *
 *       Take the Sun as reference for plotting planetesimal disk members.

@@ -35,7 +35,7 @@
 *       Transform to the local c.m. reference frame.
       DO 4 L = 1,NCH
           J = JLIST(L)
-          SIZE(L) = RADIUS(J)
+          SIZE(L) = 1.3*RADIUS(J)
           ISTAR(L) = KSTAR(J)
 *       Place the system in first single particle locations.
           CM(7) = CM(7) + M(L)

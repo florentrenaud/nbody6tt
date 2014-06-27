@@ -1240,8 +1240,11 @@ c       dw(k)=dw(k)/(1+(vij2/cl**2)**2)**.25d0 ! not so good
      &      (dX,dW,rij,rdotv,vij2,m(Ii),m(Jx),DF,dfGR,spina,dsp)
 *       Note m(Ii), m(Jx) changed from m(i), m(j) 18/6/10 (OK by Seppo).
         RS=2.d0*(m(i)+m(j))/CL**2
-        if(rij.lt.4.*RS.and.iwarning.lt.2)
-     &  write(6,*)' Near collision: r/RS',rij/RS,i,j,rij,RS ! diagno
+        if(rij.lt.4.*RS.and.iwarning.eq.1) then
+        WRITE (6,10)  r/RS, rij/RS, I, J, rij, RS
+   10   FORMAT (' CHAIN COLLISION    r/RS rij/RS I J rij RS ',
+     &                               2F6.2,2I4,1P,2E10.2)
+        end if
         if(rij.lt.4*RS)then!
         iwarning=iwarning+1
         icollision=1   ! collision indicator

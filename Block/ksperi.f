@@ -28,7 +28,7 @@
       ECC = SQRT(ZETA**2 + PSI**2/SEMI)
 *
 *       Avoid nearly circular orbits (undefined pericentre).
-      IF (ECC.LT.0.00005) GO TO 30
+      IF (ECC.LT.0.0001) GO TO 30
 *
 *       Skip actual integration to avoid KCASE complications (small GAMMA).
       IF (N.GT.0) GO TO 22

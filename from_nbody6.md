@@ -1,5 +1,5 @@
 
-Based on Nbody6 downloaded on 29 January 2013.
+Based on Nbody6 downloaded on 26 June 2014.
 
 List of changes made to Sverre's Nbody6. Discard this document if you don't want to dig in the code.
 All the changes are commented in the .f and .h files. They start with the tag '*** FlorentR' and end with '*** FRenaud'.
@@ -94,10 +94,10 @@ In GPU2
 ### adjust.f	{262}
 * set the tidal radius to 10x the half-mass radius as in Ncode/adjust.f
 
-### gpucor.f	{118,130,346}
+### gpucor.f	{118,134,354}
 * include the case of the tidal tensor, as in Ncode/regint.f
 
-### intgr.omp.f	{257}
+### intgr.omp.f	{259}
 * (mode B) add the case of the tidal tensor in mode B, as in Ncode/intgr.f
 
 ### start_omp.F	{42}

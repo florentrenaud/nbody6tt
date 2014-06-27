@@ -41,11 +41,12 @@
 *       Define chain membership.
       CALL SETSYS
 *
-      DO 15 L = 1,NCH
-          J = JLIST(L)
-          WRITE (6,1)  J, NAME(J), KSTAR(J), BODY(J)*SMU, RADIUS(J)*SU
-    1     FORMAT (' INITIAL MEMBER    J NM K* M R* ',2I6,I4,2F7.1)
-   15 CONTINUE
+*     DO 15 L = 1,NCH
+*         J = JLIST(L)
+*         WRITE (6,1)  J, NAME(J), KSTAR(J), BODY(J)*SMU, RADIUS(J)*SU
+*   1     FORMAT (' INITIAL MEMBER    J NM K* M R* ',2I6,I4,2F7.1)
+*  15 CONTINUE
+*     CALL FLUSH(6)
 *
 *       Initialize c.m. variables.
       DO 2 K = 1,7
@@ -137,8 +138,14 @@
 *       Form ghosts and initialize c.m. motion in ICOMP = JLIST(NCH).
       CALL SUBSYS(NCH,CM)
 *
-*       Remove any ghosts from KS perturber lists.
-      CALL NBREM(ICH,NCH,NPAIRS)
+*       Copy neighbour list for ghost removal.
+      NNB = LIST(1,ICH)
+      DO 20 L = 2,NNB+1
+          JPERT(L-1) = LIST(L,ICH)
+   20 CONTINUE
+*
+*       Remove any ghosts from neighbour list.
+      CALL NBREM(ICH,NCH,NNB)
 *
 *       Initialize perturber list for integration of chain c.m.
       CALL CHLIST(ICH)

@@ -10,6 +10,7 @@
       COMMON/CHAINC/  XC(3,NCMAX),UC(3,NCMAX),BODYC(NCMAX),ICH,
      &                LISTC(LMAX)
       COMMON/PREDICT/ TPRED(NMAX)
+      INTEGER ISTAT(NMAX)
       PARAMETER (NIMAX=1024,NPMAX=16)
       REAL*8   H2I(NIMAX),XI(3,NIMAX),VI(3,NIMAX),GPUACC(3,NIMAX),
      &         GPUJRK(3,NIMAX),GPUPHI(NIMAX),GF(3,NMAX),GFD(3,NMAX),
@@ -17,10 +18,11 @@
       INTEGER  NXTLST(NMAX),LISTQ(NMAX),NL(20)
       INTEGER  IRR(NMAX),IREG(NMAX),LISTGP(LMAX,NIMAX)
       LOGICAL LOOP,LSTEPM
-      SAVE IQ,ICALL,NQ,LQ,LOOP,LSTEPM,STEPM,ISAVE,JSAVE,ISTART
+      SAVE IQ,ICALL,NQ,LQ,LOOP,LSTEPM,STEPM,ISAVE,JSAVE,ISTART,TBH
       DATA IQ,ICALL,LQ,LOOP,LSTEPM,STEPM /0,2,11,.TRUE.,.FALSE.,0.03125/
       DATA ISAVE,JSAVE,ISTART /0,0,0/
       SAVE TLISTQ,TMIN,ICOMP0,JCOMP0,NPACT,GF,GFD
+      SAVE NXTLST,LISTQ,IRR,IREG,LISTGP,ISTAT
 *     SAVE CPRED,CPRED2,CPRED3
 *     DATA CPRED,CPRED2,CPRED3 /0.0D0,0.0D0,0.0D0/
 *
@@ -34,10 +36,10 @@
 *
 *       Open the GPU libraries on each new run (note nnbmax = NN is printed).
       IF (ISTART.EQ.0) THEN
-          NN = NTOT + 10
+          NN = NTOT + 100
           CALL GPUNB_OPEN(NN)
 *       Set larger value for GPUIRR (note further possible increase of NTOT).
-          NNN = NTOT + 10
+          NNN = NTOT + 100
 *       Increase NNN further for cold start to deal with many KS.
           IF (QVIR.LT.0.01.AND.TIME.EQ.0.0D0) NNN = NTOT + 500
 *       Allow for missing primordial binaries.
@@ -54,6 +56,7 @@
           ELSE
               NPACT = 200
           END IF
+          TBH = TTOT
       END IF
 *
 *       Search for high velocities after escape or KS/chain termination.
@@ -72,18 +75,6 @@
               CALL JPRED(I)
               CALL GPUIRR_SET_JP(I,X0(1,I),X0DOT(1,I),F(1,I),FDOT(1,I),
      &                                                BODY(I),T0(I))
-*       Search all separations (including J = I and other c.m. bodies).
-              DO 1010 J = IFIRST,NTOT
-                  RIJ2 = 0.0
-                  DO 1005 K = 1,3
-                      RIJ2 = RIJ2 + (X(K,I) - X(K,J))**2
- 1005             CONTINUE
-                  DX = MAX(RS(I),RS(J))
-*       Include a 10% edge effect (NB! assumes RIJ < RS(I) criterion).
-*                 IF (RIJ2.LT.1.2*DX**2) THEN
-                      CALL GPUIRR_SET_LIST(J,LIST(1,J))
-*                 END IF
- 1010         CONTINUE
           END IF
 *       Select second component or new c.m. (not connected with ICOMP0).
           IF (I.EQ.ICOMP0) THEN
@@ -93,9 +84,14 @@
               I = NTOT
               GO TO 1000
           END IF
+!$omp parallel do private(J)
+          DO 1010 J = IFIRST,NTOT
+              CALL GPUIRR_SET_LIST(J,LIST(1,J))
+ 1010     CONTINUE
+!$omp end parallel do
+*
 *       Remove ICOMP0 & JCOMP0 from LISTQ and add NTOT.
           CALL REPAIR(ICOMP0,JCOMP0,NTOT,0,NQ,LISTQ,TMIN)
-*
 *       Check KS termination (locations IFIRST & IFIRST + 1).
       ELSE IF (IPHASE.EQ.2) THEN
 *       Update relevant variables for the KS components and later c.m.
@@ -147,6 +143,11 @@
 *       Prescribe level search on return, except for new and terminated KS.
           LOOP = .TRUE.
           TLISTQ = TIME
+*       Refresh perturber predictions and LISTC after each RETURN.
+          IF (NCH.GT.0) THEN
+              CALL XCPRED(2)
+              CALL CHLIST(ICH)
+          END IF
       END IF
 *
 *       Reset control & regularization indicators.
@@ -231,6 +232,7 @@
 *     WRITE (6,1300) NXTLEN, NQ, TIME, TIME-TLAST,STEP(I)
 *1300 FORMAT (' NEGATIVE!    LEN NQ T T-TL S ',2I6,F10.5,1P,2E10.2)
 *     CALL FLUSH(6)
+*     END IF
 *     WRITE (6,22)  I, NXTLEN, NSTEPU, NSTEPI, TIME, STEP(I), STEPR(I)
 *  22 FORMAT (' INTGRT   I LEN #U #I T S SR  ',2I6,2I11,F10.4,1P,2E10.2)
 *     CALL FLUSH(6)
@@ -335,7 +337,7 @@
 *       Decide between predicting <= NPACT active (NFR = 0) or all particles.
       IF (NXTLEN.LE.NPACT.AND.NFR.EQ.0) THEN
 *
-*       Predict active particles in the GPUIRR library.
+*       Predict active particles and their neighbours in the GPUIRR library.
           CALL GPUIRR_PRED_ACT(NXTLEN,NXTLST,TIME)
       ELSE
           CALL GPUIRR_PRED_ALL(IFIRST,NTOT,TIME)
@@ -362,10 +364,10 @@
       TMIN = 1.0D+10
       IKS0 = IKS
 *
-*       Predict chain variables and perturbers at new block-time.
+*       Predict chain c.m. at each new block-time.
       IF (NCH.GT.0) THEN
           CALL JPRED(ICH)
-          CALL XCPRED(2)
+*         CALL XCPRED(2)
       END IF
 *
 *       Evaluate all irregular forces & derivatives in the GPUIRR library.
@@ -379,30 +381,44 @@
       IF (NXTLEN.LE.NPMAX) THEN
 *
 *       Correct the irregular steps sequentially.
-      DO 48 II = 1,NXTLEN
-          I = NXTLST(II)
+          DO 48 II = 1,NXTLEN
+              I = NXTLST(II)
 *       Advance the irregular step (no copy of X0 to GPUIRR needed here).
-          CALL NBINT(I,IKS,IRR(II),GF(1,II),GFD(1,II))
-*         CALL GPUIRR_SET_JP(I,X0(1,I),X0DOT(1,I),F(1,I),FDOT(1,I),
-*    &                                            BODY(I),T0(I))
+              CALL NBINT(I,IKS,IRR(II),GF(1,II),GFD(1,II))
+*             CALL GPUIRR_SET_JP(I,X0(1,I),X0DOT(1,I),F(1,I),FDOT(1,I),
+*    &                                                BODY(I),T0(I))
 *
 *       Save indices and TIME of first KS candidates in the block.
-          IF (IKS0.EQ.0.AND.IKS.GT.0) THEN
-              ISAVE = ICOMP
-              JSAVE = JCOMP
-              TSAVE = TIME
-              IKS0 = IKS
-          END IF
-   48 CONTINUE
+              IF (IKS0.EQ.0.AND.IKS.GT.0) THEN
+                  ISAVE = ICOMP
+                  JSAVE = JCOMP
+                  TSAVE = TIME
+                  IKS0 = IKS
+              END IF
+   48     CONTINUE
 *
       ELSE
-*       Perform irregular correction in parallel (suppressed currently).
-*!$omp parallel do private(II, I)
-      DO 50 II = 1,NXTLEN
-          I = NXTLST(II)
-          CALL NBINTP(I,IRR(II),GF(1,II),GFD(1,II))
-   50 CONTINUE
-*!$omp end parallel do
+*       Perform irregular correction in parallel (flag for perturbed binary).
+!$omp parallel do private(II, I)
+          DO 50 II = 1,NXTLEN
+*       Initialize array for repeated calls to ensure thread-safe procedure.
+              ISTAT(II) = -1
+              I = NXTLST(II)
+              CALL NBINTP(I,IRR(II),GF(1,II),GFD(1,II),ISTAT(II))
+*       Note that rejected parallel part contains few operations.
+   50     CONTINUE
+!$omp end parallel do
+*
+*       Correct the irregular steps sequentially for rare cases.
+          IPHASE = 0
+          IKS = 0
+          DO 500 II = 1,NXTLEN
+              IF (ISTAT(II).GT.0) THEN
+                  I = NXTLST(II)
+*       Correct exceptional irregular steps in serial.
+                  CALL NBINT(I,IKS,IRR(II),GF(1,II),GFD(1,II))
+              END IF
+  500     CONTINUE
       END IF
       NSTEPI = NSTEPI + NXTLEN
 *
@@ -599,8 +615,15 @@
           END IF
       END IF
 *
+*       Include optional plotting of single BH orbits (1 or 2).
+      IF (KZ(45).GT.0.AND.TBH.LT.TIME+TOFF) THEN
+          CALL BHPLOT
+*       Update time interval (try 10 points per time unit).
+          TBH = TBH + 1.0D-01
+      END IF
+*
 *       Advance counters and check timer & optional COMMON save (NSUB = 0).
-      NTIMER = NTIMER + 1
+      NTIMER = NTIMER + NXTLEN
       IF (NTIMER.LT.NMAX) GO TO 1
 
       NTIMER = 0

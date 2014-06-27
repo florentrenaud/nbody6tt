@@ -113,26 +113,8 @@
               CALL KSINTP(I1,LI)
    20       CONTINUE
 !$omp end parallel do
-            NSTEPU = NSTEPU + LENGTH
 *       Note that unperturbed KS are now included in parallel step counter.
-*
-      IF (N.GT.0) GO TO 90
-            LB = FLOAT(LENGTH)/FLOAT(NLMAX)
-            LB = MAX(LB,1)
-            LY = MAX(LY,LB)
-            LY = MIN(LY,20)
-            IBIN(LB) = IBIN(LB) + LENGTH
-            IF (ABS(TNEXT - TBLOCK).LT.1.0D-04) THEN
-              WRITE (6,22)  (IBIN(K),K=1,LY)
-   22         FORMAT (' IBIN  ',20I9)
-              ISUM = 0
-              DO 23 K = 1,LY
-                ISUM = ISUM + IBIN(K)
-   23         CONTINUE
-              WRITE (6,24)  LY, ISUM
-   24         FORMAT (' LY ISUM  ',I4,I10)
-            END IF
-   90   CONTINUE
+            NSTEPU = NSTEPU + LENGTH
 *
 *       Search non-zero flags (ISTAT < 0 for collision).
             IF (IQ.EQ.0) THEN

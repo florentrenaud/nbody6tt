@@ -16,6 +16,9 @@
       COMMON/CPERT/  RGRAV,GPERT,IPERT,NPERT
 *
 *
+*       Replace zero argument from CHAIN by #ICH.
+      IF (I.EQ.0) I = ICH
+*
 *       Prepare perturber selection using maximum of RSUM & RGRAV.
       RPERT = MAX(RSUM,RGRAV)
 *       Restrict effective size to RMIN (energy may be near zero).

@@ -18,6 +18,8 @@
 *
           KM = 1
           ZMX = 0.0
+          ZMS = 0.0
+          NSS = 0
           DO 10 J = 1,N
               KW = KSTAR(J) + 1
               KW = MIN(KW,16)
@@ -25,7 +27,13 @@
               NTYPE(KW) = NTYPE(KW) + 1
               KM = MAX(KM,KW)
               ZMX = MAX(BODY(J),ZMX)
+*       Determine mean mass of luminous stars.
+              IF (KSTAR(J).LT.13) THEN
+                  ZMS = ZMS + BODY(J)
+                  NSS = NSS + 1
+              END IF
    10     CONTINUE
+          IF (NSS.GT.0) ZMS = ZMS/FLOAT(NSS)
 *
           WRITE (6,15)
    15     FORMAT (/,6X,'NMDOT   NRG  NHE  NRS  NNH  NWD  NSN  NBH  NBS',
@@ -61,13 +69,13 @@
    30     FORMAT (/,5X,'NDISS  NTIDE  NSYNC  NCOLL  NCOAL  NDD  NCIRC',
      &                 '  NROCHE  NRO  NCE  NHYP  NHYPC    EBIN ',
      &                 '  EMERGE  ECOLL  EMDOT  ECDOT  EKICK  ESESC ',
-     &                 '  EBESC  EMESC  DEGRAV   EBIND  MAXM')
+     &                 '  EBESC  EMESC  DEGRAV   EBIND  MAXM  MLUM')
           WRITE (6,35)  NDISS, NTIDE, NSYNC, NCOLL, NCOAL, NDD, NCIRC,
      &                  NROCHE, NRO, NCE, NHYP, NHYPC, EBIN, EMERGE,
      &                  ECOLL, EMDOT, ECDOT, EKICK, ESESC, EBESC,
-     &                  EMESC, DEGRAV, E(3), ZMX*SMU
+     &                  EMESC, DEGRAV, E(3), ZMX*SMU, ZMS*SMU
    35     FORMAT (' #5',I8,I6,3I7,I5,I7,I8,2I5,I6,I7,3F8.3,4F7.3,F8.3,
-     &                  F7.3,2F8.3,F6.1)
+     &                  F7.3,2F8.3,F6.1,F6.2)
       END IF
 *
       RETURN

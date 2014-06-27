@@ -1,4 +1,4 @@
-      SUBROUTINE CHTERM2(NBHB,DEGR)
+      SUBROUTINE CHTERM2(NBH2,DEGR)
 *
 *
 *       Termination of two-body ARC.
@@ -28,12 +28,11 @@
       JLIST(6) = NAMEC(I1)
       JLIST(7) = NAMEC(I2)
       NAME(ICH) = NAME0
-      ICM = 0
       TIME = TBLOCK
 *
 *       Identify c.m. body and find global indices.
       DO 10 J = IFIRST,N
-          DO 5 L = 1,NCH
+          DO 5 L = 1,NN
               IF (NAME(J).EQ.JLIST(L+5)) THEN
                   JLIST(L) = J
                   IF (BODY(J).GT.0.0D0) ICM = J
@@ -47,7 +46,7 @@
 *
 *       Copy final coordinates & velocities to standard variables.
       LK = 0
-      DO 20 L = 1,NCH
+      DO 20 L = 1,NN     ! Note NCH may be zero after INFALL.
           DO 15 K = 1,3
               LK = LK + 1
               X4(K,L) = XCH(LK)
@@ -69,7 +68,7 @@
       JLIST(8) = I2
 *
 *       Place new global coordinates in the original locations.
-      DO 40 L = 1,NCH
+      DO 40 L = 1,NN
           J = JLIST(L)
 *       Copy the respective masses (BODY(ICM) holds the sum).
           IF (L.EQ.1) BODY(J) = BODYC(1)
@@ -92,7 +91,7 @@
       CALL KSREG
 *
 *       Include optional kick velocity of 3*VRMS km/s after GR coalescence.
-      IF (KZ(43).GT.0.AND.NBHB.EQ.2) THEN
+      IF (KZ(43).GT.0.AND.NBH2.EQ.2) THEN
           VI20 = 0.0
           DO 42 K = 1,3
               VI20 = VI20 + XDOT(K,NTOT)**2
@@ -113,26 +112,28 @@
           KSTAR(NTOT) = 14
       END IF
 *
+      NP = LIST(1,2*NPAIRS-1)
       ZMU = BODY(2*NPAIRS-1)*BODY(2*NPAIRS)/BODY(NTOT)
       EBH = ZMU*H(NPAIRS)
-      WRITE (6,50)  NSTEP1, LIST(1,NTOT), EBH, ECH, H(NPAIRS),
+      WRITE (6,50)  NSTEP1, NP, LIST(1,NTOT), EBH, ECH, H(NPAIRS),
      &              R(NPAIRS), STEP(NTOT)
-   50 FORMAT (' TERMINATE ARC    # NNB EBH ECH H R STEP ',
-     &                             I10,I4,F11.6,1P,4E10.2)
+   50 FORMAT (' TERMINATE ARC    # NP NNB EBH ECH H R STEP ',
+     &                             I10,2I4,F11.6,1P,4E10.2)
 *       Reduce subsystem counter and initialize membership & internal energy.
-      NSUB = NSUB - 1
+      NSUB = MAX(NSUB - 1,0)
       NCH = 0
       NN = 0
       NSTEPC = NSTEPC + NSTEP1
 *
-*       Note stellar collisions energies are accumulated in ECOLL/DECORR.
+*       Note stellar collisions energies are accumulated in ECOLL by DECORR.
       ECH = 0.0
 *       Subtract accumulated energy loss to compensate for KS binding energy.
       ECOLL = ECOLL - DEGR
 *
-*       Set escape condition to zero mass BHs after termination/coalescence.
+*       Set escape condition to zero mass after termination/coalescence.
       DO 60 I = IFIRST,N
-          IF (KSTAR(I).EQ.14.AND.BODY(I).EQ.0.0D0) THEN
+          IF ((NAME(I).EQ.NAMEC(I1).AND.BODY(I).EQ.0.0D0).OR.
+     &        (NAME(I).EQ.NAMEC(I2).AND.BODY(I).EQ.0.0D0)) THEN
 *       Skip any ghosts associated with stable hierarchies.
               DO 52 L = 1,NMERGE
                   IF (NAME(I).EQ.NAMEG(L)) GO TO 60

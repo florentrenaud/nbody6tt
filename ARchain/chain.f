@@ -11,7 +11,6 @@
 *
         INCLUDE 'ARCCOM2e2.CH'
         COMMON/DIAGNOSTICS/GAMMA,H,IWR
-        common/externalcount/neval
         common/justforfun/Tkin,Upot
         common/collision/icollision,IBH,JBH,iwarning
         COMMON/CLUMP/  BODYS(NMX,5),T0S(5),TS(5),STEPS(5),RMAXS(5),
@@ -29,9 +28,8 @@
         EXTERNAL CHMOD
         REAL*8  G0(3),XREL(3),VREL(3),XCM(3),VCM(3),XX(3,3),VV(3,3),
      &          CMXX(3),CMVX(3)
-        DATA IEND,ICHECK /0,0/
+        DATA IEND,ICHECK,IT /0,0,0/
         LOGICAL NEWREG
-        DATA IT /0/
         SAVE
 *
 *
@@ -56,6 +54,8 @@
 *       Read velocity of light and disruption option (first time only).
       IF (IEND.EQ.0) THEN
           READ (5,*) Clight, NBH, IDIS
+          CVEL = CLIGHT
+          IEND = 1
       END IF
 *
       INJ = 0
@@ -68,7 +68,6 @@
       ISYS(5) = ISUB
       ESUM = 0.0
       icollision=0
-      neval=0
       TIME=0.0
 *       Copy Clight into dummy of /POSTN/ (needed elsewhere).
       CVEL=Clight
@@ -85,29 +84,34 @@
       spin(2) = 0.0
       spin(3) = 0.999
       ISPIN = 1
-      IGR = 0
-      IPN = 0
+      ISPIN = 0
+      JGR = 0
       IBH = 0
       JBH = 0
       I2BH = 0
       J2BH = 0
       ISTAB = 0
+      IESC = 0
+      JESC = 0
       TZ = 1.0D+04
       TSTAB = 1.0D+06
       TKOZ = 0.0
       TWOPI = 8.0*ATAN(1.0D0)
-      IF (CLIGHT.EQ.0.0D0) NBH = 0
+      IF (CLIGHT.EQ.0.0D0) THEN
+          NBH = 0
+      END IF
+      NBH2 = 0
       DEGR = 0.0
       WTTL = 0.0
       EnerGR = 0.0
       EPS = 1.0D-10
       tolerance = EPS
-      CVEL = 0.0
       RCOLL = 0.0
       RSUB = 0.0
       ESUB = 0.0
       ECOLL1 = 0.0
       IMOVE = 0
+      IOUT = 0
 *
 *       Prepare next step initially or after membership change.
    30 CONTINUE
@@ -126,15 +130,14 @@
    50     CONTINUE
           RGRAV = SUM/ABS(ENER0)
 *       Set provisional dominant elements until routine REDUCE.
-          SEMIGR = RGRAV
+          SEMIGR = 0.5*RGRAV
           ECCGR = 0.0
 *       Rename softening to sft to avoid clash with old variable.
 *         sft=1.0D-03*RGRAV
-          sft = 0.0
           sft = 1.0D-20
           ee=sft**2 ! square of softening
           EPS2 = ee
-          IF (TIME.EQ.0.0D0) ENERGY = ENER0
+          ENERGY = ENER0
       END IF
 *
 *     TCR=MASS**2.5/(2.*ABS(ENER0))**1.5
@@ -153,9 +156,11 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
 *       Update energy budget on each NEWREG.
       IF (NEWREG.AND.Clight.GT.0.0) THEN
           ENERGY = ENERGY + EnerGR
+          IF (MOD(NSTEP1,10).EQ.0) THEN
           WRITE (6,102)  N, NPERT, IPN, EnerGR, ENERGY, RGRAV, DEGR
   102     FORMAT (' NEWREG    N NP IPN EnerGR ENERGY RGRAV DEGR ',
      &                        3I3,1P,E9.1,0P,3F10.6)
+          END IF
           EnerGR = 0.0
       END IF
 *       Check termination (positive energy possible without member change).
@@ -207,8 +212,12 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
 *       Perform the next integration step (note Clight changes with CVEL).
       ESAVE = EnerGR
       COPYC = Clight
-**    DELTAT = 0.5*DELTAT
-**    DO 1100 II = 1,2
+*       Ensure PN is active after unperturbed KS (IPN set in BRAKE4).
+      IF (IPN.GT.0.AND.IPN.LE.3) THEN
+          CVEL = CLIGHT
+          IGR = 1
+      END IF
+      IF (JGR.GT.0) IBH = 0
       CALL ARC(N,X,V,M,TIME,DELTAT,EPS,NEWREG,KSMX,sft,cvel,Ixc,NBH,
      &         spin,CMXX,CMVX)
       Clight = COPYC
@@ -233,11 +242,6 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
       TIMEC = TIME
       TNOW = TSP + TIMEC
 *
-      IF (NSTEP1.GE.10.AND.IMOVE.EQ.0.AND.SEMI.GT.0.0) THEN
-      TKEP = 6.28*SEMI*SQRT(SEMI/(M(1)+M(2)))
-      DTMOVE = 0.1*TKEP
-      IMOVE = -1
-      END IF
 *       Check movie output.
       IF (IMOVE.GT.0.AND.TMOVE.LT.100.0) THEN
       IF (TIMEC.GT.TMOVE) THEN
@@ -245,17 +249,34 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           TMOVE = TIMEC + DTMOVE
       END IF
       END IF
-*1100 CONTINUE
 *
       IF (N.EQ.2.AND.1.0/RINV(1).GT.0.1) THEN
       WRITE (6,880)  TNOW, NPERT, ENERGY,GPERT, DELTAT, 1.0/RINV(1)
   880 FORMAT (' WIDE CHAIN    T NP EN G DT R ',F10.3,I4,F10.6,1P,6E10.2)
       CALL CONST(X,V,M,N,ENER0,G0,AL)
       WRITE (6,887)  ECC, ENER0, M(1), M(2), SEMI
-  887 FORMAT (' ECC ENER0 M1 M2 SEMI  ',F9.4,F10.6,1P,3E10.2)
+  887 FORMAT (' DANGER!   ECC ENER0 M1 M2 SEMI  ',F9.4,F10.6,1P,3E10.2)
       STOP
       END IF
+*
       NSTEP1 = NSTEP1 + 1
+*
+*       Predict perturbers & XC, UC and form new LISTC every 10 steps.
+      IF (MOD(NSTEP1,10).EQ.0) THEN
+          JJ = 0
+          CALL XCPRED(2)
+          CALL CHLIST(JJ)
+      ELSE
+*       Perform fast prediction of XC & UC every step (#ICH in INTGRT).
+          CALL XCPRED(0)
+      END IF
+*
+      IF (IOUT.GT.0) THEN
+      WRITE (6,930)  TNOW, ENERGY, CVEL, (1.0/RINV(K),K=1,N-1)
+  930 FORMAT (' TNOW ENER CV R ',F11.4,F10.6,1P,7E10.2)
+      CALL FLUSH(6)
+      IOUT = 0
+      END IF
       IF (NSTEP1.GT.2000000000) NSTEP1 = 0
 *       Check indicator for membership injection (set in AR_Chain later).
       IF (INJ.LT.0) THEN
@@ -292,8 +313,10 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
       FX = 0.0
       RX2 = 1.0
       RDIS2 = 1.0
+      RPERT = 1.0
       I1 = 0
       DO 135 I = 1,N-1
+          RPERT = MAX(1.0/RINV(I),RPERT)
           LI = 3*(I - 1)
           DO 134 J = I+1,N
               LJ = 3*(J - 1)
@@ -303,35 +326,34 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
               IF (FF.GT.FX.AND.
      &            ISTAR(I).EQ.14.AND.ISTAR(J).EQ.14) THEN
                   FX = FF
-                  RBH = SQRT(RIJ2)
                   I1 = I
                   I2 = J
 *       Consider black hole - single star encounter.
               ELSE IF (IDIS.GT.0.AND.RIJ2.LT.RDIS2.AND.
      &             ((ISTAR(I).EQ.14.AND.ISTAR(J).NE.14).OR.
      &              (ISTAR(J).EQ.14.AND.ISTAR(I).NE.14))) THEN
-*       Ignore rare case of two stars inside RCOLL.
+*       Note rare case of two stars inside RCOLL is skipped below.
                   RDIS2 = RIJ2
                   RDIS = SQRT(RDIS2)
-                  RDOT = 0.0
+                  RD = 0.0
                   VIJ2 = 0.0
                   DO 133 K = 1,3
                       VIJ2 = VIJ2 + (V(LI+K) - V(LJ+K))**2
-                      RDOT = RDOT + (X(LI+K)-X(LJ+K))*(V(LI+K)-V(LJ+K))
+                      RD = RD + (X(LI+K) - X(LJ+K))*(V(LI+K) - V(LJ+K))
   133             CONTINUE
                   ADIS = 2.0/RDIS - VIJ2/(M(I) + M(J))
                   ADIS = 1.0/ADIS
-                  EDIS = (1.0-RDIS/ADIS)**2 +RDOT**2/((M(I)+M(J))*ADIS)
+                  EDIS = (1.0-RDIS/ADIS)**2 + RD**2/((M(I)+M(J))*ADIS)
                   EDIS = SQRT(EDIS)
                   SZ = MAX(SIZE(I),SIZE(J))
                   RATIO = MAX(M(I),M(J))/MIN(M(I),M(J))
                   RCOLL = RATIO**0.3333*SZ
 *       Include factor of 1000 to eliminate WD subsystem (too expensive).
-                  IF (MIN(ISTAR(I),ISTAR(J)).GE.10) RCOLL = 1000.*RCOLL
+*                 IF (MIN(ISTAR(I),ISTAR(J)).GE.10) RCOLL = 1000.*RCOLL
 *       Check disruption distance for pericentre or actual separation.
                   PMDIS = ADIS*(1.0 - EDIS)
-                  IF (RDIS.GT.0.1*RBH) PMDIS = RDIS
-                  IF (ICOLL.EQ.0.AND.PMDIS.LT.RCOLL) THEN
+                  IF (RDIS.GT.0.1*RPERT) PMDIS = RDIS
+                  IF (ICOLL.EQ.0.AND.PMDIS.LT.RCOLL.AND.RD.LT.0.0) THEN
                       ICOLL = I
                       JCOLL = J
                   END IF
@@ -392,6 +414,7 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           IGR = 0
       END IF
       IF (IGR.EQ.0) IPN = 0
+      JGR = 0        ! use JGR > 0 for switching off PN (experimental).
       IF (SEMI.LT.0.0) THEN
           IGR = 0
           IPN = 0
@@ -472,12 +495,29 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
 *       Evaluate perturbation at mean separation.
                   GA = 2.0*M(IX)/MB*(SEMI/RCJ)**3
                   CALL EMAX1(MB,XX,VV,XCM,VCM,ECC2,EX,EM)
-                  IF (NST.EQ.0) THEN
+                  IF (NST.EQ.0.AND.MOD(NSTEP1,100).EQ.0) THEN
+                      PM = AOUT*(1.0 - E1)
                       WRITE (97,220) TNOW, IPN, NAMEC(IX), ALPH, EX, EM,
-     &                               AOUT*(1.0-E1), RPC, TKOZ, GA
+     &                               PM, RPC, TKOZ, GA
   220                 FORMAT (' BHSTAB    T IPN NM IN EX EM PM RPC TK ',
      &                         'GA ',F9.2,I3,I6,F6.1,F9.5,F7.3,1P,4E9.1)
                       CALL FLUSH(97)
+*       Check long-lived inclined triples for switching off PN using JGR > 0.
+                      IF (IPN.EQ.1.AND.TZ.GT.20.0.AND.ALPH.GT.130.0.AND.
+     &                    PM.GT.20.0*SEMI.AND.RRD.GT.0.0) THEN
+                          JGR = 1
+                          WRITE (6,222)  NSTEP1, ECC, ALPH, PM/SEMI, TZ
+  222                     FORMAT (' PN SWITCH-OFF    # E IN PM/A TZ ',
+     &                                          I10,F8.4,F7.1,1P,2E9.1)
+*       Terminate chain by existing procedure.
+                          GO TO 250
+                      END IF
+*       Include termination for weakly perturbed eccentric binary.
+                      IF (IPN.EQ.1.AND.ECC.GT.0.99.AND.GA.LT.1.D-08.AND.
+     &                    TZ.GT.10.0.AND.RRD.GT.0.0) THEN
+                          WRITE (6,222)  NSTEP1, ECC, ALPH, PM/SEMI, TZ
+                          GO TO 250
+                      END IF
                   ELSE IF (AOUT*(1.0-E1).LT.RPC) THEN
                       WRITE (98,225) TNOW, IPN, NAMEC(IX), ALPH, EX, EM,
      &                               AOUT*(1.0-E1), RPC, GA
@@ -500,7 +540,7 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
 *       Determine radiation time-scale and corresponding indicators.
       IF ((ECC.LT.1.0.AND.CLIGHT.GT.0.0.AND.ECC.GT.0.97).OR.
      &    (ECC.LT.1.0.AND.TZ.LT.100.0).OR.
-     &    (PMIN.LT.100.0*RZ.AND.ECC.LT.1.0)) THEN
+     &    (PMIN.LT.1000.0*RZ.AND.ECC.LT.1.0)) THEN
           FE = 1.0 + (73.0/24.0 + 37.0*ECC2/96.0)*ECC2
           GE = (1.0 - ECC2)**3.5/FE
           MX = MAX(M(I1),M(I2))
@@ -515,7 +555,7 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           IF (NSTEP1.EQ.1) THEN
               WRITE (6,145)  ECC, CLIGHT, SEMI, PMIN, RZ, TZ, TPOM
   145         FORMAT (' RELATIVISTIC    ECC C AX PM RZ TZ TPOM ',
-     &                                  F7.3,1P,6E10.2)
+     &                                  F8.4,1P,6E10.2)
           END IF
 *       Specify IGR & IPN according to time-scale (experimental).
           IGR = 1
@@ -531,7 +571,6 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           END IF
 *       Reduce GR indicator from 2 to 1 for small GPERT & MIN(TZ,TKOZ) > 10.
           TYZ = MIN(TZ,TKOZ)
-        TYZ = 1000.0
           IF (IPN.EQ.2.AND.GPERT.LT.1.0D-07.AND.TYZ.GT.10.0) THEN
               IPN = 1
           END IF
@@ -541,6 +580,7 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           CVEL = 0.0
       END IF
 *
+*       Perform occasional GR check for high eccentricity.
       IF ((IPN.GT.1.AND.ECC.GT.0.99.AND.ICHECK.LT.10000).OR.
      &    (IPN.GT.2.AND.ECC.GT.0.999.AND.ICHECK.LT.20000)) THEN
           ICHECK = ICHECK + 1
@@ -559,7 +599,7 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           TZ = 1.0D+04
       END IF
 *
-*       Look for additional GR interaction terms (suppressed).
+*       Look for additional GR interaction terms (suppressed by IGR.LT.0).
       IF (IGR.LT.0.AND.N.GT.2.AND.IBH.GT.0) THEN
           RY = 1.0
           I = IBH
@@ -597,11 +637,49 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           J2BH = 0
       END IF
 *
+*       Exclude star-star collisions in disruption cases (also check for BH).
+      IF (IDIS.GT.0.AND.ICOLL.GT.0) THEN
+          RY2 = 1.0
+          DO 158 I = 1,N-1
+              LI = 3*(I - 1)
+              DO 156 J = I+1,N
+                  LJ = 3*(J - 1)
+                  RIJ2 = (X(LI+1)-X(LJ+1))**2 + (X(LI+2)-X(LJ+2))**2
+     &                                        + (X(LI+3)-X(LJ+3))**2
+*       Avoid two stars being close for star-BH interaction..
+                  IF (RIJ2.LT.RY2) THEN
+                      RY2 = RIJ2
+                      IY = I
+                      IZ = J
+                  END IF
+  156         CONTINUE
+  158     CONTINUE
+*       Impose necessary condition for BH-star pair being closest.
+          IF (IY + IZ.NE.ICOLL + JCOLL) THEN
+              ICOLL = 0
+              JCOLL = 0
+          END IF
+*       Ensure that ICOLL OR JCOLL represents the BH.
+          IF (ICOLL.GT.0) THEN
+              IF (ISTAR(ICOLL).NE.14.AND.ISTAR(JCOLL).NE.14) THEN
+                  ICOLL = 0
+                  JCOLL = 0
+              ELSE
+                  ECCGR = ECC
+              END IF
+          END IF
+      END IF
+*
+*       Check collision for non-BH dominant stars (IBH = 0 if IGR = 0).
+      IF (ISTAR(I1).LT.14.AND.ISTAR(I2).LT.14) THEN
+          IF (PMIN.LT.SIZE(I1) + SIZE(I2)) GO TO 258
+      END IF
+*
 *       Perform collision test based on multiple criteria (BH-BH or BH-S).
       IF (icollision.gt.0.and.ICOLL.GT.0) icollision = 0
       IF (icollision.gt.0.OR.
      &   (IPN.GT.1.AND.PMIN.LT.RZ).OR.
-     &   (IPN.GE.1.AND.TZ.LT.1.0.AND.NPERT.EQ.0.AND.N.EQ.2).OR.
+     &   (IPN.GE.3.AND.TZ.LT.1.0.AND.NPERT.EQ.0.AND.N.EQ.2).OR.
 *      Allow coalescence for wide outer orbit and short GR time-scale.
      &   (N.EQ.3.AND.TZ.LT.1.0.AND.TKOZ.GT.25.0.AND.
      &    AOUT*(1.0-SQRT(ECC1)).GT.100*SEMI).OR.
@@ -620,6 +698,8 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
 *             CALL INJECT(ISUB)
               IBH = 1
               JBH = 2
+*       Switch to termination for two stars (N = 3: CALL REDUCE first).
+              IF (ISTAR(IBH).LT.14.AND.ISTAR(JBH).LT.14) GO TO 258
               GO TO 165
           END IF
 *       Identify possible missing components.
@@ -645,51 +725,72 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
               IBH = KK
           END IF
           IF (IBH.GT.JBH) THEN
-              WRITE (6,166)  IBH, JBH, M(IBH), M(JBH)
-  166         FORMAT (' REVERSE INFALL    IBH JBH MI MJ ',2I4,1P,2E10.2)
+              WRITE (6,166)  IBH, JBH, ISTAR(IBH), ISTAR(JBH),
+     &                       M(IBH), M(JBH), TZ
+  166         FORMAT (' REVERSE INFALL    IBH JBH I* MI MJ TZ ',
+     &                                    4I4,1P,3E10.2)
               KK = IBH
               IBH = MIN(IBH,JBH)
               JBH = MAX(KK,JBH)
           END IF
           EB = -0.5*M(IBH)*M(JBH)/SEMI
-*       Define number of black holes in the binary for kick purposes.
-          NBHB = 0
-          IF (ISTAR(IBH).EQ.14) NBHB = NBHB + 1
-          IF (ISTAR(JBH).EQ.14) NBHB = NBHB + 1
+*       Define number of black holes in the binary for COAL & kick purposes.
+          NBH2 = 0
+          IF (ISTAR(IBH).EQ.14) NBH2 = NBH2 + 1
+          IF (ISTAR(JBH).EQ.14) NBH2 = NBH2 + 1
+*       Enforce termination for two colliding stars (IDIS = 0).
+          IF (NBH2.EQ.0.AND.N.EQ.2) THEN
+              WRITE (6,167)  ECC, SEMI, N, (ISTAR(K),K=1,N)
+  167         FORMAT (' ENFORCED CHAIN TERM    E SEMI N ISTAR ',
+     &                                         F9.5,1P,E10.2,0P,5I4)
+              CALL CHTERM2(NBH2,DEGR)
+              GO TO 290
+          END IF
           IC = icollision
-          IF (IDIS.EQ.0.OR.IPN.GE.2) THEN
+*       Note coalescence assumption of two BHs (decide on BH + NS later).
+          IF (IDIS.EQ.0.OR.(IPN.GE.2.AND.NBH2.EQ.2)) THEN
               WRITE (6,168)  TNOW, IC, IPN, NAMEC(IBH), NAMEC(JBH),
      &                       ECC, EB, DEGR, PMIN, TZ
   168         FORMAT (' COALESCENCE    T IC IPN NAM E EB DEGR PM TZ '
      &                                 F10.3,2I3,2I6,F9.5,1P,4E10.2)
-              IF (ISTAR(IBH).NE.14.OR.ISTAR(JBH).NE.14) NBH = NBH - 1
-*       Set non-zero indicator for BH velocity kick.
+*       Reduce NBH2 for single BH binary coalescence (CHTERM2 needs = 2).
+              IF (N.EQ.2) NBH2 = NBH2 - 1
               ICOAL = 1
           ELSE
-              KS = MIN(ISTAR(ICOLL),ISTAR(JCOLL))
-              MSTAR = MIN(M(IBH),M(JBH))
               IF (N.GT.2) THEN
-                  GX = 2.0*MSTAR/MAX(M(IBH),M(JBH))*(RDIS/RBH)**3
+*       Determine likely perturber mass (RPERT may not be quite right).
+                  DO 169 I = 1,N
+                      IF (I.NE.IBH.AND.I.NE.JBH) MSTAR = M(I)
+  169             CONTINUE
+                  GX = 2.0*MSTAR/(M(IBH)+M(JBH))*(RDIS/RPERT)**3
               ELSE
                   GX = 0.0
               END IF
+              KS = MIN(ISTAR(ICOLL),ISTAR(JCOLL))
               WRITE (6,170)  TNOW, N, IPN, NAMEC(IBH), NAMEC(JBH), KS,
      &                       ECC, PMDIS, RCOLL, SZ, EB, GX
   170         FORMAT (' DISRUPT    T N IPN NAM K* E PM RCOLL SZ EB GX '
-     &                             F10.3,2I3,2I6,I4,F9.5,1P,5E10.2)
+     &                             F10.3,2I3,2I6,I4,F10.6,1P,5E10.2)
               ICOLL = 0
+              NBH2 = 0
+*       Ensure IBH is BH mass (otherwise segmentation error!). 
+              IF (M(IBH).LT.M(JBH)) THEN
+                  KK = JBH
+                  JBH = IBH
+                  IBH = KK
+              END IF
           END IF
+*
 *       Combine components and make new chain with reduced membership.
-          CALL INFALL(IBH,JBH,ISUB)
+          CALL INFALL(IBH,JBH,NBH2,ISUB)
+          ENER0 = 0.0
           IF (N.GT.1) CALL CONST(X,V,M,N,ENER0,G0,AL)
           icollision = 0
           IBH = -1
           JBH = 0
-          ENER0 = 0.0
-          IF (N.GT.1) CALL CONST(X,V,M,N,ENER0,G0,AL)
-*       Evaluate energy difference for correction purpose.
+*       Evaluate energy difference (old - new) for correction purpose.
           DE = ECH - ENER0
-*       Include change in energy budget via ECOLL.
+*       Include energy loss via ECOLL.
           CALL DECORR(DE)
           WRITE (6,180)  ENERGY, ENER0, DE, EnerGR, ECH
   180     FORMAT (' CHAIN CHECK    ENERGY ENER0 DE EnerGR ECH ',
@@ -716,16 +817,28 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           STEPS(ISUB) = DELTAT
 *       Continue reduced chain with new value of ECH.
           ECH = ENERGY
+          IOUT = 1
           GO TO 30
       END IF
 *
 *       Check absorption or escape (ISUB = 0 for cluster escape).
       N0 = N
-      CALL CHMOD(ISUB,KCASE)
+      CALL CHMOD(ISUB,KCASE,IESC,JESC)
       IF (ISUB.EQ.0) GO TO 400
+*       Decide between increased membership, escape removal or termination.
+      IF (KCASE.EQ.1) THEN
+          IF (IESC.EQ.0) GO TO 30
+*         IF (IESC.EQ.0) THEN
+*             NEWREG = .TRUE.
+*             KCASE = 0
+*             GO TO 300
+*         END IF
+          GO TO 258
+      END IF
+*       Note KCASE = 0 for standard return.
       IF (KCASE.EQ.-1) THEN
           CALL CONST(X,V,M,N,ENER0,G0,AL)
-          ERR = (ENER0 - ENERGY)/ENER0
+          ERR = (ENER0 - (ENERGY + EnerGR))/ENER0
           IF (ABS(ERR).GT.1.0D-04) THEN
               WRITE (6,190)  N0, N, KCASE, TNOW, NSTEP1, ERR
   190         FORMAT (' CHAIN CHANGE    N0 N KCACE T # ERR ',
@@ -736,9 +849,17 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           GO TO 250
       END IF
 *
-*       Check enforced termination (N=2, NPERT=0, IGR=0).
-      IF (N.EQ.2.AND.NPERT.EQ.0) THEN
-          CALL CONST(X,V,M,N,ENER0,G0,AL)
+*       Perform three-body stability test every 1000 steps (IPN = 0).
+      IF (IPN.EQ.0.AND.N.EQ.3.AND.MOD(NSTEP1,1000).EQ.0) THEN
+          CALL CHSTAB(ITERM)
+          IF (ITERM.LT.0) GO TO 250
+      END IF
+*
+*       Check enforced termination (N=2, GPERT<1D-06, TZ > 1).
+      IF (N.EQ.2.AND.GPERT.LT.1.0D-06.AND.PMIN.GT.1000.0*RZ.AND.
+     &    TZ.GT.1.0) THEN
+          WRITE (6,196)  1.0/RINV(1), PMIN, RZ, GPERT, TZ
+  196     FORMAT (' ENFORCED TERM    R PM RZ G TZ ',1P,5E10.2)
           GO TO 250
       END IF
 *
@@ -754,17 +875,19 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
 *
 *       Set zero step to define termination (just in case).
   250 STEPS(ISUB) = 0.0D0
-      WRITE (6,255)  TNOW, NSTEP1, N, ECC, SEMI, RX, ECH
-  255 FORMAT (' END CHAIN    T # N ECC SEMI RX ECH ',
-     &                       F10.4,I9,I4,F9.5,1P,3E10.2)
-      CALL FLUSH(6)
+      WRITE (6,255)  TNOW, NSTEP1, N, NBH2, ECC, SEMI, RX, ECH
+  255 FORMAT (' END CHAIN    T # N NBH ECC SEMI RX ECH ',
+     &                       F10.4,I9,2I4,F9.5,1P,3E10.2)
+*       Distinguish between GR coalescence and standard terminations.
+      IF (ICOAL.EQ.0) NBH2 = 0
+*
 *       Treat different termination cases separately: N = 1, 2 or > 2.
-      IF (N.LE.2) THEN
+  258 IF (N.LE.2) THEN
 *       Re-initialize N=1 or N=2 (KS energy contains c.m. & injected body).
           IF (N.EQ.1) THEN
-              CALL CHTERM(NBHB)
+              CALL CHTERM(NBH2)
           ELSE
-              CALL CHTERM2(NBHB,DEGR)  ! This might be wrong in some cases.
+              CALL CHTERM2(NBH2,DEGR)
           END IF
           GO TO 290
       ELSE
@@ -783,20 +906,19 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
               END IF
               LK = LK + 3
   275     CONTINUE
-          IESC = LX
+          IF (IESC.EQ.0) IESC = LX
 *
-*       Remove body #IESC using the standard procedure.
-          JESC = 0
-          WRITE (6,280)  IESC, N, SQRT(RX), M(IESC)
-  280     FORMAT (' CHAIN REDUCE    IESC N RX MX ',2I4,1P,2E10.2)
+*       Remove body #IESC using the standard procedure (repeat for N > 2).
           CALL REDUCE(IESC,JESC,ISUB)
-          CALL FLUSH(6)
-          IF (N.GT.2) GO TO 260
-*       Terminate chain for the two last members and exit.
-          CALL CHTERM2(NBHB,DEGR)
+          IF (N.GT.2) THEN
+              IF (JESC.GT.0) GO TO 260
+              GO TO 30
+          END IF
+*       Terminate chain for two last members and exit after setting IGR = 0.
+          CALL CHTERM2(NBH2,DEGR)
       END IF
-  290 IEND = 1
-      ISUB = -1
+  290 ISUB = -1
+      IGR = 0
       GO TO 400
 *
 *       Save current global time for next CALL CHAIN.
@@ -814,7 +936,8 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
   305 CONTINUE
       RGRAV = SUM/ABS(ENER1)
       ERR = (ENERGY + EnerGR - ENER1)/ENERGY
-      IF ((IPN.GT.0.AND.MOD(NSTEP1,100).EQ.0).OR.
+      IF ((IPN.EQ.1.AND.TZ.GT.50.0.AND.MOD(NSTEP1,1000).EQ.0).OR.
+     &    (IPN.EQ.1.AND.TZ.LT.50.0.AND.MOD(NSTEP1,100).EQ.0).OR.
      &    (IPN.GT.1.AND.MOD(NSTEP1,25).EQ.0.AND.TZ.LT.0.1).OR.
      &    (IPN.GT.2.AND.MOD(NSTEP1,10).EQ.0.AND.TZ.LT.0.01)) THEN
           ZN = SQRT(MX/SEMI**3)
@@ -826,20 +949,39 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           IF (N.EQ.2) CALL BHSTAB(ESUB,RSUB,ISTAB)
           DECC = ECC - ECC0
           WRITE (6,306)  IPN, N, NPERT, TNOW, ECC, SEMI, TZ, RGRAV, DECC
-*         WRITE (6,306)  IPN, N, NPERT, TNOW, ECC, SEMI, TZ, RGRAV, DEGR
-* 306     FORMAT (' WATCH!   IP N NP T E A TZ RG DEGR ',
-  306     FORMAT (' WATCH!   IP N NP T E A TZ RG DECC ',
+  306     FORMAT (' WATCH!   IPN N NP T E A TZ RG DECC ',
      &                       3I3,F11.4,F8.4,1P,E10.2,2E9.1,E10.2)
-          IF (ECC.GT.0.97.AND.RATIO.LT.0.01) THEN
+*       Perform extra disruption check.
+          ITRY = 0
+          IF (SEMI*(1.0 - ECC).LT.RCOLL) ITRY = 1
+*       Include swallowing condition for close weakly perturbed WD binary.
+          IF (N.EQ.2.AND.GPERT.LT.1.0D-08) THEN
+              IF (MIN(ISTAR(1),ISTAR(2)).GE.10.AND.
+     &            MAX(ISTAR(1),ISTAR(2)).EQ.14) THEN
+                  IF (TZ.LT.200.0) THEN
+                      ITRY = 1
+                  END IF
+              ELSE
+*       Switch to unperturbed PN treatment unless GR time-scale is small.
+                  IF (IPN.LT.2) GO TO 258
+              END IF
+          END IF
+          IF (ITRY.GT.0) THEN
               IF (M(1).GT.M(2)) THEN
                   IBH = 1
               ELSE
                   IBH = 2
               END IF
               IESC = 3 - IBH
-              CALL INFALL(IBH,IESC,ISUB)
-              IEND = 1
+              NBH2 = 0
+              CALL INFALL(IBH,IESC,NBH2,ISUB)
+              IF (N.EQ.1) THEN
+*       Correct for ECH in ECOLL before setting to zero and terminate.
+                  CALL DECORR(ECH)
+                  CALL CHTERM(NBH2)
+              END IF
               ISUB = -1
+              IGR = 0
               GO TO 400
           END IF
 *       Refresh non-zero perturber list during significant shrinkage.
@@ -853,7 +995,6 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
   308     FORMAT (' CHECK    N NP T E A G TZ ',2I3,F11.4,F8.4,1P,3E10.2)
           CALL FLUSH(23)
       END IF
-      IF (NEVAL.GT.2000000000) NEVAL = 0
 ***   IF (N.EQ.2) GO TO 250  ! tested OK
       IF (ICOLLISION.GT.0) THEN
           WRITE (6,310)  IPN, I1, I2, ECC0, ECC, SEMI, RX, RZ
