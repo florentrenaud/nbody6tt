@@ -17,80 +17,6 @@
       I1 = 2*IPAIR - 1
       I2 = I1 + 1
       ICM = N + IPAIR
-      JMIN = 0
-*
-*       Prepare termination at block time (KS, triple, quad, chain or merge).
-      IF (TIME.LE.TBLOCK.AND.IPHASE.LT.9) THEN
-          TIME0 = TBLOCK
-*       Skip KS integration for unperturbed orbit or T0(I1) at end of block.
-          IF (LIST(1,I1).EQ.0.OR.T0(I1).EQ.TIME0) GO TO 3
-*
-*       See whether the time interval should be modified by KSLOW procedure.
-          IF (KSLOW(IPAIR).GT.1) THEN
-              IMOD = KSLOW(IPAIR)
-              ZMOD = FLOAT(ISLOW(IMOD))
-          ELSE
-              ZMOD = 1.0
-          END IF
-*
-    1     DT0 = TIME0 - T0(I1)
-*       Integrate up to current block time in case interval is too large.
-          IF (DT0.GT.STEP(I1)) THEN
-              TIME = T0(I1) + STEP(I1)
-              H0(IPAIR) = H(IPAIR)
-              Z = -0.5D0*H(IPAIR)*DTAU(IPAIR)**2
-              CALL STUMPF(IPAIR,Z)
-              CALL KSINT(I1)
-              DTU = DTAU(IPAIR)
-              STEP(I1) = ((ONE6*TDOT3(IPAIR)*DTU + 0.5*TDOT2(IPAIR))*DTU
-     &                                                   + R(IPAIR))*DTU
-              STEP(I1) = ZMOD*STEP(I1)
-*       Restrict increase of R for superfast particles in one block-step.
-              IF (H(IPAIR).GT.100.0.AND.R(IPAIR).GT.RMIN) GO TO 3
-              GO TO 1
-          END IF
-*
-*       Determine the last regularized step by Newton-Raphson iteration.
-          DTU = DT0/(R(IPAIR)*ZMOD)
-          DTU = MIN(DTU,DTAU(IPAIR))
-*       Include rare case of zero interval due to subtracting large values.
-          DTU = MAX(DTU,1.0D-10)
-          ITER = 0
-    2     Y0 = DT0 - ZMOD*((ONE6*TDOT3(IPAIR)*DTU +
-     &                             0.5*TDOT2(IPAIR))*DTU + R(IPAIR))*DTU
-          YPR = -((0.5*TDOT3(IPAIR)*DTU + TDOT2(IPAIR))*DTU + R(IPAIR))
-          YPR = ZMOD*YPR
-          DTU = DTU - Y0/YPR
-          DT1 = ((ONE6*TDOT3(IPAIR)*DTU + 0.5*TDOT2(IPAIR))*DTU +
-     &                                                     R(IPAIR))*DTU
-          DT1 = ZMOD*DT1
-          ITER = ITER + 1
-          IF (ABS(DT0 - DT1).GT.1.0E-10*STEP(I1).AND.ITER.LT.10) GO TO 2
-*
-*       Advance the KS solution to next block time and terminate at TIME0.
-          DTAU(IPAIR) = DTU
-          STEP(I1) = DT1
-          TIME = T0(I1) + DT1
-          H0(IPAIR) = H(IPAIR)
-          Z = -0.5D0*H(IPAIR)*DTU**2
-          CALL STUMPF(IPAIR,Z)
-          CALL KSINT(I1)
-    3     TIME = TIME0
-*
-*       Predict X & XDOT for body #JCOMP (note TIME = TBLOCK if second call).
-          IF (JCOMP.GE.IFIRST) THEN
-              CALL XVPRED(JCOMP,-1)
-              IF (GAMMA(IPAIR).GT.0.2.AND.JCOMP.LE.N) THEN
-                  JMIN = JCOMP
-*       Initialize T0, X0 & X0DOT for XVPRED & FPOLY on large perturbation.
-                  T0(JCOMP) = TIME
-                  DO 4 K = 1,3
-                      X0(K,JCOMP) = X(K,JCOMP)
-                      X0DOT(K,JCOMP) = XDOT(K,JCOMP)
-    4             CONTINUE
-              END IF
-          END IF
-      END IF
 *
 *       Predict coordinates and evaluate potential energy w.r.t. perturbers.
       CALL KSRES(IPAIR,J1,J2,0.0D0)
@@ -361,12 +287,6 @@
 *       Obtain new polynomials & steps.
           CALL FPOLY1(ICOMP,JCOMP,2)
           CALL FPOLY2(ICOMP,JCOMP,2)
-*
-*       Improve force polynomials of strong perturber after rectification.
-          IF (JMIN.GE.IFIRST) THEN
-              CALL FPOLY1(JMIN,JMIN,0)
-              CALL FPOLY2(JMIN,JMIN,0)
-          END IF
       END IF
 *
 *       Check updating of global index for chain c.m.

@@ -42,11 +42,16 @@
     4         CONTINUE
     5     CONTINUE
 *       Quit for pure 3D tidal field (case of full N summation).
+<<<<<<< HEAD
 *** FlorentR - case of tidal tensor
           IF (KZ(14).EQ.3.OR.KZ(14).EQ.9) GO TO 40
 *          IF (KZ(14).EQ.3) GO TO 40
 *** FRenaud
 
+=======
+          IF (KZ(14).EQ.3) GO TO 40
+*       Note ETIDE is accumulated after each regular step (REGINT/GPUCOR).
+>>>>>>> master
       END IF
 *
 *       See whether to include a linearized galactic tidal force.
@@ -71,19 +76,6 @@
               ET = ET + GMG*(1.0/SQRT(RI2) - 1.0/SQRT(RG2))
           END IF
 *
-*       Check contribution from gamma/eta bulge potential.
-          IF (GMB.GT.0.0D0) THEN
-              IF (GAM.NE.2.0D0) THEN
-                  RRG = 1.0 - (1.0 + AR/SQRT(RG2))**(GAM-2.0)
-                  RRI = 1.0 - (1.0 + AR/SQRT(RI2))**(GAM-2.0)
-                  ET = ET + GMB/(AR*(2.0-GAM))*(RRI-RRG)
-              ELSE
-                  RRG = 1.0 + AR/SQRT(RG2)
-                  RRI = 1.0 + AR/SQRT(RI2)
-                  ET = ET + GMB/AR*LOG(RRG/RRI)
-              ENDIF
-          END IF
-*
 *       Add optional Miyamoto disk potential.
           IF (DISK.GT.0.0D0) THEN
               R2 = (RG(1) + XI(1))**2 + (RG(2) + XI(2))**2
@@ -101,36 +93,20 @@
           END IF
 *       Form the differential potential energy due to tides.
           ET = BODY(I)*ET
-*** FlorentR - case of tidal tensor
+*** FlorentR - case of tidal tensor (never used)
       ELSE IF (KZ(14).EQ.9) THEN
-        IF(TTMODE) THEN
-*         Mode A
-          DO I = I1,I2
-            ETI = 0.0D0
-            DO K=1,3
-              XI(K) = X(K,I)
-            END DO
-            DO 26 K = 1,3
-              DO 25 J = 1,3
-                ETI = ETI - XI(J) * TTEFF(J,K) * XI(K) * 0.5D0
-   25         CONTINUE
-   26       CONTINUE
-            ET = ET + BODY(I) * ETI
-          END DO
-
-        ELSE
-*         Mode B          
-          DO I = I1,I2
-            ETG = 0.0D0
-            ETI = 0.0D0
-*       Form the differential potential energy due to tides.
-            CALL TTGALAXY( X(1,I)+RG(1), X(2,I)+RG(2), X(3,I)+RG(3),
-     &        TG, RBAR, ZMBAR, VSTAR, TSTAR, ETI)
-            CALL TTGALAXY( RG(1), RG(2), RG(3),
-     &        TG, RBAR, ZMBAR, VSTAR, TSTAR, ETG)
-            ET = ET + BODY(I) * (ETI - ETG)
-          END DO
-        ENDIF
+         DO I = I1,I2
+           ETI = 0.0D0
+           DO K=1,3
+             XI(K) = X(K,I)
+           END DO
+           DO 26 K = 1,3
+             DO 25 J = 1,3
+               ETI = ETI - XI(J) * TTEFF(J,K) * XI(K) * 0.5D0
+   25        CONTINUE
+   26      CONTINUE
+           ET = ET + BODY(I) * ETI
+         END DO
 *** FRenaud
       END IF
 *

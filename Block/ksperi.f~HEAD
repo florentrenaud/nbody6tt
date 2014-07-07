@@ -30,6 +30,9 @@
 *       Avoid nearly circular orbits (undefined pericentre).
       IF (ECC.LT.0.0001) GO TO 30
 *
+*       Skip actual integration to avoid KCASE complications (small GAMMA).
+      IF (N.GT.0) GO TO 22
+*
 *       Distinguish between near-collision, elliptic & hyperbolic case.
       Q = (PSI/ECC)**2
       IF (ZETA.GT.0.0D0.AND.ABS(Q/SEMI).LT.0.1) THEN
@@ -74,11 +77,12 @@
    10     IF (DT.GT.STEP(I1)) THEN
               TIME = TIME - STEP(I1)
               DT = DT - STEP(I1)
-              H0(IPAIR) = H(IPAIR)
-              Z = -0.5D0*H(IPAIR)*DTAU(IPAIR)**2
-              CALL STUMPF(IPAIR,Z)
+*             H0(IPAIR) = H(IPAIR)
+*             Z = -0.5D0*H(IPAIR)*DTAU(IPAIR)**2
+*             CALL STUMPF(IPAIR,Z)
               DTAU(IPAIR) = -ABS(DTAU(IPAIR))
-              CALL KSINT(I1)
+              LI = 1
+              CALL KSINT(I1,LI)
               DTU = DTAU(IPAIR)
 *       Use negative DTU and treat STEP as positive (not used elsewhere).
               STEP(I1) = ((ONE6*TDOT3(IPAIR)*DTU + 0.5*TDOT2(IPAIR))*DTU
@@ -108,12 +112,13 @@
           TIME = TIME - DT
           DTAU(IPAIR) = -DTU
 *       Re-initialize Stumpff functions.
-          H0(IPAIR) = H(IPAIR)
-          Z = -0.5D0*H(IPAIR)*DTAU(IPAIR)**2
-          CALL STUMPF(IPAIR,Z)
-          CALL KSINT(I1)
+*         H0(IPAIR) = H(IPAIR)
+*         Z = -0.5D0*H(IPAIR)*DTAU(IPAIR)**2
+*         CALL STUMPF(IPAIR,Z)
+          LI = 1
+          CALL KSINT(I1,LI)
 *       Update energy and set positive step in case no KS initialization.
-          H0(IPAIR) = H(IPAIR)
+*         H0(IPAIR) = H(IPAIR)
           DTAU(IPAIR) = ABS(DTU0)
           STEP(I1) = ZMOD*DT
           IPHASE = IPH
@@ -123,7 +128,7 @@
       END IF
 *
 *       Specify transformation coefficients (Seppo Mikkola's procedure).
-      IF (ZETA.GE.0.0) THEN
+   22 IF (ZETA.GE.0.0) THEN
           XC = SQRT(0.5D0 + 0.5D0*ZETA/ECC)
           YS = PSI/(ECC*XC*SQRT(BODY(ICM)))
       ELSE
@@ -153,10 +158,10 @@
           TDOT2(IPAIR) = 0.0D0
       END IF
 *
-*       Predict c.m. coordinates & velocities.
-      IF (ABS(DT).LT.STEP(ICM).AND.TIME.GT.0.0) THEN
+*       Predict c.m. coordinates & velocities (suppress IF statement).
+*     IF (ABS(DT).LT.STEP(ICM).AND.TIME.GT.0.0) THEN
           CALL XVPRED(ICM,0)
-      END IF
+*     END IF
 *
    30 RETURN
 *

@@ -50,7 +50,10 @@
     8     CONTINUE
 *       Check escape criterion for external fields or isolated system.
           EI = 0.5*VI2 - POTI
-          IF (KZ(14).EQ.4.OR.KZ(14).EQ.3) THEN
+*** FlorentR - add nbody6tt
+*          IF (KZ(14).EQ.4.OR.KZ(14).EQ.3) THEN
+          IF (KZ(14).EQ.4.OR.KZ(14).EQ.3.OR.KZ(14).EQ.9) THEN
+*** FRenaud
               EI = EI - MP/SQRT(RI2 + AP2)
               IF (BODY(I).EQ.0.0D0) GO TO 30
           END IF
@@ -142,7 +145,10 @@
       IF (BODY(I).LE.0.0D0) GO TO 50
 *
 *       Check initialization of tidal tail integration for 3D model.
-      IF (KZ(23).GE.3.AND.KZ(14).EQ.3) THEN
+*** FlorentR - add nbody6tt
+*      IF (KZ(23).GE.3.AND.KZ(14).EQ.3) THEN
+      IF (KZ(23).GE.3.AND.(KZ(14).EQ.3.OR.KZ(14).EQ.9)) THEN
+*** FRenaud
           CALL TAIL0(I)
       END IF
 *
@@ -153,8 +159,10 @@
           ZK = ZK + HT
           RTIDE = (ZMASS/TIDAL(1))**0.3333
       ELSE IF (KZ(14).EQ.4.OR.KZ(14).EQ.3) THEN
-          RTIDE = RTIDE0*ZMASS**0.3333
 *** FlorentR - include case of tidal tensor
+* make the escape criterion in KZ(14).eq.3 (=next line) the same as for KZ(14).eq.9 (a few lines below)
+*          RTIDE = RTIDE0*ZMASS**0.3333
+          RTIDE = 10.*RSCALE
       ELSE IF (KZ(14).EQ.9) THEN
           RTIDE = 10.*RSCALE
 *** FRenaud

@@ -7,12 +7,6 @@
       COMMON/GALAXY/ GMG,RG(3),VG(3),FG(3),FGD(3),TG,
      &               OMEGA,DISK,A,B,V02,RL2
             
-* Force the center of mass correction when the tensor is used
-      IF (KZ(31).NE.1) THEN
-        WRITE (6,*)'Warning! The center of mass will be corrected',
-     &        ' after energy check. (KZ(31) forced to 1).'
-        KZ(31) = 1
-      ENDIF
       
 * Reset
       NBTT = 0
@@ -105,41 +99,35 @@
      &           'after t=', TTTIME(NBTT)
         END IF
 
+* Initialisation of tidal tensor and derivatives
+        DO I=1,3
+          DO J=1,3
+            TTEFF(I,J) = 0.0
+            DTTEFF(I,J) = 0.0
+          END DO
+        END DO
+        CALL TTCAL
+          
       ELSE
 ************************** TTMODE B
 
-        IF (NBTTMAX.LT.2) THEN
-          WRITE (6,*) '*** ERROR: set NBTTMAX to 2 in param.h'
+        IF (NBTTMAX.LT.1) THEN
+          WRITE (6,*) '*** ERROR: set NBTTMAX to 1 in param.h'
           STOP
         END IF
-
-* set the scale for space derivatives
-        TTDX = 100.0*RBAR
 
         READ (5,*)  (RG(K),K=1,3), (VG(K),K=1,3)
         DO I=1,3
           RG(I) = RG(I)*1000.0/RBAR
           VG(I) = VG(I)/VSTAR
         END DO
-        
+
         WRITE (6,20)  RG(1), RG(2), RG(3), VG(1), VG(2), VG(3)
    20   FORMAT (/,12X,'TIDAL TENSOR MODE B:  RG =',1P,E10.3,E10.3,E10.3,
      &    ' VG =',E10.3,E10.3,E10.3)
 
-        CALL TTFORCE(RG,FG,FGD,0.0D0)
       END IF
 
-************************** TTMODE A and B
-
-* Initialisation of tidal tensor and derivatives
-      DO I=1,3
-        DO J=1,3
-          TTEFF(I,J) = 0.0
-          DTTEFF(I,J) = 0.0
-        END DO
-      END DO
-      CALL TTCAL
-          
 *** FRenaud
 
       RETURN

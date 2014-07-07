@@ -51,16 +51,13 @@
 
 *** FlorentR - Compute the force from the user-definition of the pot.
       IF( (KZ(14).EQ.9).AND.(.NOT. TTMODE) ) THEN
-* the time derivative of the force is not taken into account for now.
-        CALL TTTAIL(XI,FM,FMD)
+        CALL TTFORCE(XI,XIDOT,FM,FMD)
           DO 40 K = 1,3
             FREG(K) = FREG(K) + FM(K)
             FDR(K) = FDR(K) + FMD(K)
-   40     CONTINUE
+ 40      CONTINUE
       END IF
 *** FRenaud
-
-*
       RETURN
 *
       END

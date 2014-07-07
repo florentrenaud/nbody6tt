@@ -1,9 +1,9 @@
 nbody6tt
 ========
 
-Version 4.0.1 - 26 June 2014
+Version 5.0 - 5 July 2014
 
-nbody6tt is based on Sverre Aarseth's nbody6, including the GPU2 package. The original version has been downloaded on the 26 June 2014 from http://www.ast.cam.ac.uk/~sverre/web/pages/nbody.htm (files nbody6.tar.gz and gpu2.tar.gz). Bug fixes and patches from Sverre since this date are NOT taken into account. Everything that is not listed below works exactly the same way in nbody6tt and nbody6.
+nbody6tt is based on Sverre Aarseth's nbody6, including the GPU2 package. The original version has been downloaded on the 26 June 2014 from http://www.ast.cam.ac.uk/~sverre/web/pages/nbody.htm (files nbody6.tar.gz and gpu2.tar.gz). Bug fixes and patches from Sverre since this date are NOT taken into account.
 
 
 Description
@@ -12,12 +12,8 @@ Description
 nbody6tt includes the treatment of an external tidal field through the tidal tensor, in nbody6. Theory and method are detailed in Renaud, Gieles & Boily (2011).
 
 Since v3.0, nbody6tt offers two modes:
-* (A) a table a tidal tensors computed separatly is provided to the code. Mode A is reserved for users who can compute their own tensors from galactic simulations. It allows arbitrarily complex configurations (e.g. galaxy mergers).
-* (B) the user defines a potential and initial position/velocity for the cluster. The orbit of the cluster and the corresponding tensors are computed 'live' by nbody6tt. Only the analytical form of the galactic potential is required.
-
-In both modes, the tidal tensors are known at a frequency larger than the smaller timestep. Therefore their values are interpolated in time (quadratic interpolation) at the times required by the simulation:
-* (A) the frequency of tidal tensors stored in the table should be of the order of 1 Myr. Before the timestamp of the second tensor is reached, the interpolation is linear.
-* (B) the tidal tensors are updated whenever the position of the cluster on its galactic orbit is updated (automatically done by the code)
+* (A) a table a tidal tensors computed separatly is provided to the code. Mode A allows arbitrarily complex configurations (e.g. galaxy mergers). Tidal tensors are usually extracted from galaxy simulations and thus are known at a frequency larger than the smaller timestep. Therefore their values are interpolated in time (quadratic interpolation) at the times required by the simulation. Before the timestamp of the second tensor is reached, the interpolation is linear.
+* (B) the user defines a potential and initial position/velocity for the cluster. The orbit of the cluster (its guiding center, to be exact) and the corresponding tidal forces on stars are computed 'live' by nbody6tt. Only the analytical form of the galactic potential is required. The tidal force is computed as the difference between the force at the position of a star, and that at the position of the guiding center of the cluster. Tensors are not used to compute the force. However, tensors are used to get the time derivative of the tidal force (see Ncode/ttforce.f).
 
 An IMPORTANT note on the tidal radius: in complex tidal fields, it is very involved to compute the centrifugal and Euler effects that must be taken into account when estimating the tidal radius. When using the tidal tensor, the tidal radius of nbody6tt is only a scalelength used to set the stripping radius. To be clear: RTIDES has no physical meaning in nbody6tt.
 
@@ -122,7 +118,7 @@ This step (B1) is to be done each time that the galactic potential is changed.
    
 (B2) In the input file, set option KZ(14) to 9, and the RG(1:3) (initial position of the cluster in kpc) and VG(1:3) (initial velocity of the cluster in km/s) values, as you would do in the usual KZ(14)=3 mode.
 
-(B3) Make sure that your runing directory does NOT contains a file called 'tt.dat'. If a 'tt.dat' file is found, the code will run in Mode A. Run the code:
+(B3) Make sure that your running directory does NOT contains a file called 'tt.dat'. If a 'tt.dat' file is found, the code will run in Mode A. Run the code:
    nbody6[.gpu] < input > output
 
 Note that setting KZ(14)=0 is not strictly equivalent to having KZ(14)=9 with a null potential, nor to KZ(14)=3 with the same potential and same orbit. This is because of a different behavior of the code (mainly for stripping escapers). To compare the evolution of a cluster in a given tidal field with that of an isolated cluster, it is safer to make both runs with KZ(14)=9. The no-tides 'ttgalaxy' function is:

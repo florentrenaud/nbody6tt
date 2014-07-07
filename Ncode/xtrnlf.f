@@ -28,15 +28,38 @@
 *** FlorentR - Tidal forces and derivative computed from tidal tensor
 * no irregular forces used (i.e. KCASE > 0).
       IF (KZ(14).EQ.9.AND.KCASE.GT.0) THEN
-* update the tidal tensor
-        CALL TTCAL
-        DO 36 J = 1,3
-          DO 35 K = 1,3
-            FREG(J) = FREG(J) + TTEFF(J,K) * XI(K)
-            FDR(J) = FDR(J) + DTTEFF(J,K) * XI(K) 
+
+
+        IF(TTMODE) THEN
+* MODE A: update the tidal tensor
+          CALL TTCAL
+          DO 36 J = 1,3
+            DO 35 K = 1,3
+              FREG(J) = FREG(J) + TTEFF(J,K) * XI(K)
+              FDR(J) = FDR(J) + DTTEFF(J,K) * XI(K)
      &             + TTEFF(J,K) * XIDOT(K)
-   35     CONTINUE
-   36   CONTINUE
+ 35        CONTINUE
+ 36     CONTINUE
+
+      ELSE
+*     MODE B:
+
+         DO 37 K = 1,3
+            XG(K) = RG(K) + XI(K)
+            XGDOT(K) = VG(K) + XIDOT(K)
+ 37      CONTINUE
+
+         CALL TTFORCE(RG,VG,FS,FSD)
+         CALL TTFORCE(XG,XGDOT,FM,FMD)
+         DO 38 K = 1,3
+            FREG(K) = FREG(K) + (FM(K) - FS(K))
+            FDR(K) = FDR(K) + (FMD(K) - FSD(K))
+
+ 38      CONTINUE
+
+
+
+        END IF
       END IF
 *** FRenaud
 *
