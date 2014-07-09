@@ -57,6 +57,10 @@
 *
 *       Read or save all COMMON variables (valid for tape or disc).
       IF (II.NE.0) THEN
+* MGi                                                                                        
+        if (j.eq.2) then
+           call system('cp restart.tmp restart.prev ')
+        endif
 
         WRITE (J) ntot,npairs,nttot,a,b,c,d,e,g,l,m,o,p,q,s
 

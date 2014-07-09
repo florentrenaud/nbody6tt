@@ -17,6 +17,11 @@
       REAL*8  X1(3,4),V1(3,4),UI(4),VI(4),XREL2(3),VREL2(3)
       REAL*4  XS(3,NMAX),VS(3,NMAX),BODYS(NMAX),AS(20)
       REAL*4  XJ(3,6),VJ(3,6),BODYJ(6)
+!! MGi
+      REAL*4 LUMPRINT(NMAX)
+      REAL*4 TEMPRINT(NMAX)
+      INTEGER*4 KSTARPRINT(NMAX)
+!!
       LOGICAL  FIRST,SECOND,THIRD
       SAVE  FIRST,SECOND,THIRD
       DATA  FIRST,SECOND ,THIRD/.TRUE.,.TRUE.,.TRUE./
@@ -151,6 +156,20 @@
       END IF
       VRMS = SQRT(2.0*ZKIN/ZMASS)*VSTAR
 *
+!MGi     
+      WRITE (6,41)
+ 41   FORMAT (/,'           E(3)       ZKIN        POT        VIR ',
+     &          '     ETIDE ',
+     &          '      EBIN       ESUB     EMERGE      ECOLL ',
+     &          '     EMDOT      ECDOT        ECH ',
+     &          '     ESESC      EMESC ')
+*
+      WRITE (6,42)  E(3),ZKIN,-POT,-VIR+POT, ETIDE, EBIN, ESUB, EMERGE,
+     &                ECOLL, EMDOT, ECDOT, ECH, E(4),
+     &                 E(5)+E(6)+E(7)+E(8)
+
+ 42   FORMAT (' #0 ',1P,14E11.3)
+
       WRITE (6,50)
    50 FORMAT (/,'    <R>  RTIDE  RDENS   RC    NC   MC   RHOD   RHOM',
      &                 '  CMAX   <Cn>   Ir/R   UN    NP   RCM    VCM',
@@ -210,7 +229,7 @@
           WRITE (6,78)  NTAIL, (RG(K)*SX,K=1,3), (VG(K)*VSTAR,K=1,3),
      &                  GZ, ETIDE
    78     FORMAT (/,5X,'CLUSTER ORBIT    NT RG VG JZ ET ',
-     &                                 I5,3F7.2,2X,3F7.1,1P,E16.8,E10.2)
+     &                           I5,3F10.4,2X,3F11.4,1P,E16.8,E10.2)
       END IF
       IF (KZ(14).EQ.4) THEN
           WRITE (6,80)  TTOT, N, RSCALE, ZMASS, MP, DETOT
@@ -294,34 +313,49 @@
       END IF
 *
 *       Check optional diagnostics of evolving stars.
-      IF (KZ(12).GT.0.AND.TIME.GE.TPLOT) THEN
-          CALL HRPLOT
-      END IF
+* MGi
+!      IF (KZ(12).GT.0.AND.TIME.GE.TPLOT) THEN
+!          CALL HRPLOT
+!      END IF
 *
 *       Check optional writing of data on unit 3 (frequency NFIX). 
       IF (KZ(3).EQ.0.OR.NPRINT.NE.1) GO TO 100
       IF (KZ(3).GT.2.AND.KZ(3).NE.5) GO TO 99
-*
+*MGi
       AS(1) = TTOT
       AS(2) = FLOAT(NPAIRS)
       AS(3) = RBAR
       AS(4) = ZMBAR
-      AS(5) = RTIDE
-      AS(6) = TIDAL(4)
-      AS(7) = RDENS(1)
-      AS(8) = RDENS(2)
-      AS(9) = RDENS(3)
-      AS(10) = TTOT/TCR
-      AS(11) = TSTAR
-      AS(12) = VSTAR
-      AS(13) = RC
-      AS(14) = NC
-      AS(15) = VC
-      AS(16) = RHOM
-      AS(17) = CMAX
-      AS(18) = RSCALE
-      AS(19) = RSMIN
-      AS(20) = DMIN1
+      AS(5) = TSTAR
+      AS(6) = VSTAR
+!      
+      DO 200 K = 1,3
+          AS(K+6) = RDENS(K)
+          AS(K+9) = RG(K)*RBAR*0.001
+          AS(K+12) = VG(K)*VSTAR
+  200 CONTINUE
+      AS(16) = RC
+      AS(17) = NC
+      AS(18) = VC
+      AS(19) = MC
+      AS(20) = RHOM
+!
+!      AS(5) = RTIDE
+!      AS(6) = TIDAL(4)
+!      AS(7) = RDENS(1)
+!      AS(8) = RDENS(2)
+!      AS(9) = RDENS(3)
+!      AS(10) = TTOT/TCR
+!      AS(11) = TSTAR
+!      AS(12) = VSTAR
+!      AS(13) = RC
+!      AS(14) = NC
+!!      AS(15) = VC
+!!      AS(16) = RHOM
+!      AS(17) = CMAX
+!!      AS(18) = RSCALE
+!      AS(19) = RSMIN
+!      AS(20) = DMIN1
 *
 *       Include prediction of unperturbed binaries (except ghosts).
       DO 84 J = 1,NPAIRS
@@ -460,9 +494,20 @@
       END IF
       NK = 20
       WRITE (3)  NTOT, MODEL, NRUN, NK
+!MGi
+      IF(KZ(19) .GT. 0) THEN
+          CALL HRPLOT(LUMPRINT,TEMPRINT,KSTARPRINT)
+      WRITE (3)  (AS(K),K=1,NK), (BODYS(J),J=1,NTOT),
+     &           ((XS(K,J),K=1,3),J=1,NTOT), ((VS(K,J),K=1,3),J=1,NTOT),
+     &           (NAME(J),J=1,NTOT), (KSTARPRINT(J),J=1,NTOT),
+     &           (LUMPRINT(J),J=1,NTOT), (TEMPRINT(J),J=1,NTOT)
+!
+      ELSE
       WRITE (3)  (AS(K),K=1,NK), (BODYS(J),J=1,NTOT),
      &           ((XS(K,J),K=1,3),J=1,NTOT), ((VS(K,J),K=1,3),J=1,NTOT),
      &           (NAME(J),J=1,NTOT)
+      END IF
+*
 *     CLOSE (UNIT=3)
 *
 *       Produce output file for tidal tail members.

@@ -41,6 +41,17 @@ c      DATA  G1,G2,G3,G4  /0.28,1.14,0.010,0.1/
               LM = BODYN
               UM = BODY10
               ZM = IMFBD(XX,LM,UM)
+!     MGi
+           ELSE IF (KZ(20).EQ.8) THEN
+              C1=BODYN**(-0.3) - 0.5**(-0.3)
+              C2=0.5**(-1.3) - BODY1**(-1.3)
+              A=0.78/(2.6*C1 + 0.3*C2)
+              IF (XX.GE.A*C1/0.3) THEN
+                 ZM=(2.6*C1/0.3 + 0.5**(-1.3) - 2.6*XX/A)**(-1.0/1.3)
+              ELSE
+                 ZM=(0.3*XX/A + 0.5**(-0.3))**(-1.0/0.3)
+              ENDIF
+
           END IF
 *       Include possibility of setting non-MS types. 
           KSTAR(I) = 1

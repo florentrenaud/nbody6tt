@@ -1,4 +1,4 @@
-      SUBROUTINE HRPLOT
+      SUBROUTINE HRPLOT(LUMPRINT,TEMPRINT,KSTARPRINT)
 *
 *
 *       HR diagnostics of evolving stars.
@@ -10,8 +10,14 @@
      &                NAMEM(MMAX),NAMEG(MMAX),KSTARM(MMAX),IFLAG(MMAX)
       REAL*8  LUMS(10),TSCLS(20),GB(10)
       REAL*8  M0,M1,M2,LUM,LUM2,MC,ME,K2
-*
-*
+!! MGi
+      REAL*4 LUMPRINT(NMAX)
+      REAL*4 TEMPRINT(NMAX)
+      INTEGER*4 KSTARPRINT(NMAX)
+!! 
+!! MGI: force TPLOT to be the Nbody time
+      TPLOT = TIME
+
       WRITE (82,1)  NPAIRS, TPHYS
     1 FORMAT (' ## BEGIN',I8,F9.1)
 *       Define the number of objects (rather than single stars).
@@ -104,7 +110,8 @@
               CALL STAR(KW2,M0,M2,TM,TN,TSCLS,LUMS,GB,ZPARS)
               CALL HRDIAG(M0,AGE,M2,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &                    RM2,LUM2,KW2,MC,RCC,ME,RE,K2)
-              RI = SQRT(RI)/RC
+*     MGi: remove division by RC
+              RI = SQRT(RI)
 *       Specify relevant binary mass.
               IF (BODY(J1).GT.0.0D0) THEN
                   BODYI = (M1 + M2)/ZMBAR
@@ -127,6 +134,17 @@
               WRITE (82,5)  NAME(J1), NAME(J2), KW, KW2, KSTAR(ICM),
      &            RI, ECC, PB, SEMI, M1, M2, ZL1, ZL2, R1, R2, TE1, TE2
     5         FORMAT (2I6,2I3,I4,F6.1,F6.3,10F7.3)
+!!
+!!MGi
+              LUMPRINT(J1) = ZL1
+              LUMPRINT(J2) = ZL2
+              LUMPRINT(ICM) = LOG10(LUM + LUM2)
+              TEMPRINT(J1) = TE1
+              TEMPRINT(J2) = TE2
+              KSTARPRINT(J1) = KW
+              KSTARPRINT(J2) = KW2
+!!
+!!
               NB = NB + 1
           ELSE
 *       Create output file for single stars (skip chain subsystem or ghost).
@@ -141,6 +159,13 @@
               TE = 0.25*(ZL1 - 2.0*R1) + 3.7
               WRITE (83,10)  NAME(I), KW, RI, M1, ZL1, R1, TE
    10         FORMAT (I10,I4,5F10.3)
+!!
+!!MGi
+              LUMPRINT(I) = ZL1
+              TEMPRINT(I) = TE
+              KSTARPRINT(I) = KW
+!!
+!!
               NSTAR = NSTAR + 1
           END IF
    20 CONTINUE
@@ -149,7 +174,8 @@
    30 FORMAT (' ## END',I8)
 *
 *       Update next plotting time.
-      TPLOT = TPLOT + DTPLOT
+! MGI: not used anymore since set at the top
+!      TPLOT = TPLOT + DTPLOT
       CALL FLUSH(82)
       CALL FLUSH(83)
 *

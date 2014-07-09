@@ -242,6 +242,9 @@
           WRITE (6,24)  I, NAME(I), NXTLEN, NSTEPR, STEP(I), STEPR(I)
    24     FORMAT (' SMALL STEP!!    I NAME LEN #R SI SR ',
      &                              3I6,I11,1P,2E10.2)
+* MGi
+          print*," MARK ",x(1,i),x(2,i),x(3,i),time,
+     &         xdot(1,i),xdot(2,i),xdot(3,i)
           STOP
       END IF
 *
