@@ -21,7 +21,6 @@ In Ncode
 ### define.f
 * (mode B) add the reading of the initial position and velocity of the cluster
 
-
 ### escape.f
 * include the case of tidal tensor when setting RTIDE
 

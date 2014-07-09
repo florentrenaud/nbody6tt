@@ -14,15 +14,15 @@ endif
 
 ifeq ($(chainmode), archain)
  ifeq ($(ksblock), on)
-  BINNAME = nbody7b
+  BINNAME = nbody7btt
  else
-  BINNAME = nbody7
+  BINNAME = nbody7tt
  endif
 else
  ifeq ($(ksblock), on)
-  BINNAME = nbody6b
+  BINNAME = nbody6btt
  else
-  BINNAME = nbody6
+  BINNAME = nbody6tt
  endif
 endif
 

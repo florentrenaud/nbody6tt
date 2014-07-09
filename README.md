@@ -1,7 +1,7 @@
 nbody6tt
 ========
 
-Version 5.0 - 5 July 2014
+Version 5.0 - 8 July 2014
 
 nbody6tt is based on Sverre Aarseth's nbody6, including the GPU2 package. The original version has been downloaded on the 26 June 2014 from http://www.ast.cam.ac.uk/~sverre/web/pages/nbody.htm (files nbody6.tar.gz and gpu2.tar.gz). Bug fixes and patches from Sverre since this date are NOT taken into account.
 
@@ -33,20 +33,20 @@ How to install the CPU version:
 (for the GPU version, skip this part, see below)
 
 Get the nbody6tt directory, including the subdirectories
-   Chain[, GPU], Nchain, Ncode
+	Chain[, GPU], Nchain, Ncode
 Link common6.h and params.h in the Nchain directory to common6.h and params.h in the Ncode directory:
-   cd Nchain
-   ln -s ../Ncode/common6.h common6.h 
-   ln -s ../Ncode/params.h params.h    
-   cd ..
-Check that Ncode/params.h contains values that matches your requirements (e.g. NMAX)
+	cd Nchain
+	ln -s ../Ncode/common6.h common6.h 
+	ln -s ../Ncode/params.h params.h    
+	cd ..
+Check that Ncode/params.h contains values that matches your requirements (e.g. NMAX).
 Go to the Ncode directory:
-   cd Ncode
+	cd Ncode
 Edit Makefile by setting the compiler options and paths.
 Run the makefile:
-   make
+	make
 This will create the executable nbody6, that can be used the same way than nbody6, i.e.:
-   nbody6 < input > output
+	nbody6 < input > output
 
 
 How to install the GPU version
@@ -54,23 +54,23 @@ How to install the GPU version
 (for the CPU version, skip this part, see above)
 
 Get the nbody6tt directory, including the subdirectories
-   Chain, GPU2, Nchain, Ncode
+	Chain, GPU2, Nchain, Ncode
 Link common6.h and params.h in the GPU2 and Nchain directories to common6.h and params.h in the Ncode directory:
-   cd GP2
-   ln -s ../Ncode/common6.h common6.h 
-   ln -s ../Ncode/params.h params.h    
-   cd ../Nchain
-   ln -s ../Ncode/common6.h common6.h 
-   ln -s ../Ncode/params.h params.h
-   cd ..
-Check that Ncode/params.h contains values that matches your requirement (e.g. NMAX)
+	cd GP2
+	ln -s ../Ncode/common6.h common6.h 
+	ln -s ../Ncode/params.h params.h    
+	cd ../Nchain
+	ln -s ../Ncode/common6.h common6.h 
+	ln -s ../Ncode/params.h params.h
+	cd ..
+Check that Ncode/params.h contains values that matches your requirement (e.g. NMAX).
 Go to the GPU2 directory:
-   cd GPU2
+	cd GPU2
 Edit Makefile, Makefile_gpu and ../Ncode/Makefile by setting the compiler options and paths.
 Run the makefile with the gpu target:
-   make gpu
+	make gpu
 This will create the executable nbody6.gpu, that can be used the same way than nbody6, i.e.:
-   nbody6.gpu < input > output
+	nbody6.gpu < input > output
 
 
 
@@ -78,11 +78,11 @@ How to run nbody6tt in mode A (CPU or GPU)
 --------------------------------
 
 (A1) Create a tensor file named 'tt.dat' in the running directory: its syntax is as follow:
-   NBTT TTUNIT TTOFFSET
-   TTTIME1 TTENS1(9)
-   TTTIME2 TTENS2(9)
-   TTTIME3 TTENS3(9)
-   ...
+	NBTT TTUNIT TTOFFSET
+	TTTIME1 TTENS1(9)
+	TTTIME2 TTENS2(9)
+	TTTIME3 TTENS3(9)
+	...
 where NBTT is the number of tensors given in the file (i.e. the total number of rows in 'tt.dat' minus one), TTUNIT is the timescale for the galactic run in Myr (= how many Myr corresponds to t=1), TTOFFSET is an offset (in Myr) to be added to the timestamps of the tensors (it can be positive, 0.0, or negative). TTTIMEx is a timestamp in galactic run units, TTENSx(9) are the 9 components of the tensor (although only 6 are used), in the unit system of the galactic run (i.e. time^-2). The lines of the tensors must be ordered chronologically, with no duplicates.
 
 Important: make sure that NBTT is smaller than NBTTMAX in Ncode/params.h.
@@ -90,17 +90,18 @@ Important: make sure that NBTT is smaller than NBTTMAX in Ncode/params.h.
 (A2) Set the option KZ(14) to 9 in the input to use the tidal tensor treatment.
 
 (A3) Run the code:
-   nbody6[.gpu] < input > output
+	nbody6[.gpu] < input > output
 
 Important: the code will stop when the tidal tensor is not defined (before the first TTTIME*TTUNIT and after the last TTTIME*TTUNIT).
 
 Very important: setting KZ(14)=9 forces the centering of the cluster (otherwise, the computation of the tidal forces are wrong): KZ(31) is forced to 1.
 
 Note that setting KZ(14)=0 is not strictly equivalent to having KZ(14)=9 with a null tensor, because of a different behavior of the code (mainly for stripping escapers). To compare the evolution of a cluster in a given tidal field with that of an isolated cluster, it is safer to make both runs with KZ(14)=9.
+
 The no-tides 'tt.dat' file is:
-   2 100000.0 0.0
-   0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
-   1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+	2 100000.0 0.0
+	0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+	1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
 
 
 
@@ -108,10 +109,13 @@ How to run nbody6tt in mode B (CPU or GPU)
 --------------------------------
 
 (B1) Edit the 'Ncode/ttgalaxy.f' file: create a fortran function that returns the value of the galactic potential at the position x,y,z of the cluster center, and at the time t. Recompile nbody6tt:
+
 CPU version:
-   cd Ncode ; make
+	cd Ncode ; make
+
 GPU version:
-   cd GPU2 ; make GPU
+	cd GPU2 ; make GPU
+
 ("make clean" should not be required.)
 
 This step (B1) is to be done each time that the galactic potential is changed.
@@ -119,11 +123,10 @@ This step (B1) is to be done each time that the galactic potential is changed.
 (B2) In the input file, set option KZ(14) to 9, and the RG(1:3) (initial position of the cluster in kpc) and VG(1:3) (initial velocity of the cluster in km/s) values, as you would do in the usual KZ(14)=3 mode.
 
 (B3) Make sure that your running directory does NOT contains a file called 'tt.dat'. If a 'tt.dat' file is found, the code will run in Mode A. Run the code:
-   nbody6[.gpu] < input > output
+	nbody6[.gpu] < input > output
 
 Note that setting KZ(14)=0 is not strictly equivalent to having KZ(14)=9 with a null potential, nor to KZ(14)=3 with the same potential and same orbit. This is because of a different behavior of the code (mainly for stripping escapers). To compare the evolution of a cluster in a given tidal field with that of an isolated cluster, it is safer to make both runs with KZ(14)=9. The no-tides 'ttgalaxy' function is:
-   TTPHIG = 0.0
-
+	TTPHIG = 0.0
 
 
 How to restart nbody6tt (A or B mode)
@@ -136,18 +139,18 @@ Whether the code crashed or had been killed (runtime limit, killed by user...), 
 (2) Rename 'restart.tmp' (if you don't have it, use 'fort.2') as 'restart.dat' in the new directory.
 
 (3a) To restart by keeping the parameters and the tensors as they were initially, create the input file with the usual syntax, i.e.
-   2 TCOMP
+	2 TCOMP
 where TCOMP is the maximum CPU time in minutes.
 
 (3b) To restart with a modification of some parameter (e.g. by reading a new tensor file (A) or a new position/velocity for the cluster (B)), create the input file with the usual syntax, i.e.:
-   KSTART TCOMP                                (KSTART = 3, 4, 5)
-   DTADJ DELTAT TADJ TNEXT TCRIT QE J KZ(J)    (if > 0 & KSTART = 3 or 5).
-   ETAI ETAR ETAU DTMIN RMIN NCRIT             (if > 0 & KSTART = 4 or 5).   
+	KSTART TCOMP                                (KSTART = 3, 4, 5)
+	DTADJ DELTAT TADJ TNEXT TCRIT QE J KZ(J)    (if > 0 & KSTART = 3 or 5).
+	ETAI ETAR ETAU DTMIN RMIN NCRIT             (if > 0 & KSTART = 4 or 5).   
 
 Setting KSTART= 3 or 5, J=14 and KZ(J)=9 will make the code read the tensor file again and the interpolation scheme will be reset (i.e. the first step is linear again).
 Example: to read a new table of tensors:
-   3 1000000000
-   0.0 0.0 0.0 0.0 0.0 0.0 14 9
+	3 1000000000
+	0.0 0.0 0.0 0.0 0.0 0.0 14 9
 
 (3c) In mode B, you can restart with a new galactic potential: define it in 'ttgalaxy.f', compile it, and restart normally (see point 3a, above, to use the last position and velocity stored in restart.tmp, or see point 3b, also above, with a new setting).
 
