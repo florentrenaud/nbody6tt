@@ -1,6 +1,6 @@
-#avx       = enable
-chainmode = archain
-#ksblock   = on
+avx       = enable
+chainmode = chain #archain
+ksblock   = off
 
 ifeq ($(avx), enable)
 MKOPTIONS += avx=enable
@@ -27,9 +27,9 @@ else
 endif
 
 FC       = gfortran
-FFLAGS   = -O3 -Wall -march=core2
+FFLAGS   = -O3 -march=core2
 CXX      = g++ 
-CXXFLAGS = -O3 -Wall -march=core2
+CXXFLAGS = -O3 -march=core2
 ifeq ($(avx), enable)
 FFLAGS   += -mavx
 CXXFLAGS += -mavx
@@ -47,7 +47,7 @@ NVCC += -Xcompiler "-O3 -Wall -fopenmp -mavx"
 else
 NVCC += -Xcompiler "-O3 -Wall -fopenmp"
 endif
-#NVCC += -DWITH_CUDA5
+NVCC += -DWITH_CUDA5
 
 RUNDIR = ./run
 

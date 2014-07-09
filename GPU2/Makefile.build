@@ -1,6 +1,6 @@
 FC = gfortran -fPIC
-FFLAGS = -Wall -O3 -ffast-math 
-#FFLAGS +=  -fbounds-check
+FFLAGS = -Wall -O3 -fopenmp -ffast-math -lm
+#FFLAGS +=  -O3 -fbounds-check
 #FFLAGS +=  -traceback
 #FFLAGS +=  -pg
 ifeq ($(avx), enable)
@@ -11,12 +11,12 @@ endif
 
 LIBCUDA = -L /usr/local/cuda/lib64 -lcudart
 
-LD_GPU = gfortran -lstdc++ -fopenmp $(LIBCUDA)
+LD_GPU = gfortran -lstdc++ -lm -fopenmp $(LIBCUDA)
 LD_GPU += -fPIC
-LD_GPU += -B /usr/share/libhugetlbfs -Wl,--hugetlbfs-link=B
+LD_GPU += -B /usr/share/libhugetlbfs -Wl,--hugetlbfs-align
 
 LD_SSE = gfortran -lstdc++ -fopenmp
-LD_SSE += -B /usr/share/libhugetlbfs -Wl,--hugetlbfs-link=B
+LD_SSE += -B /usr/share/libhugetlbfs -Wl,--hugetlbfs-align
 
 #default value of chainmode is chain
 chainmode ?= chain
@@ -130,8 +130,8 @@ endif
 
 ifeq ($(chainmode), archain)
 SOURCE += \
-arc.f cfuncs.f chain.f chstab.f emax1.f erel.f grbin.f hpsort.f inclin.f \
-ksphys.f physks.f pnpert.f r2sort.f \
+arc.f cfuncs.f chain.f emax1.f erel.f grbin.f hpsort.f inclin.f ksphys.f \
+physks.f pnpert.f \
 absorb.f bhstab.f bhstat.f chdata.f chfind.f chfirr.f chinit.f chlist.f \
 chmod.f chpert.f chpot.f chterm2.f chterm.f const.f cpertj.f cpertx.f \
 decorr.f expel2.f fchain.f ffdot.f ghost.f infall.f inject.f kcpert.f \
@@ -142,14 +142,13 @@ endif
 #routines added by GPU modules
 SOURCE += \
 check3.f checkl2.f cmfirr2.f energy2.f fpcorr2.f fpoly2a.f gpucor.f \
-jpred2.f jpred.f ksres3.f nbintp.f phicor.f repair.f sweep2.f bhplot.f \
-fpoly0.f
+jpred2.f jpred.f ksres3.f nbintp.f phicor.f repair.f sweep2.f bhplot.f fpoly0.f
 
 OBJECTS = $(SOURCE:.f=.o)
-OBJECTS += gpuirr.o gpunb.o gpupot.o wtime.o cnbint.o cxvpred.o
+OBJECTS += gpuirr.o gpunb.o gpupot.o wtime.o cnbint.o cxvpred.o 
 
 gpu: $(OBJECTS)
-	$(LD_GPU) $(FFLAGS) $(OBJECTS) -o nbody6tt
+	gfortran -o nbody6tt $(FFLAGS) $(OBJECTS)  -fopenmp $(LIBCUDA)  -lstdc++ -fPIC -fopenmp -Wall -O3 -ffmast-math 
 
 sse: $(OBJECTS)
 	$(LD_SSE) $(FFLAGS) $(OBJECTS) -o nbody6tt

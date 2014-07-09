@@ -7,9 +7,9 @@
 ######### Compiler options, directives and paths
 ########################################################################
 
-### curie
+### curie, surrey
 CFLAGS = -O3 -ffast-math
-FFLAGS = -O3
+FFLAGS = -O3 -ffast-math
 FC = gfortran
 LD = gfortran -lstdc++ -fopenmp
 
