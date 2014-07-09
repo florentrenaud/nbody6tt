@@ -130,8 +130,8 @@ endif
 
 ifeq ($(chainmode), archain)
 SOURCE += \
-arc.f cfuncs.f chain.f emax1.f erel.f grbin.f hpsort.f inclin.f ksphys.f \
-physks.f pnpert.f \
+arc.f cfuncs.f chain.f chstab.f emax1.f erel.f grbin.f hpsort.f inclin.f \
+ksphys.f physks.f pnpert.f r2sort.f \
 absorb.f bhstab.f bhstat.f chdata.f chfind.f chfirr.f chinit.f chlist.f \
 chmod.f chpert.f chpot.f chterm2.f chterm.f const.f cpertj.f cpertx.f \
 decorr.f expel2.f fchain.f ffdot.f ghost.f infall.f inject.f kcpert.f \
