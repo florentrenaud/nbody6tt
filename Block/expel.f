@@ -65,22 +65,24 @@
 *
 *       Include special disruption treatment for BH + star (only #11 < 0).
       IF (MAX(KSTAR(I1),KSTAR(I2)).EQ.14) THEN
-          DM1 = 0.5*BODY(I1)*ZMBAR
+          DM1 = 0.1*BODY(I1)*ZMBAR
 *       Conserve total mass and specific energy (H = const here).
           M1 = M1 - DM1
           M2 = M2 + DM1
           R1 = RADIUS(I1)*SU
           R2 = RADIUS(I2)*SU
 *       Transform to positive radial velocity and obtain global coordinates.
-          JPAIR = 0
           ITER = 0
-          RR = R(IPAIR)
-    2     CALL KSAPO(JPAIR)
-*       Note zero argument which uses 0.01 of random angle.
+    2     JPAIR = 0
+          CALL KSAPO(JPAIR)   ! note JPAIR = KSPAIR on return.
+*       Note zero argument which advances eccentric anomaly by 0.02.
           T0(I1) = TBLOCK
           ITER = ITER + 1
-          IF (ITER.LT.10.AND.TDOT2(IPAIR).LT.0.0.AND.
-     &        R(IPAIR).LT.10.0*RR) GO TO 2
+          IF (ITER.EQ.1.OR.ITER.GT.25) THEN
+              WRITE (6,70)  ITER, R(IPAIR), TDOT2(IPAIR)
+   70         FORMAT (' KSAPO!    IT R TD2 ',I4,1P,2E10.2)
+          END IF
+          IF (ITER.LT.50.AND.R(IPAIR).LT.RMIN) GO TO 2
           CALL RESOLV(IPAIR,1)
           COALS = .FALSE.
           SEMI = SEMI0
@@ -207,10 +209,12 @@
           IF (ISKIP.GT.0)  THEN
               WHICH1 = 'DISRUPT '
               NDISR = NDISR + 1
+*       Restore mass of accreted star for diagnostics only (from 23/5/14).
+              M1 = 10.0*DM1
               WRITE (24,6)  TIME+TOFF, NDISR, NAME(I1), KSTAR(I1),
-     &                      ECC, MIN(M1,M2), MAX(M1,M2)
-    6         FORMAT (' DISRUPT1    T NDISR NM K* E M1 M2 ',
-     &                              F8.1,I5,I7,I4,F10.6,2F6.1)
+     &                      ECC, MIN(M1,M2), MAX(M1,M2), SEMI
+    6         FORMAT (' DISRUPT1    T NDISR NM K* E M1 M2 SEMI ',
+     &                              F8.1,I5,I7,I4,F10.6,2F6.1,1P,E10.2)
               CALL FLUSH(24)
           END IF
 *
@@ -346,6 +350,7 @@
               END IF
 *       Terminate KS binary and assign kick velocity to single star #I.
               I = I1 + 2*(NPAIRS - IPAIR)
+      IF (BODY(I1).GT.0.5*BODY(N+IPAIR)) STOP
               CALL KSTERM
               CALL KICK(I,1,KW1,DM)
 *       Initialize new KS polynomials after velocity kick (H > 0 is OK).

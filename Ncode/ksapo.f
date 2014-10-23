@@ -24,9 +24,20 @@
           IF (H(IPAIR).GT.0.0) GO TO 30
       ELSE
 *       Include small angle for moving away from pericentre.
-          THETA = 0.02
+          THETA = 1.0
           IKICK = -1
           IPAIR = KSPAIR
+*       Increase angle near small pericentre.
+          SEMI = -0.5D0*BODY(N+IPAIR)/H(IPAIR)
+          ECC2 = (1.0 - R(IPAIR)/SEMI)**2 +
+     &                          TDOT2(IPAIR)**2/(BODY(N+IPAIR)*SEMI)
+          ECC = SQRT(ECC2)
+          IF (ECC.LT.1.0) THEN
+              EFAC = SQRT((1.0 + ECC)/(1.0 - ECC))
+              THETA = 2.0*ATAN(EFAC)
+          END IF
+          WRITE (6,66)  ECC, THETA, SEMI, SEMI*(1.0 - ECC)
+   66     FORMAT (' KSAPO    E THETA A PM ',F10.6,F7.3,1P,2E10.2)
       END IF
 *
 *       Form transformation coefficients (Stiefel & Scheifele p. 85).

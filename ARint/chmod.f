@@ -470,6 +470,11 @@
      &                                 3I4,1P,2E10.2)
           KCASE = 1
           RI = 1.0/RINV(2)
+*       Mark the smallest (last) binary for removal even if IESC/JESC = 1/2.
+          IF (1.0/RINV(3).LT.1.0/RINV(1)) THEN
+              IESC = 3
+              JESC = 4
+          END IF
           GO TO 40
       END IF
 *
@@ -536,6 +541,9 @@
               IESC = JESC
               JESC = 0
               GO TO 20
+          ELSE
+              KCASE = 1
+              GO TO 40
           END IF
       ELSE
           GO TO 20
@@ -686,6 +694,11 @@
       RI = SQRT(RX)
       RDOT = X4(1,IT)*XDOT4(1,IT) + X4(2,IT)*XDOT4(2,IT) +
      &                              X4(3,IT)*XDOT4(3,IT)
+*       Include safety termination (6/2014).
+      IF (NN.EQ.3.AND.RI.GT.5.0*RMIN) THEN
+          KCASE = 1
+          GO TO 40
+      END IF
       IF (RI.GT.20.0*RMIN.AND.RDOT.GT.0.0) THEN
 *       Delay for BH and small perturbation (orbit may turn around).
           IF (ISTAR(IT).EQ.14.AND.GPERT.LT.1.0D-04.AND.

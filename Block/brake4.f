@@ -18,6 +18,7 @@
 *       See whether CVEL has been initialized in ARchain.
       IF (ITER.EQ.0) THEN
           READ (5,*)  CLIGHT
+          ITER = 1
       END IF
 *
 *       Specify the basic elements from BH or KS treatments.

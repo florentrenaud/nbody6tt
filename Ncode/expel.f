@@ -65,22 +65,23 @@
 *
 *       Include special disruption treatment for BH + star (only #11 < 0).
       IF (MAX(KSTAR(I1),KSTAR(I2)).EQ.14) THEN
-          DM1 = 0.5*BODY(I1)*ZMBAR
+          DM1 = 0.1*BODY(I1)*ZMBAR
 *       Conserve total mass and specific energy (H = const here).
           M1 = M1 - DM1
           M2 = M2 + DM1
           R1 = RADIUS(I1)*SU
           R2 = RADIUS(I2)*SU
+          IF (TDOT2(IPAIR).LT.0.0D0) THEN
+              CALL KSPERI(IPAIR)
+              TIME = TBLOCK
+          END IF
 *       Transform to positive radial velocity and obtain global coordinates.
-          ITER = 0
-    2     JPAIR = 0
+          JPAIR = 0
           CALL KSAPO(JPAIR)   ! note JPAIR = KSPAIR on return.
-*       Note zero argument which advances eccentric anomaly by 0.02.
+*       Note zero argument which advances eccentric anomaly to R = SEMI.
           T0(I1) = TBLOCK
-          ITER = ITER + 1
-          IF (ITER.GT.10) WRITE (6,70)  ITER, R(IPAIR), TDOT2(IPAIR)
-   70     FORMAT (' KSAPO!    IT R TD2 ',I4,1P,2E10.2)
-          IF (ITER.LT.50.AND.R(IPAIR).LT.RMIN) GO TO 2
+          WRITE (6,2)  R(IPAIR), TDOT2(IPAIR)
+    2     FORMAT (' KSAPO TRANSF    R TD2 ',1P,2E10.2)
           CALL RESOLV(IPAIR,1)
           COALS = .FALSE.
           SEMI = SEMI0
@@ -207,8 +208,8 @@
           IF (ISKIP.GT.0)  THEN
               WHICH1 = 'DISRUPT '
               NDISR = NDISR + 1
-*       Restore mass of accreted star for diagnostics (from 23/5/14).
-              M1 = 2.0*M1
+*       Restore mass of accreted star for diagnostics only (from 23/5/14).
+              M1 = 10.0*DM1
               WRITE (24,6)  TIME+TOFF, NDISR, NAME(I1), KSTAR(I1),
      &                      ECC, MIN(M1,M2), MAX(M1,M2), SEMI
     6         FORMAT (' DISRUPT1    T NDISR NM K* E M1 M2 SEMI ',
@@ -348,7 +349,11 @@
               END IF
 *       Terminate KS binary and assign kick velocity to single star #I.
               I = I1 + 2*(NPAIRS - IPAIR)
-      IF (BODY(I1).GT.0.5*BODY(N+IPAIR)) STOP
+              IF (BODY(I1).GT.0.5*BODY(N+IPAIR)) THEN
+                  WRITE (6,32)  NAME(I1), BODY(I1)*SMU
+   32             FORMAT (' DANGER EXPEL!    NM M ',I7,F7.2)
+                  STOP
+              END IF
               CALL KSTERM
               CALL KICK(I,1,KW1,DM)
 *       Initialize new KS polynomials after velocity kick (H > 0 is OK).

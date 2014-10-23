@@ -24,7 +24,8 @@
 *
 *       Check first whether any c.m. with small step is within range.
       J = LIST(L,I)
-      IF (STEP(J).GT.STEP4) GO TO 2
+*       Include mass condition (STEP may be large).
+      IF (STEP(J).GT.STEP4.AND.BODY(J).LT.10.0*BODY(I)) GO TO 2
       A1 = X(1,J) - X(1,I)
       A2 = X(2,J) - X(2,I)
       A3 = X(3,J) - X(3,I)

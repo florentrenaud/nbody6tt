@@ -281,7 +281,7 @@
       SECS = 3600.0*IHOUR + 60.0*IMIN + ISEC
       WRITE (6,45)  TTOT, Q, DE, BE(3), RMIN, DTMIN, ICR, DELTA1, E(3),
      &              DETOT, IHOUR, IMIN, ISEC
-   45 FORMAT (/,' ADJUST:  TIME =',F8.2,'  Q =',F5.2,'  DE =',1P,E10.2,
+   45 FORMAT (/,' ADJUST:  TIME =',F8.2,'  Q =',F5.2,'  DE =',1P,E9.1,
      &          '  E =',0P,F10.6,'  RMIN =',1P,E8.1,'  DTMIN =',E8.1,
      &          '  TC =',0P,I5,'  DELTA =',1P,E9.1,'  E(3) =',0P,F10.6,
      &          '  DETOT =',F10.6,'  WTIME =',I4,2I3)
