@@ -27,7 +27,7 @@
       END IF
 *
 *       Search for high velocities after escape or KS/chain termination.
-  999 IF (KZ(37).GT.0.AND.(IPHASE.EQ.-1.OR.IPHASE.GE.2)) THEN
+  999 IF (IPHASE.EQ.-1.OR.IPHASE.GE.2) THEN
           CALL HIVEL(0)
       END IF
 *
@@ -385,9 +385,9 @@
       END IF
 *
 *       Check option for general binary search.
-      IF (KZ(4).GT.0.AND.TIME - TLASTS.GT.DELTAS) THEN  
-          CALL EVOLVE(0,0)
-      END IF
+*     IF (KZ(4).GT.0.AND.TIME - TLASTS.GT.DELTAS) THEN  
+*         CALL EVOLVE(0,0)
+*     END IF
 *
 *       Include facility for termination of run (create dummy file STOP).
       OPEN (99,FILE='STOP',STATUS='OLD',FORM='FORMATTED',IOSTAT=IO)

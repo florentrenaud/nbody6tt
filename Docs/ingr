@@ -14,3 +14,4 @@ Input file for GR capture and gravitational radiation.
 This is achieved by #27 = 3 and #28 > 0, together with
 a suitably small value of RBAR in order to have
 sufficiently large velocities.
+Note possible addition of CLIGHT NBH IDIS for NBODY7.

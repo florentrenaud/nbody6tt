@@ -9,7 +9,9 @@
 1.0E-06 0.0001 0.2 1.0 1.0E-06 0.001
 2.3 50.0 0.1 0 0 0.001 0.0 50.0
 0.5 0.0 0.0 0.0 0.125
-18000.0 2 0
-18000.0 2 0
+20000.0 2 0
+20000.0 2 0
 
+This file is for ARC with #11 < 0 denoting post-Newtonian.
 NB! ETAU = 0.3 recommended for KS block-step version.
+Note two lines for reading CLIGHT (chain.f and brake4.f).

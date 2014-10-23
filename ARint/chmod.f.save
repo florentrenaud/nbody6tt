@@ -470,11 +470,6 @@
      &                                 3I4,1P,2E10.2)
           KCASE = 1
           RI = 1.0/RINV(2)
-*       Mark the smallest (last) binary for removal even if IESC/JESC = 1/2.
-          IF (1.0/RINV(3).LT.1.0/RINV(1)) THEN
-              IESC = 3
-              JESC = 4
-          END IF
           GO TO 40
       END IF
 *

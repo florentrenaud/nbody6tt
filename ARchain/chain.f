@@ -93,6 +93,9 @@
       ISTAB = 0
       IESC = 0
       JESC = 0
+      IPN = 0
+      IGR = 0
+      IEI = 0
       TZ = 1.0D+04
       TSTAB = 1.0D+06
       TKOZ = 0.0
@@ -156,7 +159,7 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
 *       Update energy budget on each NEWREG.
       IF (NEWREG.AND.Clight.GT.0.0) THEN
           ENERGY = ENERGY + EnerGR
-          IF (MOD(NSTEP1,10).EQ.0) THEN
+          IF (IPN.GT.0) THEN
           WRITE (6,102)  N, NPERT, IPN, EnerGR, ENERGY, RGRAV, DEGR
   102     FORMAT (' NEWREG    N NP IPN EnerGR ENERGY RGRAV DEGR ',
      &                        3I3,1P,E9.1,0P,3F10.6)
@@ -251,7 +254,8 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
       END IF
 *
       IF (N.EQ.2.AND.1.0/RINV(1).GT.0.1) THEN
-      WRITE (6,880)  TNOW, NPERT, ENERGY,GPERT, DELTAT, 1.0/RINV(1)
+      WRITE (6,880)  TNOW, NPERT, ENERGY,GPERT, DELTAT,
+     &               (1.0/RINV(K),K=1,N-1)
   880 FORMAT (' WIDE CHAIN    T NP EN G DT R ',F10.3,I4,F10.6,1P,6E10.2)
       CALL CONST(X,V,M,N,ENER0,G0,AL)
       WRITE (6,887)  ECC, ENER0, M(1), M(2), SEMI
@@ -420,6 +424,27 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           IPN = 0
       END IF
 *
+*       Evaluate the Einstein shift per orbit and check IPN.
+      IF (IPN.LE.1.AND.SEMI.GT.0.0) THEN
+          DW = 3.0*TWOPI*(M(I1) + M(I2))/(SEMI*Clight**2*(1.0 - ECC**2))
+*       Ensure IPN activated if shift exceeds 6.0D-04 per orbit.
+          IX = MAX(ISTAR(I1),ISTAR(I2))
+          IF (DW.GT.6.0D-04.AND.IX.EQ.14) THEN
+              IPN = 1
+              IGR = 1
+              IEI = 1     ! Einstein shift indicator (8/14).
+*       Allow for 2nd order correction (Mikkola & Merritt ApJ 135, 2398).
+              IF (DW.GT.1.0D-02) IPN = 2   ! 2nd order is 5 times bigger.
+              IF (DW.GT.1.0D-03) THEN
+                  WRITE (6,199)  IPN, IX, ECC, SEMI, DW
+  199             FORMAT  (' EINSTEIN SHIFT    IPN IX E A DW ',
+     &                                         2I4,F9.5,1P,2E10.2)
+              END IF
+          ELSE
+              IEI = 0
+          END IF
+      END IF
+*
 *       Determine c.m. of dominant pair and closest chain member.
       IF (N.GT.2) THEN
           MB = M(I1) + M(I2)
@@ -528,7 +553,9 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
                   WRITE (6,230)  TNOW, IPN, ECC, EX, EM, TZ, TKOZ
   230             FORMAT (' EMAX    T IPN E EX EM TZ TK ',
      &                              F9.2,I3,2F9.5,F8.4,1P,2E9.1)
- 
+      IF (EX.GT.0.99998.AND.MIN(ISTAR(I1),ISTAR(I2)).GE.10) THEN
+      icollision = 1
+      END IF
               END IF
           ELSE
               TKOZ = 1.0D+04
@@ -565,7 +592,7 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
               IPN = 2
           ELSE IF (TZ.LT.500.0) THEN
               IPN = 1
-          ELSE
+          ELSE IF (IEI.EQ.0) THEN
               IGR = 0
               IPN = 0
           END IF
@@ -672,7 +699,11 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
 *
 *       Check collision for non-BH dominant stars (IBH = 0 if IGR = 0).
       IF (ISTAR(I1).LT.14.AND.ISTAR(I2).LT.14) THEN
-          IF (PMIN.LT.SIZE(I1) + SIZE(I2)) GO TO 258
+          J1 = I1
+          IF (SIZE(I1).LT.SIZE(I2)) J1 = I2
+          RCOLL1 = 1.4*((M(I1) + M(I2))/M(J1))**0.3333*SIZE(J1)
+          IF (PMIN.LT.RCOLL1) GO TO 258
+*       Note: needs to be consistent with KSINT criterion (24/7/14).
       END IF
 *
 *       Perform collision test based on multiple criteria (BH-BH or BH-S).
@@ -823,6 +854,7 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
 *
 *       Check absorption or escape (ISUB = 0 for cluster escape).
       N0 = N
+      KCASE = 0
       CALL CHMOD(ISUB,KCASE,IESC,JESC)
       IF (ISUB.EQ.0) GO TO 400
 *       Decide between increased membership, escape removal or termination.

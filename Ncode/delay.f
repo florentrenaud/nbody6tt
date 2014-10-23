@@ -49,7 +49,7 @@
 *       Specify JCOMP < 0 to prevent spurious prediction second KSTERM call.
               JCOMP = -1
 *       Set JCLOSE = 0 to prevent KSTERM in SETSYS for #26 < 2. (bug 23/4/14)
-              JCLOSE = 0
+              IF (KZ(26).LT.2) JCLOSE = 0  ! IF statement added 14/6/14
           END IF
 *
 *       Save KSTAR (> 0) and sum of component names (for chain termination).

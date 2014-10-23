@@ -60,7 +60,7 @@
       END IF
 *
 *       Search for high velocities after escape or KS/chain termination.
-  999 IF (KZ(37).GT.0.AND.(IPHASE.EQ.-1.OR.IPHASE.GE.2)) THEN
+  999 IF (IPHASE.EQ.-1.OR.IPHASE.GE.2) THEN
           CALL HIVEL(0)
       END IF
 *
@@ -612,8 +612,8 @@
 *       Include optional plotting of single BH orbits (1 or 2).
       IF (KZ(45).GT.0.AND.TBH.LT.TIME+TOFF) THEN
           CALL BHPLOT
-*       Update time interval (try 10 points per time unit).
-          TBH = TBH + 1.0D-01
+*       Update time interval (try 5 points per time unit).
+          TBH = TBH + 2.0D-01
       END IF
 *
 *       Advance counters and check timer & optional COMMON save (NSUB = 0).
@@ -629,9 +629,9 @@
       END IF
 *
 *       Check option for general binary search.
-      IF (KZ(4).GT.0.AND.TIME - TLASTS.GT.DELTAS) THEN  
-          CALL EVOLVE(0,0)
-      END IF
+*     IF (KZ(4).GT.0.AND.TIME - TLASTS.GT.DELTAS) THEN  
+*         CALL EVOLVE(0,0)
+*     END IF
 *
 *       Include facility for termination of run (create dummy file STOP).
       OPEN (99,FILE='STOP',STATUS='OLD',FORM='FORMATTED',IOSTAT=IO)
