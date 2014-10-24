@@ -1,15 +1,15 @@
 nbody6tt
 ========
 
-Version 5.0 - 8 July 2014
+Version 5.2
 
-nbody6tt is based on Sverre Aarseth's nbody6, including the GPU2 package. The original version has been downloaded on the 26 June 2014 from http://www.ast.cam.ac.uk/~sverre/web/pages/nbody.htm (files nbody6.tar.gz and gpu2.tar.gz). Bug fixes and patches from Sverre since this date are NOT taken into account.
+nbody6tt is based on Sverre Aarseth's nbody6, including the GPU2 package. The original version has been downloaded on the 23 October 2014 from http://www.ast.cam.ac.uk/~sverre/web/pages/nbody.htm (files nbody6.tar.gz and gpu2.tar.gz). Bug fixes and patches from Sverre since this date are NOT taken into account.
 
 
 Description
 ===========
 
-nbody6tt includes the treatment of an external tidal field through the tidal tensor, in nbody6. Theory and method are detailed in Renaud, Gieles & Boily (2011).
+nbody6tt includes the treatment of external tidal fields in nbody6. Theory and method are detailed in Renaud, Gieles & Boily (2011).
 
 Since v3.0, nbody6tt offers two modes:
 * (A) a table a tidal tensors computed separatly is provided to the code. Mode A allows arbitrarily complex configurations (e.g. galaxy mergers). Tidal tensors are usually extracted from galaxy simulations and thus are known at a frequency larger than the smaller timestep. Therefore their values are interpolated in time (quadratic interpolation) at the times required by the simulation. Before the timestamp of the second tensor is reached, the interpolation is linear.
@@ -85,6 +85,10 @@ How to run nbody6tt in mode A (CPU or GPU)
 	...
 where NBTT is the number of tensors given in the file (i.e. the total number of rows in 'tt.dat' minus one), TTUNIT is the timescale for the galactic run in Myr (= how many Myr corresponds to t=1), TTOFFSET is an offset (in Myr) to be added to the timestamps of the tensors (it can be positive, 0.0, or negative). TTTIMEx is a timestamp in galactic run units, TTENSx(9) are the 9 components of the tensor (although only 6 are used), in the unit system of the galactic run (i.e. time^-2). The lines of the tensors must be ordered chronologically, with no duplicates.
 
+Therefore, to convert the times of the tensors into Nbody6 units, Nbody6tt computes (in Ncode/ttinit.f)
+    TTTIME(K)*(TTUNIT/TSTAR)+TTOFFSET/TSTAR
+(with TSTAR being the scaling factor of nbody units into Myr).
+
 Important: make sure that NBTT is smaller than NBTTMAX in Ncode/params.h.
 
 (A2) Set the option KZ(14) to 9 in the input to use the tidal tensor treatment.
@@ -94,7 +98,7 @@ Important: make sure that NBTT is smaller than NBTTMAX in Ncode/params.h.
 
 Important: the code will stop when the tidal tensor is not defined (before the first TTTIME*TTUNIT and after the last TTTIME*TTUNIT).
 
-Very important: setting KZ(14)=9 forces the centering of the cluster (otherwise, the computation of the tidal forces are wrong): KZ(31) is forced to 1.
+Important: when setting tensors manually, be sure to have a sufficient number of tensors in your tt.dat file. (See the interpolation method in Ncode/ttcal.f)
 
 Note that setting KZ(14)=0 is not strictly equivalent to having KZ(14)=9 with a null tensor, because of a different behavior of the code (mainly for stripping escapers). To compare the evolution of a cluster in a given tidal field with that of an isolated cluster, it is safer to make both runs with KZ(14)=9.
 
@@ -120,7 +124,7 @@ GPU version:
 
 This step (B1) is to be done each time that the galactic potential is changed.
    
-(B2) In the input file, set option KZ(14) to 9, and the RG(1:3) (initial position of the cluster in kpc) and VG(1:3) (initial velocity of the cluster in km/s) values, as you would do in the usual KZ(14)=3 mode.
+(B2) In the input file, set option KZ(14) to 9, and the RG(1:3) (initial position of the cluster in kpc) and VG(1:3) (initial velocity of the cluster in km/s) values, as you would do in the usual KZ(14)=3 mode. Avoid setting a initial position strictly equal to 0,0,0. (A small offset would be sufficient.)
 
 (B3) Make sure that your running directory does NOT contains a file called 'tt.dat'. If a 'tt.dat' file is found, the code will run in Mode A. Run the code:
 	nbody6[.gpu] < input > output

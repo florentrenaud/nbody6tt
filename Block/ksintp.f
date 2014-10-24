@@ -264,8 +264,12 @@
                       J1 = I1
                       IF (RADIUS(I2).GT.RADIUS(I1)) J1 = I2
                       FAC = 0.5*BODY(I)/BODY(J1)
+*       Set possible BH index and check disruption condition (& #43) first.
+                      J2 = 2*IPAIR + 1 - J1
+                      IF (KZ(43).GE.2.AND.KSTAR(J2).EQ.14) THEN
+                          RCOLL = (BODY(J2)/BODY(J1))**0.3333*RADIUS(J1)
+                      ELSE IF (KZ(27).LE.2) THEN
 *       Adopt collision criterion of Kochanek (Ap.J. 385, 604, 1992).
-                      IF (KZ(27).LE.2) THEN
                           RCOLL = 1.7*FAC**0.3333*RADIUS(J1)
                       ELSE
                           RCOLL = 6.0*BODY(I)/CLIGHT**2
@@ -349,8 +353,12 @@
                   J1 = I1
                   IF (RADIUS(I2).GT.RADIUS(I1)) J1 = I2
                   FAC = 0.5*BODY(I)/BODY(J1)
+*       Set possible BH index and check disruption condition (& #43) first.
+                  J2 = 2*IPAIR + 1 - J1
+                  IF (KZ(43).GE.2.AND.KSTAR(J2).EQ.14) THEN
+                      RCOLL = (BODY(J2)/BODY(J1))**0.3333*RADIUS(J1)
+                  ELSE IF (KZ(27).LE.2) THEN
 *       Adopt collision criterion of Kochanek (Ap.J. 385, 604, 1992).
-                  IF (KZ(27).LE.2) THEN
                       RCOLL = 1.7*FAC**0.3333*RADIUS(J1)
                   ELSE
                       RCOLL = 6.0*BODY(I)/CLIGHT**2

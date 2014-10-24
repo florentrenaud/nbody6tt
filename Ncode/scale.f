@@ -400,9 +400,9 @@
       VC = SQRT(2.0D0*ABS(E0)/ZMASS)
 *
 *       Check for general binary search of initial condition.
-      IF (KZ(4).GT.0) THEN
-          CALL EVOLVE(0,0)
-      END IF
+*     IF (KZ(4).GT.0) THEN
+*         CALL EVOLVE(0,0)
+*     END IF
 *
 *       Print half-mass relaxation time & equilibrium crossing time.
       A1 = FLOAT(NCM)

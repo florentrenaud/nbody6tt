@@ -261,6 +261,15 @@
       JLIST(1) = I1
       JPERT(L2) = J2
 *
+*       Check removal of #I1 ghost neighbour if #I2 is first single particle.
+      IF (LIST(2,I1).EQ.I2) THEN
+          DO 21 L = 2,NNB
+              LIST(L,I1) = LIST(L+1,I1)
+   21     CONTINUE
+          NNB = NNB - 1
+          LIST(1,I1) = NNB
+      END IF
+*
 *       Include correction procedure in case of mass loss (cf routine MIX).
       IF (KZ(19).GE.3.AND.DM.GT.0.0) THEN
 *
@@ -401,7 +410,8 @@
      &              KW1, ZMNEW*ZMBAR, RCOLL, EB, DP, DM*ZMBAR, VINF
    55 FORMAT (/,A8,'COAL    IQ =',I3,'  NAME =',2I6,'  K* =',3I3,
      &             '  M =',F6.2,'  RCOLL =',1P,E8.1,'  EB =',E9.1,
-     &             '  DP =',E9.1,'  DM =',0P,F6.2,'  VINF =',F4.1)
+     &             '  DP =',E9.1,'  DM =',0P,F6.2,'  VINF =',F5.1)
+      CALL FLUSH(6)
 *
       KSTAR(I1) = KW1
 *       Ensure a BH does not get a smaller type (should not happen).

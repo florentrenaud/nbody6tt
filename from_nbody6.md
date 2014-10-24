@@ -1,5 +1,5 @@
 
-Based on Nbody6 downloaded on 26 June 2014.
+Based on Nbody6 downloaded on 23 October 2014.
 
 List of changes made to Sverre's Nbody6. Discard this document if you don't want to dig in the code.
 All the changes are commented in the .f and .h files. They start with the tag '*** FlorentR' and end with '*** FRenaud'.
@@ -72,6 +72,9 @@ In Ncode
 * force the center of mass correction (KZ(31)=1)
 * (mode A) read the tensor data from file 'tt.dat', scale and initialize
 * (mode B) read the initial coordinates of the cluster and initialize
+
+### xtrnl0.f
+* adjust initial velocities in the case of tidal tensor
 
 ### xtrnlf.f
 * include the computation of the external force from the tidal tensor

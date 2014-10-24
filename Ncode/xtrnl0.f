@@ -242,7 +242,10 @@
       END IF
 *
 *       Include Plummer potential for 2D and 3D (use MP = 0 if not needed).
-      IF (KZ(14).EQ.3.OR.KZ(14).EQ.4) THEN
+*** FlorentR - Tidal tensor
+      IF (KZ(14).EQ.3.OR.KZ(14).EQ.4.OR.KZ(14).EQ.9) THEN
+*      IF (KZ(14).EQ.3.OR.KZ(14).EQ.4) THEN
+*** FRenaud
 *       Check input for Plummer potential.
           READ (5,*)  MP, AP2, MPDOT, TDELAY
           WRITE (6,70)  MP, AP2, MPDOT, TDELAY

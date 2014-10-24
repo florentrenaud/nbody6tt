@@ -112,6 +112,7 @@
           KSTAR(NTOT) = 14
       END IF
 *
+      IF (NSTEP1.GT.100.OR.NBH2.EQ.2) THEN
       NP = LIST(1,2*NPAIRS-1)
       ZMU = BODY(2*NPAIRS-1)*BODY(2*NPAIRS)/BODY(NTOT)
       EBH = ZMU*H(NPAIRS)
@@ -119,6 +120,7 @@
      &              R(NPAIRS), STEP(NTOT)
    50 FORMAT (' TERMINATE ARC    # NP NNB EBH ECH H R STEP ',
      &                             I10,2I4,F11.6,1P,4E10.2)
+      END IF
 *       Reduce subsystem counter and initialize membership & internal energy.
       NSUB = MAX(NSUB - 1,0)
       NCH = 0

@@ -21,7 +21,6 @@
      &                ECOLL1,RCOLL,QPERI,ISTAR(NMX),ICOLL,ISYNC,NDISS1
       COMMON/POSTN2/  SEMIGR,ECCGR,DEGR,ISPIN
       COMMON/INCOND/  X4(3,NMX),XDOT4(3,NMX)
-      REAL*8  G0(3),RVEC(3),VVEC(3)
 *
 *
 *       Copy chain variables to standard form.
@@ -60,23 +59,33 @@
 *       NB! XCH is not at actual pericentre (determined by A*(1-ECC)).
    10 CONTINUE
 *
+      WRITE (6,400)  IBH, IESC, LX, (ISTAR(K),K=1,NCH)
+  400 FORMAT (' BEGIN   IBH IESC LX I*  ',7I4)
 *       Ensure largest stellar type and reduce membership.
       ISTAR(LX) = MAX(ISTAR(IBH),ISTAR(IESC))
       NCH = NCH - 1
       NN = NCH
+      LY = 2
+      LL = 3*(LY - 1)
+      VI2 = 0.0
+      DO 404 K = 1,3
+      LL = LL + 1
+      VI2 = VI2 + VCH(LL)**2
+  404 CONTINUE
+      WRITE (6,406)  NAMEC(LY), 0.5*BODYC(LY)*VI2
+  406 FORMAT (' PERT    NM ZKE ',I7,1P,E10.2)
 *
 *       Check optional treatment of tidal disruption by BH.
       IF (KZ(43).GE.2.AND.ISTAR(IESC).LT.10) THEN
           NDISR = NDISR + 1
-          ZMB =  BODYC(IESC) + BODYC(LX)
           M(IESC) = 0.1*M(IESC)
-*       Accrete 1/10 the mass of #IESC and copy new BH variables.
+*       Accrete half the mass of #IESC and copy new BH variables.
           M(LX) = M(LX) + M(IESC)
           BODYC(LX) = BODYC(LX) + M(IESC)
-          ZMASS = ZMASS - 9.0*M(IESC)
+          ZMASS = ZMASS - M(IESC)
 *       Update system masses.
-          BODY(ICH) = BODY(ICH) - 9.0*M(IESC)
-          MASS = MASS - 9.0*M(IESC)
+          BODY(ICH) = BODY(ICH) - M(IESC)
+          MASS = MASS - M(IESC)
           DO 20 K = 1,3
               X4(K,LX) = XCM(K)
               XDOT4(K,LX) = VCM(K)
@@ -93,48 +102,17 @@
               POT1 = POT1 + BODY(J)/SQRT(RIJ2)
    40     CONTINUE
 *
+       DE = M(IESC)*POT1
+       WRITE (6,600)  DE
+  600  FORMAT (' EXTERNAL   DE ',1P,E12.4)
 *       Subtract ghost mass contribution to the potential energy.
-          ECOLL = ECOLL - 9.0*M(IESC)*POT1
+          ECOLL = ECOLL - M(IESC)*POT1
           WRITE (24,45)  TIME+TOFF, NDISR, NAMEC(IESC), ISTAR(IESC),
      &                   ECCGR, 10.0*M(IESC)*SMU, M(LX)*SMU, SEMIGR
    45     FORMAT (' DISRUPT2    T NDISR NM K* E M1 M2 SEMI ',
      &                          F8.1,I5,I7,I4,F10.6,2F6.1,1P,E10.2)
           CALL FLUSH(24)
-*       Note that modified M(LX) and another component will be new KS.
-*
-          VR2 = 0.0
-          RR2 = 0.0
-          DO 46 K = 1,3
-              RR2 = RR2 + (X4(K,IESC) - X4(K,LX))**2
-              VI2 = VI2 + (XDOT4(K,IESC) - XDOT4(K,LX))**2
-              RVEC(K) = X4(K,IESC) - X4(K,LX)
-              VVEC(K) = XDOT4(K,IESC) - XDOT4(K,LX)
-   46     CONTINUE
-          RR = SQRT(RR2)
-          SEMI = 2.0/RR - VI2/ZMB
-          SEMI = 1.0/SEMI
-          VA2 = ZMB/SEMI
-          XFAC = SEMI/RR
-          VFAC = SQRT(RR/SEMI)
-          DO 47 K = 1,3
-              X4(K,IESC) = XFAC*BODYC(LX)*RVEC(K)/ZMB
-              X4(K,LX) = -XFAC*BODYC(IESC)*RVEC(K)/ZMB
-              XDOT4(K,IESC) = VFAC*BODYC(LX)*VVEC(K)/ZMB
-              XDOT4(K,LX) = -VFAC*BODYC(IESC)*VVEC(K)/ZMB
-              XCM(K) = X4(K,LX)
-              VCM(K) = XDOT4(K,LX)
-   47     CONTINUE     
-          RI2 = 0.0
-          VI2 = 0.0
-          DO 200 K = 1,3
-              RI2 = RI2 + (X4(K,IESC) - X4(K,LX))**2
-              VI2 = VI2 + (XDOT4(K,IESC) - XDOT4(K,LX))**2
-  200     CONTINUE
-          RIJ = SQRT(RI2)
-          ANEW = 2.0/RIJ - VI2/ZMB
-          ANEW = 1.0/ANEW
-          WRITE (6,210)  RVEC, RIJ, ANEW, VA2, VI2
-  210     FORMAT (' INFALL TRANSF    RVEC R A VA2 VI2 ',1P,7E10.2)
+*       Note that new M(LX) and another component will be new KS.
       ELSE
 *       Implement complete swallowing of compact star.
           M(LX) = M(LX) + M(IESC)
@@ -145,7 +123,7 @@
    50     FORMAT (' SWALLOWED STAR    NAM K* M1 M2 ',I6,I4,2F7.2)
           NDISR = NDISR + 1
           WRITE (24,45)  TIME+TOFF, NDISR, NAMEC(IESC), ISTAR(IESC),
-     &                   ECCGR, BODYC(IESC)*SMU, M(LX)*SMU, SEMIGR
+     &                   ECCGR, 2.0*M(IESC)*SMU, M(LX)*SMU, SEMIGR
       END IF
 *
 *       Check possible reduction of dominant body index.
@@ -182,7 +160,7 @@
           LI = LI + 3
    70 CONTINUE
 *
-*       Set XCM & VCM in XCH & VCH of the current IBH.
+*       Set XCM & VCM in the current IBH.
       LK = 3*(LX - 1)
       DO 55 K = 1,3
           LK = LK + 1
@@ -218,32 +196,52 @@
           CG(K) = CG(K)/BODY(ICH)
    96 CONTINUE
 *
-*       Adopt c.m. condition and copy to X4 & XDOT4.
-      LK = 0
-      DO 98 L = 1,NCH
-          DO 97 K = 1,3
-              LK = LK + 1
-              XCH(LK) = XCH(LK) - CG(K)
-              VCH(LK) = VCH(LK) - CG(K+3)
-              X4(K,L) = XCH(LK)
-              XDOT4(K,L) = VCH(LK)
-   97     CONTINUE
-   98 CONTINUE
-*
       IF (KZ(30).NE.0) THEN
           WRITE (6,99)  TIME+TOFF, (CG(K),K=1,6)
    99     FORMAT (' INFALL CHECK:   T CG ',F10.2,1P,6E9.1)
       END IF
 *
-*       Form new c.m. kinetic energy.
+*       Correct for c.m. displacement (new FPOLY1/2 do not improve).
+      DO 115 K = 1,3
+          XX(K) = 0.0
+          VV(K) = 0.0
+  115 CONTINUE
+      DO 118 L = 1,NCH
+          DO 117 K = 1,3
+              XX(K) = XX(K) + M(L)*X4(K,L)
+              VV(K) = VV(K) + M(L)*XDOT4(K,L)
+  117     CONTINUE
+  118 CONTINUE
+*       Note this procedure cancels error in INFALL CHECK.
       ZK2 = 0.0
       DO 120 K = 1,3
+          X(K,ICH) = X(K,ICH) + XX(K)/MASS
+          XDOT(K,ICH) = XDOT(K,ICH) + VV(K)/MASS
+          X0(K,ICH) = X(K,ICH)
+          X0DOT(K,ICH) = XDOT(K,ICH)
           ZK2 = ZK2 + XDOT(K,ICH)**2
   120 CONTINUE
       ZK2 = 0.5*BODY(ICH)*ZK2
+      WRITE (6,119)  ZK2, (VV(K)/MASS,K=1,3)
+  119 FORMAT (' HELLO!   ZK2 VV ',1P,5E10.2)
 *
+      RIJ2 = 0.0
+      VIJ2 = 0.0
+      LK = 0
+      DO 130 K = 1,3
+          LK = LK + 1
+          RIJ2 = RIJ2 + (XCH(LK) - XCH(LK+3))**2
+          VIJ2 = VIJ2 + (VCH(LK) - VCH(LK+3))**2
+  130 CONTINUE
+      RIJ = SQRT(RIJ2)
+      HI = 0.5*VIJ2 - (M(1) + M(2))/RIJ
+      ZMU = M(1)*M(2)/(M(1) + M(2))
+      DE = ZMU*HI - ENERGY
+      WRITE (6,135)  HI, ZMU*HI, DE, ZK1-ZK2
+  135 FORMAT (' FINAL   HI EB DE DZK ',1P,5E12.4)
+*     ECOLL = ECOLL + DE
 *       Add c.m. kinetic energy change for conservation.
-      ECOLL = ECOLL + (ZK1 - ZK2)
+*     ECOLL = ECOLL + (ZK1 - ZK2)
 *
       RETURN
 *
