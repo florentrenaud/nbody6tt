@@ -57,6 +57,11 @@
 *
 *       Read or save all COMMON variables (valid for tape or disc).
       IF (II.NE.0) THEN
+*** FlorentR - save previous restart file
+        IF (j.EQ.2) THEN
+           CALL RENAM('restart.tmp','restart.prev')
+        ENDIF
+*** FRenaud
 
         WRITE (J) ntot,npairs,nttot,a,b,c,d,e,g,l,m,o,p,q,s
 
@@ -106,7 +111,7 @@
         END FILE J
         CLOSE (UNIT=J)
 *** FlorentR - There is a risk that the code stops before fort.x
-*       (x=1 or 2) is fully writen. To avoid that, fort.x is renamed 
+*       (x=1 or 2) is fully written. To avoid that, fort.x is renamed 
 *       into restart.tmp when it is complete.
         WRITE(FILENAME,'("fort.",I1)') J
 	CALL RENAME(FILENAME,'restart.tmp')
