@@ -42,7 +42,7 @@
 !      CALL nfw2(ttphig, x, y, z, mscale,rscale,tscale,vscale)
 !      CALL isothermal(ttphig, x, y, z, mscale,rscale,tscale,vscale)
 !      CALL bulgediskhalo(ttphig, x, y, z, mscale,rscale,tscale,vscale)
-!      CALL spiralarms(ttphig, x, y, z, mscale,rscale,tscale,vscale)
+      CALL spiralarms(ttphig, x, y, z, mscale,rscale,tscale,vscale)
 
 
       RETURN

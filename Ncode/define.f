@@ -43,7 +43,7 @@
 *       GMIN    Relative two-body perturbation for unperturbed motion.
 *       GMAX    Secondary termination parameter for soft KS binaries.
 ***
-* INPUT: if (kz(4).gt.0) (suppressed)
+* INPUT: if (kz(4).gt.0)
 *
 *       DELTAS  Output interval for binary search (in TCR; suppressed).
 *       ORBITS  Minimum periods for binary output (level 1).
@@ -69,8 +69,9 @@
 *
 *        if (kz(5).eq.3)
 *
-*       APO     Initial apocentre distance from the Sun (N-body units).
-*       ECC     Eccentricity of orbit (assumed < 0.90).
+*       APO     Separation between the perturber and Sun.
+*       ECC     Eccentricity of orbit (=1 for parabolic encounter).
+*       DMIN    Minimum distance of approach (pericentre).
 *       SCALE   Perturber mass scale factor (=1 for Msun).
 *
 *        if (kz(5).eq.4)
@@ -185,9 +186,9 @@
 *       1  COMMON save unit 1 (=1: 'touch STOP'; =2: every 100*NMAX steps).
 *       2  COMMON save unit 2 (=1: at output; =2: restart if DE/E > 5*QE).
 *       3  Basic data unit 3 at output time (unformatted, frequency NFIX;
-*             =1/2: standard and tail; =3: tail only; >3: cluster + tail).
+*             =1/2: standard /and tail; =3: tail only; >3: cluster + tail).
 *       4  Binary diagnostics on unit 4 (# threshold levels = KZ(4) < 10);
-*                                       (suppressed in all routines).
+*                                       (currently suppressed in ksint.f).
 *       5  Initial conditions (#22 =0; =0: uniform & isotropic sphere);
 *                =1: Plummer; =2: two Plummer models in orbit, extra input;
 *                =3: massive perturber and planetesimal disk, extra input;
@@ -255,7 +256,7 @@
 *                         =4 and #27 = 3: neutron star capture (instar.f).
 *      29  Boundary reflection for hot system (suppressed).
 *      30  Multiple regularization (=1: all; >1: BEGIN/END; >2: each step);
-*                                               =-1: CHAIN only for BH KS.
+*                       =-1: CHAIN only for BH KS; =-2: only TRIPLE & QUAD.
 *      31  Centre of mass correction after ADJUST (don't use with #23 = 0).
 *      32  Increase output intervals & SMAX based on single particle energy.
 *      33  Histograms at main output (>=1: STEP; =2: STEPR, NBHIST & BINARY).
@@ -356,7 +357,6 @@
 *       NSN     Neutron stars.
 *       NBH     Black holes.
 *       NBS     Blue stragglers.
-*       NTZ     Thorne-Zytkow objects.
 *       ---------------------------------------------------------------------
 *
 *
@@ -380,21 +380,10 @@
 *      13       Neutron star.
 *      14       Black hole.
 *      15       Massless supernova remnant.
-*       ---------------------------------------------------------------------
-*
-*       Binary types
-*       ************
-*
-*       ---------------------------------------------------------------------
-*       0       Standard case.
-*      -1       Chaotic (option 27 = 2).
-*      -2       Continuous circularizing (option 27 = 2).
-*       9       Sequential circularization (option 27 = 1).
-*      10       Circularized.
-*      11       First Roche stage (option 34 = 1/2).
-*      12       End of first Roche stage.
-*      13       Start of second Roche stage.
-*      xx       Further Roche stages.
+*      19       Circularizing binary (c.m. value).
+*      20       Circularized binary.
+*      21       First Roche stage (inactive).
+*      22       Second Roche stage.
 *       ---------------------------------------------------------------------
 *
       RETURN

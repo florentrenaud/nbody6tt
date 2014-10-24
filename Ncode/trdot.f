@@ -40,7 +40,7 @@
          dtm = pts1*tm
          dtr = tm - age
       elseif(kw.ge.10)then
-         dtm = sqrt(10.0/lum)
+         dtm = 1.0d+02
          dtr = dtm
       elseif(kw.eq.2)then
          dtm = pts1*(tscls(1) - tm)

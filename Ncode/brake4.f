@@ -12,7 +12,7 @@
 *
 *
 *       Check relativistic conditions (at least one >= NS).
-      IF (MAX(KSTAR(I1),KSTAR(I2)).LT.13.OR.KZ(11).EQ.0) GO TO 100
+      IF (MAX(KSTAR(I1),KSTAR(I2)).LT.13) GO TO 100
 *
 *       See whether CLIGHT has been initialized in ARchain.
       IF (ITER.EQ.0) THEN
@@ -52,7 +52,7 @@
       DW = 3.0*TWOPI*(BODY(I1) + BODY(I2))/(SEMI*CVEL**2*(1.0-E2))
       TK = TWOPI*SEMI*SQRT(SEMI/(BODY(I1) + BODY(I2)))
 *       Adopt time-scale of 2 % relative change (subject to c.m. step).
-      DT = MIN(0.01*SEMI/ADOT,STEP(I))
+      DT = MIN(0.02*SEMI/ADOT,STEP(I))
       THETA = DW*DT/TK
 *       Impose limit of time-step if THETA > TWOPI.
       IF (THETA.GT.TWOPI) THEN
@@ -113,9 +113,6 @@
           JP = LIST(2,I)
           LIST(1,I1) = 1
           LIST(2,I1) = JP
-          IMOD = 1
-          CALL RESOLV(IPAIR,1)
-          CALL KSPOLY(IPAIR,IMOD)
 *       Set PN indicator for ARCHAIN (TGR limit means small TZ).
           IPN = 3
           WRITE (6,40)  JP, NAME(JP), STEP(I1), STEP(I), SEMI, TGR

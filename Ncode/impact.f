@@ -81,6 +81,8 @@
       ELSE
           GSTAR = GMIN
           KCHAIN = 0
+*       Specify indicator -1 for allowing TRIPLE & QUAD but not CHAIN.
+          IF (KZ(30).EQ.-2) KCHAIN = -1
 *       Enforce CHAIN for BH component(s), otherwise allow TRIPLE/QUAD.
           IF (KZ(30).EQ.-1) THEN
               IF (MAX(KSTAR(I1),KSTAR(I2)).EQ.14) KCHAIN = 1
@@ -299,11 +301,10 @@
 *       Skip all multiple regs on zero option (mergers done by #15 > 0).
       IF (KZ(30).EQ.0) GO TO 100
 *       Allow CHAIN only (#30 = -1) or TRIPLE & QUAD only (#30 < -1).
+***   IF (KZ(30).EQ.-2.AND.KCHAIN.EQ.0) GO TO 100
       IF (KZ(30).LT.0.AND.KCHAIN.EQ.0) THEN
           KCHAIN = 1
-          IF (NCH.GT.0) KCHAIN = 0
       END IF
-      IF (KCHAIN.GT.0.AND.RIJ.GT.20.0*SEMI) GO TO 100
 *
       WHICH1 = ' TRIPLE '
       IF (JCL.GT.N) WHICH1 = ' QUAD   '
@@ -454,7 +455,7 @@
               IF (NAM1.EQ.LISTQ(L)) K = K + 1
    32     CONTINUE
 *       Generate diagnostics of first five outer orbits every half period.
-          IF (K.LE.5.AND.TIME.GT.QCHECK.AND.KZ(15).GE.3) THEN
+          IF (K.LE.5.AND.TIME.GT.QCHECK.AND.KZ(37).GT.0) THEN
               ZMB = BODY(I) + BODY(JCL)
               RI = SQRT(RI2)
               TK = SEMI1*SQRT(SEMI1/ZMB)
@@ -906,7 +907,7 @@
       END IF
 *
 *       Check for diagnostic output of quadruples.
-      IF (SEMI1.GT.0.0.AND.JCL.GT.N.AND.KZ(15).GE.3) THEN
+      IF (SEMI1.GT.0.0.AND.JCL.GT.N.AND.KZ(37).GT.0) THEN
           ZMB = BODY(I) + BODY(JCL)
           TK = DAYS*SEMI1*SQRT(SEMI1/ZMB)
           WRITE (89,65)  TTOT, NAME(2*IPAIR-1), NAME(2*JPAIR-1),

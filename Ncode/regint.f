@@ -193,16 +193,8 @@
           END IF
           NBVOID = NBVOID + 1
           IRSKIP = 1
-          NBGAIN = 0
-          NBLOSS = NNB0
-          DO 28 L = 1,NNB0
-              JLIST(L) = LIST(L+1,I)
-   28     CONTINUE
-          IF (KZ(14).EQ.3) THEN
-              ETIDE = ETIDE + BODY(I)*(0.5*W2DOT*DTR - WDOT)*DTR
-          END IF
 *       Skip another full N loop.
-          GO TO 70
+          GO TO 50
       END IF
 *
 *       Restrict neighbour number < NNBMAX to permit one normal addition.
@@ -360,7 +352,7 @@
       END IF
 *
 *       Find loss or gain of neighbours at the same time.
-      NBLOSS = 0
+   50 NBLOSS = 0
       NBGAIN = 0
 *
 *       Accumulate tidal energy change for general galactic potential.
@@ -516,6 +508,9 @@
 *
 	  X0(K,I) = X0(K,I) + (0.6D0*AT3 + BT2)*DTSQ12
 	  X0DOT(K,I) = X0DOT(K,I) + (0.75D0*AT3 + BT2)*DTR13
+*
+*         X0(K,I) = X(K,I)
+*         X0DOT(K,I) = XDOT(K,I)
 *
           FI(K,I) = FIRR(K)
 	  FR(K,I) = FREG(K)
