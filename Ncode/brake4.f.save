@@ -113,9 +113,6 @@
           JP = LIST(2,I)
           LIST(1,I1) = 1
           LIST(2,I1) = JP
-          IMOD = 1
-          CALL RESOLV(IPAIR,1)
-          CALL KSPOLY(IPAIR,IMOD)
 *       Set PN indicator for ARCHAIN (TGR limit means small TZ).
           IPN = 3
           WRITE (6,40)  JP, NAME(JP), STEP(I1), STEP(I), SEMI, TGR

@@ -222,6 +222,9 @@
           DE2(2) = -0.001*EB*RAN2(IDUM)
       END IF
 *
+*       Exit for circular orbit (possible mass loss problem).
+      IF (ECC.LE.0.002) GO TO 80
+*
 *       Evaluate time-scale for Kochanek-type damping (linear & non-linear).
       EOSC0(1) = EOSC(1,IC)**2 + EOSC(2,IC)**2
       EOSC0(2) = EOSC(3,IC)**2 + EOSC(4,IC)**2

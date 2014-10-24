@@ -277,7 +277,7 @@
       END IF
 *
 *       Check collision criterion for special case.
-      IF (KZ(27).EQ.-1.AND.KZ(13).LT.0) THEN
+      IF (KZ(27).EQ.-1) THEN
           ECC2 = (1.0 - R(IPAIR)/SEMI)**2 +
      &                                TDOT2(IPAIR)**2/(BODY(I)*SEMI)
           ECC = SQRT(ECC2)

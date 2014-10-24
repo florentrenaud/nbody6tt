@@ -5,7 +5,9 @@
 *       ------------------------------------
 *
       INCLUDE 'common6.h'
+      COMMON/FSAVE/ SAVEIT(6)
       REAL*8  Q(3),RDOT(3),UI(4),VI(4),A1(3,4)
+      REAL*8  A(9),F1(3),F1DOT(3)
       INTEGER IPIPE(9)
       SAVE  IPIPE
       DATA  IPIPE /9*0/
@@ -45,6 +47,8 @@
           XDOT(K,NTOT) = X0DOT(K,NTOT)
           XDOT(K,ICOMP) = X0DOT(K,ICOMP)
           XDOT(K,JCOMP) = X0DOT(K,JCOMP)
+          X0(K,NTOT) = X(K,NTOT)
+      X0(K,JCOMP) = X(K,JCOMP)
    10 CONTINUE
 *
 *       Obtain force polynomial for c.m. with components ICOMP & JCOMP.
@@ -53,9 +57,134 @@
 *       Predict current coordinates & velocities for the neighbours.
       CALL XVPRED(ICOMP,NNB)
 *
+*       Choose between full FPOLY1/2 or just neighbours (skip non-standard).  
+      IF (N.LT.5000.OR.IPHASE.NE.1) THEN
+*
 *       Obtain new polynomials & steps (first F & FDOT, then F2DOT & F3DOT).
-      CALL FPOLY1(ICOMP,JCOMP,1)
-      CALL FPOLY2(NTOT,NTOT,1)
+          CALL FPOLY1(ICOMP,JCOMP,1)
+          CALL FPOLY2(NTOT,NTOT,1)
+*
+      ELSE
+*
+*       Treat each component in turn (initialize, then evaluate F & FDOT).
+          I = ICOMP
+          ICM = NTOT
+  110     DO 115 K = 1,3
+              FI(K,I) = 0.0
+              D1(K,I) = 0.0
+  115     CONTINUE
+*
+*       Obtain irregular force & first derivative for body #I.
+          KDUM = 0
+          NNB = LIST(1,ICM)
+*       Loop over neighbours only using c.m. list (cf. FPOLY1).
+          DO 140 L = 2,NNB+1
+              J = LIST(L,ICM)
+              IF (J.GT.N) THEN
+                  JPAIR = J - N
+*       Use c.m. approximation for unperturbed binary.
+                  IF (LIST(1,2*JPAIR-1).GT.0) THEN
+                      KDUM = 2*JPAIR - 1
+                      J = KDUM
+                  END IF
+              END IF
+*
+  120         DO 125 K = 1,3
+                  A(K) = X(K,J) - X(K,I)
+                  A(K+3) = XDOT(K,J) - XDOT(K,I)
+  125         CONTINUE
+*
+              A(7) = 1.0/(A(1)*A(1) + A(2)*A(2) + A(3)*A(3))
+              A(8) = BODY(J)*A(7)*SQRT(A(7))
+              A(9) = 3.0*(A(1)*A(4) + A(2)*A(5) + A(3)*A(6))*A(7)
+*
+*       Accumulate irregular force and first derivative.
+              DO 130 K = 1,3
+                  F1(K) = A(K)*A(8)
+                  F1DOT(K) = (A(K+3) - A(K)*A(9))*A(8)
+                  FI(K,I) = FI(K,I) + F1(K)
+                  D1(K,I) = D1(K,I) + F1DOT(K)
+  130         CONTINUE
+*
+*       Check for KS component.
+              IF (J.EQ.KDUM) THEN
+                  J = J + 1
+                  GO TO 120
+              END IF
+  140     CONTINUE
+*
+*       Check option for external force (note FR already done).
+          IF (KZ(14).GT.0) THEN
+              CALL XTRNLD(I,I,1)
+          END IF
+*
+*       Treat second component in the same way.
+          IF (I.EQ.ICOMP) THEN
+              I = JCOMP
+              GO TO 110
+          END IF
+*
+*       Form c.m. force and derivative from mass-weighted terms.
+          FIRR = 0.0
+          FDIRR = 0.0
+          DO 150 K = 1,3
+              FI(K,ICM) = (BODY(ICOMP)*FI(K,ICOMP) +
+     &                     BODY(JCOMP)*FI(K,JCOMP))/BODY(ICM)
+              D1(K,ICM) = (BODY(ICOMP)*D1(K,ICOMP) +
+     &                     BODY(JCOMP)*D1(K,JCOMP))/BODY(ICM)
+              FIRR = FIRR + FI(K,ICM)**2
+              FDIRR = FDIRR + D1(K,ICM)**2
+  150     CONTINUE
+*
+*       Obtain irregular time-step and check commensurability.
+          DT = ETAI*SQRT(FIRR/FDIRR)
+          CALL STEPK(DT,DTN)
+          STEP(ICM) = DTN
+          ITER = 0
+  160     IF (DMOD(TIME,STEP(ICM)).NE.0.0D0) THEN
+              STEP(ICM) = 0.5D0*STEP(ICM)
+              ITER = ITER + 1
+              IF (ITER.LT.16.OR.STEP(ICM).GT.DTK(40)) GO TO 160
+              STEP(ICM) = DTK(40)
+          END IF
+          T0(ICM) = TIME
+          T0R(ICM) = TIME
+          TNEW(ICM) = TIME + STEP(ICM)
+*
+*       Form force components and first derivatives for c.m.
+          DO 170 K = 1,3
+              FR(K,ICM) = SAVEIT(K)
+              D1R(K,ICM) = SAVEIT(K+3)
+              FRDOT(K,ICM) = SAVEIT(K+3)
+              F(K,ICM) = FI(K,ICM) + FR(K,ICM)
+              FDOT(K,ICM) = D1(K,ICM) + D1R(K,ICM)
+              F(K,ICM) = 0.5*F(K,ICM)
+              FDOT(K,ICM) = ONE6*FDOT(K,ICM)
+              D0(K,ICM) = FI(K,ICM)
+              D2(K,ICM) = 0.0
+              D3(K,ICM) = 0.0
+              D2R(K,ICM) = 0.0
+              D3R(K,ICM) = 0.0
+  170     CONTINUE
+*
+*       Assign regular time-step and perform commensurability check.
+          FIRR = 0.0
+          FDIRR = 0.0
+          DO 175 K = 1,3
+              FIRR = FIRR + FR(K,ICM)**2
+              FDIRR = FDIRR + D1R(K,ICM)**2
+  175     CONTINUE
+          DT = ETAR*SQRT(FIRR/FDIRR)
+          CALL STEPK(DT,DTN)
+          STEPR(ICM) = DTN
+          ITER = 0
+  180     IF (DMOD(TIME,STEPR(ICM)).NE.0.0D0) THEN
+              STEPR(ICM) = 0.5D0*STEPR(ICM)
+              ITER = ITER + 1
+              IF (ITER.LT.16.OR.STEPR(ICM).GT.DTK(40)) GO TO 180
+              STEPR(ICM) = DTK(40)
+          END IF
+      END IF
 *
 *       Skip KS initialization at merger termination (H, U & UDOT in RESET).
       IF (IPHASE.EQ.7) THEN

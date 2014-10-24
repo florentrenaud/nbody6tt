@@ -75,7 +75,6 @@
           END IF
           DT1 = STEP(I1)
           CALL UNPERT(IPAIR)
-*
 *       Check updating of unperturbed relativistic KS binary.
           IF (KZ(11).NE.0.AND.LIST(1,I1).EQ.0) THEN
               CALL BRAKE4(I1,I2,DT1)
@@ -84,14 +83,23 @@
 *
 *       Try re-initialize chain WD/BH system after dormant KS (#11 only).
           IF (KZ(11).NE.0.AND.NCH.EQ.0.AND.LIST(1,I1).GT.0) THEN
-              IF (MIN(KSTAR(I1),KSTAR(I2)).GE.10) THEN
+*       Ensure at least one KS component is a BH.
+              IF (MAX(KSTAR(I1),KSTAR(I2)).EQ.14) THEN
                   SEMI = -0.5*BODY(I)/H(IPAIR)
-                  IF (SEMI.GT.10.0*RMIN) GO TO 100
-                  WRITE (6,222)  TIME+TOFF, NAME(JCLOSE), KSTAR(I1),
-     &                           KSTAR(I2), LIST(1,I1), GAMMA(IPAIR),
-     &                           SEMI, R(IPAIR)
-  222             FORMAT (' ACTIVATE CHAIN    T NMJ K* NP G A R ',
-     &                                        F9.1,I7,3I4,1P,3E10.2)
+                  JJ = LIST(2,I1)
+                  RIJ2 = 0.0
+                  RD = 0.0
+                  DO 221 K = 1,3
+                      RIJ2 = RIJ2 + (X(K,I) - X(K,JJ))**2
+                      RD = RD + (X(K,I)-X(K,JJ))*(XDOT(K,I)-XDOT(K,JJ))
+  221             CONTINUE
+*       Skip on outward motion or separation > 10*RMIN.
+                  IF (RD.GT.0.0.OR.RIJ2.GT.100.0*RMIN2) GO TO 100
+*                 WRITE (6,222)  TIME+TOFF, NAME(JCLOSE), KSTAR(I1),
+*    &                           KSTAR(I2), LIST(1,I1), GAMMA(IPAIR),
+*    &                           SEMI, R(IPAIR)
+* 222             FORMAT (' ACTIVATE CHAIN    T NMJ K* NP G A R ',
+*    &                                        F9.1,I7,3I4,1P,3E10.2)
                   KSPAIR = IPAIR
 *       Restore unperturbed motion from BRAKE4 (NP = 0 fixes some problem).
                   IF (GAMMA(IPAIR).LT.1.0D-10) THEN
@@ -399,9 +407,13 @@
                   IF (QPERI.LT.RCAP) THEN
                       J1 = I1
                       IF (RADIUS(I2).GT.RADIUS(I1)) J1 = I2
-                      FAC = 0.5*BODY(I)/BODY(J1)
+*       Set possible BH index and check disruption condition (& #43) first.
+                      J2 = 2*IPAIR + 1 - J1
+                      IF (KZ(43).GE.2.AND.KSTAR(J2).EQ.14) THEN
+                          RCOLL = (BODY(J2)/BODY(J1))**0.3333*RADIUS(J1)
+                      ELSE IF (KZ(27).LE.2) THEN
 *       Adopt collision criterion of Kochanek (Ap.J. 385, 604, 1992).
-                      IF (KZ(27).LE.2) THEN
+                          FAC = 0.5*BODY(I)/BODY(J1)
                           RCOLL = 1.7*FAC**0.3333*RADIUS(J1)
                       ELSE
                           RCOLL = 6.0*BODY(I)/CLIGHT**2
@@ -432,15 +444,13 @@
                           CALL KSPERI(IPAIR)
                           KSPAIR = IPAIR
                           IQCOLL = -2
-      WRITE (6,600)  NSTEPU, QPERI
-  600 FORMAT (' CALL CMBODY   # QP ',I11,1P,E10.2)
                           CALL CMBODY(QPERI,2)
                       ELSE IF (KSTAR(I).GE.0.AND.KZ(27).GT.0) THEN
                           CALL KSTIDE(IPAIR,QPERI)
                       END IF
                   END IF
 *       Check options for artificial collisions.
-              ELSE IF (KZ(27).EQ.-1.AND.KZ(13).LT.0) THEN
+              ELSE IF (KZ(27).EQ.-1) THEN
                   RFAC = 2.0
                   IF (QPERI.LT.RFAC*MAX(RADIUS(I1),RADIUS(I2))) THEN
                       J1 = I1
@@ -513,9 +523,13 @@
               IF (QPERI.LT.RX) THEN
                   J1 = I1
                   IF (RADIUS(I2).GT.RADIUS(I1)) J1 = I2
-                  FAC = 0.5*BODY(I)/BODY(J1)
+*       Set possible BH index and check disruption condition (& #43) first.
+                  J2 = 2*IPAIR + 1 - J1
+                  IF (KZ(43).GE.2.AND.KSTAR(J2).EQ.14) THEN
+                      RCOLL = (BODY(J2)/BODY(J1))**0.3333*RADIUS(J1)
+                  ELSE IF (KZ(27).LE.2) THEN
 *       Adopt collision criterion of Kochanek (Ap.J. 385, 604, 1992).
-                  IF (KZ(27).LE.2) THEN
+                      FAC = 0.5*BODY(I)/BODY(J1)
                       RCOLL = 1.7*FAC**0.3333*RADIUS(J1)
                   ELSE
                       RCOLL = 6.0*BODY(I)/CLIGHT**2
@@ -556,7 +570,7 @@
                   CALL KSTIDE(IPAIR,QPERI)
               END IF
 *       Check options for artificial collisions.
-          ELSE IF (KZ(27).EQ.-1.AND.KZ(13).LT.0) THEN
+          ELSE IF (KZ(27).EQ.-1) THEN
               RFAC = 2.0
               IF (QPERI.LT.RFAC*MAX(RADIUS(I1),RADIUS(I2))) THEN
                   J1 = I1
@@ -691,7 +705,6 @@
      &   SEMI.LT.7.0*RMIN.AND.LIST(1,I1).LE.10.AND.NAME(I).GT.0) THEN
 *    &   SEMI.LT.RMIN.AND.LIST(1,I1).LE.5.AND.NAME(I).GT.0) THEN
 *
-*     IF (SEMI.GT.0.1*RMIN) GO TO 88
 *       Check optional BH condition (prevents mass-loss complications).
           IF (KZ(11).LE.-2) THEN
               IF (KSTAR(I1).NE.14.OR.KSTAR(I2).NE.14) GO TO 88
@@ -719,6 +732,9 @@
    85     CONTINUE
           IF (JCLOSE.GT.0) THEN
               IF (NAME(JCLOSE).LE.0) GO TO 88
+*       Allow chain with only one perturber outside 20*SEMI.
+              IF (RX2.GT.400.0*SEMI**2.AND.NNB1.GT.1) GO TO 88
+              IF (MAX(KSTAR(I1),KSTAR(I2)).LT.13) GO TO 88
               RX = SQRT(RX2)
 *       Limit energy of triple system (< 50*EBH) using radial velocity.
               ZMU = BODY(I)*BODY(JCLOSE)/(BODY(I) + BODY(JCLOSE))

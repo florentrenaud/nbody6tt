@@ -44,18 +44,18 @@
 *
       GPRINT(1) = 0.0
       DELTAS = 0.0
-      IF (KZ(4).GT.0) THEN
+*     IF (KZ(4).GT.0) THEN
 *       Read parameters for binary evolution analysis.
-          K = KZ(4)
-          READ (5,*)  DELTAS, ORBITS(1), (GPRINT(J),J=1,K)
-          WRITE (6,40)  DELTAS, ORBITS(1), (GPRINT(J),J=1,K)
-   40     FORMAT (//,12X,'DELTAS =',F6.2,'  ORBITS(1) =',F6.2,
-     &                                            '  GPRINT(J) =',9F7.3)
+*         K = KZ(4)
+*         READ (5,*)  DELTAS, ORBITS(1), (GPRINT(J),J=1,K)
+*         WRITE (6,40)  DELTAS, ORBITS(1), (GPRINT(J),J=1,K)
+*  40     FORMAT (//,12X,'DELTAS =',F6.2,'  ORBITS(1) =',F6.2,
+*    &                                            '  GPRINT(J) =',9F7.3)
 *       Modify binary output factor by perturbation at different levels.
-          DO 50 L = 2,K
-              ORBITS(L) = ORBITS(1)*(GPRINT(1)/GPRINT(L))**0.3333
-   50     CONTINUE
-      END IF
+*         DO 50 L = 2,K
+*             ORBITS(L) = ORBITS(1)*(GPRINT(1)/GPRINT(L))**0.3333
+*  50     CONTINUE
+*     END IF
 *
 *       Set random number skip for routine DATA.
       IDUM1 = NRAND
