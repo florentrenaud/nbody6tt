@@ -144,7 +144,7 @@
    55     CONTINUE
       ELSE IF (KZ(5).EQ.3) THEN
 *       Prepare case of accretion disk with massive perturber.
-          READ (5,*)  APO, ECC, DMIN, SCALE
+          READ (5,*)  APO, ECC, SCALE
           RIN = 0.5
           ROUT = 1.0
           ZMASS = 1.0
@@ -177,16 +177,18 @@
           FAC1 = BODY(N+1)/(ZMASS + BODY(N+1))
           FAC2 = ZMASS/(ZMASS + BODY(N+1))
           ZMASS = ZMASS + BODY(N+1)
-*       Form orbital elements for massive perturber (avoid ECC = 1).
-          IF (ABS(ECC - 1.0).GT.1.0D-05) THEN
-              SEMI = DMIN/(1.0 - ECC)
+*       Form orbital elements for massive perturber (avoid large ECC.
+          IF (ECC.LT.0.90) THEN
+              SEMI = APO/(1.0 + ECC)
+              PERI = SEMI*(1.0 - ECC)
           ELSE
-              SEMI = -1.0D+05
+              SEMI = APO
+              PERI = 2.0*APO
           END IF
-          VM2 = ZMASS*(2.0/DMIN - 1.0/SEMI)
+          VM2 = ZMASS*(2.0/PERI - 1.0/SEMI)
           VAP2 = ZMASS*(2.0/APO - 1.0/SEMI)
 *       Determine initial y-velocity from angular momentum conservation.
-          VY = SQRT(VM2)*DMIN/APO
+          VY = SQRT(VM2)*PERI/APO
           VX = SQRT(VAP2 - VY**2)
 *       Place perturber on the Y-axis with appropriate velocities.
           X(1,N+1) = APO*FAC2
@@ -276,6 +278,10 @@
 *       Add experimental choice of favourite value.
           IF (KZ(28).EQ.3) THEN
               ZMH = 1.0/SQRT(FLOAT(2*N))
+          ZMH = 5.0*ZMH
+          ZMH = ZMH*ZMBAR*FLOAT(N)
+      WRITE (6,605) ZMH, BODY(2)
+  605 FORMAT (' KZ28!!!!    ZMH  BODY2 ',1P,2E10.2)
               Y0 = 1.25/TWOPI*(ZMH/FLOAT(N))
               RH = (EXP(Y0) - 1.0D0)**0.4
           END IF
@@ -284,7 +290,7 @@
           REJECT = 100.0
           CUTM = 4.0*TWOPI/5.0*LOG(1.0D0 + REJECT**2.5)
 *       Specify mass fraction using cut-off value and total in M_sun.
-          ZMH = ZMH/(FLOAT(N)*ZMBAR)*CUTM
+*         ZMH = ZMH/(FLOAT(N)*ZMBAR)*CUTM
           Y0 = 1.25/TWOPI*ZMH
           RH = (EXP(Y0) - 1.0D0)**0.4
           R2 = 100.0
@@ -351,6 +357,9 @@
           SV = 1.0
 *       Substitute c.m. value (hardly matters with zero velocity).
           IF (KZ(24).LT.0) BODY(1) = ZMH
+          IF (KZ(24).LT.-1) KSTAR(I) = 14
+      WRITE (6,128)  BODY(1), BODY(2)
+  128 FORMAT (' MASSES    b B12  ',1P,2E10.2)
           DO 130 K = 1,3
               X(K,1) = 0.0
               XDOT(K,1) = 0.0
@@ -381,9 +390,9 @@
   155     FORMAT (/,12X,'PLUMMER BINARY    A =',F6.2,'  E =',F6.2,
      &                  '  N1 =',I6,'  N2 =',I6,'  SCALE =',F6.2)
       ELSE IF (KZ(5).EQ.3) THEN
-          WRITE (6,160)  APO, ECC, DMIN, SCALE
+          WRITE (6,160)  APO, ECC, PERI, SCALE
   160     FORMAT (/,12X,'MASSIVE PERTURBER    APO =',F6.2,'  E =',F6.2,
-     &                  '  DMIN =',F6.2,'  MP/M1 =',F6.2)
+     &                  '  PERI =',F6.2,'  MP/M1 =',F6.2)
       END IF
 *
 *       Re-initialize centre of mass terms.

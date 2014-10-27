@@ -245,6 +245,14 @@
 *       Add c.m. kinetic energy change for conservation.
       ECOLL = ECOLL + (ZK1 - ZK2)
 *
+*       Re-initialize force polynomials (might help).
+      TIME = TBLOCK
+      DO 125 K = 1,3
+          X0DOT(K,ICH) = XDOT(K,ICH)
+  125 CONTINUE
+      CALL FPOLY1(ICH,ICH,0)
+      CALL FPOLY2(ICH,ICH,0)
+*
       RETURN
 *
       END

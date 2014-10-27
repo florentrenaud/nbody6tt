@@ -54,6 +54,7 @@
               KSPAIR = KS2
 *       Specify JCOMP < 0 to prevent spurious prediction second KSTERM call.
               JCOMP = -1
+              IF (KZ(26).LT.2) JCLOSE = 0   ! bug fix 14/6/14
           END IF
 *
 *       Save KSTAR (> 0) and sum of component names (for chain termination).

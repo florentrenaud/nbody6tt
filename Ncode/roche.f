@@ -83,6 +83,7 @@
 *
 *       Exit if physical radius is smaller than Roche radius.
       IF (RAD(1).LE.RL1) THEN
+          TEV(I) = TIME + STEP(I)
           GO TO 200
       ELSE
 *       Set the time to the latest evolution time of the components.

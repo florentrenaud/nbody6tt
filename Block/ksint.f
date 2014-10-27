@@ -46,15 +46,22 @@
               IF (ISTAT(KCASE).LT.0) GO TO 100
           END IF
  
-*       Try re-initialize chain WD/BH system after dormant KS (#11 only).
-          IF (KZ(11).NE.0.AND.NCH.EQ.0.AND.LIST(1,I1).GT.0) THEN
+*      Try re-initialize chain WD/BH system after dormant KS (#11 only).
+          IF (KZ(11).NE.0.AND.NCH.EQ.0) THEN   !  note absence of LIST1,I1).
               IF (MIN(KSTAR(I1),KSTAR(I2)).GE.10) THEN
                   SEMI = -0.5*BODY(I)/H(IPAIR)
-                  IF (SEMI.GT.10.0*RMIN) GO TO 100
-                  WRITE (6,222)  TIME+TOFF, NAME(JCLOSE), KSTAR(I1),
+                  RIJ2 = 0.0
+                  J = LIST(2,I1)
+                  DO 220 K = 1,3
+                      RIJ2 = RIJ2 + (X(K,I) - X(K,J))**2
+  220             CONTINUE
+                  RP = SQRT(RIJ2)
+*       Ensure acceptance criterion is consistent (below) with termination.
+                  IF (SEMI.GT.10.0*RMIN.OR.RP.GT.30.0*SEMI) GO TO 100
+                  WRITE (6,222)  TIME+TOFF, JCLOSE, KSTAR(I1),
      &                           KSTAR(I2), LIST(1,I1), GAMMA(IPAIR),
      &                           SEMI, R(IPAIR)
-  222             FORMAT (' ACTIVATE CHAIN    T NMJ K* NP G A R ',
+  222             FORMAT (' ACTIVATE CHAIN    T JCL K* NP G A R ',
      &                                        F9.1,I7,3I4,1P,3E10.2)
                   KSPAIR = IPAIR
 *       Restore unperturbed motion from BRAKE4 (NP = 0 fixes some problem).
@@ -74,9 +81,9 @@
      &                                         2I4,I7,1P,E10.2)
                   ELSE
 *       Avoid JCOMP > N & JCLOSE < N for spurious CALL KSTERM in DELAY.
-                      JCOMP = 0
+                      JCOMP = JCLOSE
                   END IF
-                  IPHASE = 8
+                  JPHASE = 8
 *       Save KS parameters until end of block-step (JCMAX=0: no extra pert).
                   CALL DELAY(1,KS2)
                   JCMAX = 0
@@ -99,6 +106,7 @@
 *
 *       Apply the Hermite corrector.
       CALL KSCORR(IPAIR,UI,UIDOT,FP,FD,TD2,TDOT4,TDOT5,TDOT6)
+      IF (IPHASE.LT.0) GO TO 90     ! KSPERT2 termination for PN.
 *
 *       Increase regularization time-step counter and update the time.
       NSTEPU = NSTEPU + 1
@@ -234,7 +242,7 @@
 *             GA = GI*A0*A0*A0
 *             IF (GA.GT.0.25.AND.RI.GT.SEMI) IQ = .TRUE.
 *       Terminate wide orbits if perturber number is relatively large.
-              IF (RI.GT.10*RMIN.AND.NNB0.GT.0.8*LIST(1,I)) IQ = .TRUE.
+              IF (RI.GT.20*RMIN.AND.NNB0.GT.0.8*LIST(1,I)) IQ = .TRUE.
               IF (GI.GT.0.1.AND.RI.GT.RMIN) IQ = .TRUE.
               IF (GI.GT.0.01.AND.RI.GT.5.0*RMIN) IQ = .TRUE.
               IF (GI.GT.0.25) IQ = .TRUE.
@@ -272,7 +280,8 @@
               R0(IPAIR) = MIN(R0(IPAIR),5.0*RMIN)
               GO TO 70
           END IF
-          GO TO 90
+*       Avoid repeated terminations for large distance (other limits above).
+          IF (NNB0.GT.2.AND.LIST(1,I).GT.2) GO TO 90
       END IF
 *
 *       End integration cycle for hyperbolic motion.
@@ -359,8 +368,12 @@
                       J1 = I1
                       IF (RADIUS(I2).GT.RADIUS(I1)) J1 = I2
                       FAC = 0.5*BODY(I)/BODY(J1)
+                      IF (KZ(27).LE.2) THEN
 *       Adopt collision criterion of Kochanek (Ap.J. 385, 604, 1992).
-                      RCOLL = 1.7*FAC**0.3333*RADIUS(J1)
+                          RCOLL = 1.7*FAC**0.3333*RADIUS(J1)
+                      ELSE
+                          RCOLL = 6.0*BODY(I)/CLIGHT**2
+                      END IF
                       IF (QPERI.LT.RCOLL) THEN
                           CALL TOUCH(IPAIR,I1,I2,RCOLL)
                       END IF

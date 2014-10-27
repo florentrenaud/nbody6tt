@@ -10,7 +10,7 @@
 *
 *       Check option for printing single bodies.
       IF (KZ(6).LE.2) GO TO 20
-      IBODY = KZ(6)
+      IBODY = MIN(5**K,NTOT)
 *
       DO 10 I = 1,IBODY
           FIRR = SQRT(FI(1,I)**2 + FI(2,I)**2 + FI(3,I)**2)
@@ -38,7 +38,7 @@
      &                                                   F7.1,F6.1,F7.2)
    10 CONTINUE
 *
-*       Perform optional search for soft binaries (STEP inside 0.01*TCR).
+*       Optional search for soft binaries (frequency NFIX with KZ(6) = 4).
    20 IF (KZ(6).GT.1) GO TO 50
       SIMAX = 0.01*TCR
 *

@@ -43,7 +43,7 @@
 *       GMIN    Relative two-body perturbation for unperturbed motion.
 *       GMAX    Secondary termination parameter for soft KS binaries.
 ***
-* INPUT: if (kz(4).gt.0)
+* INPUT: if (kz(4).gt.0) (suppressed)
 *
 *       DELTAS  Output interval for binary search (in TCR; suppressed).
 *       ORBITS  Minimum periods for binary output (level 1).
@@ -69,9 +69,8 @@
 *
 *        if (kz(5).eq.3)
 *
-*       APO     Separation between the perturber and Sun.
-*       ECC     Eccentricity of orbit (=1 for parabolic encounter).
-*       DMIN    Minimum distance of approach (pericentre).
+*       APO     Initial apocentre distance from the Sun (N-body units).
+*       ECC     Eccentricity of two-orbit (assumed < 0.90).
 *       SCALE   Perturber mass scale factor (=1 for Msun).
 *
 *        if (kz(5).eq.4)
@@ -166,7 +165,11 @@
 *       CLM     Individual cloud masses in solar masses (maximum MCL).
 *       RCL2    Half-mass radii of clouds in pc (square is saved).
 ***
-* CHAIN: if (kz(11).gt.0 with ARChain)
+* BRAKE4: if (max(K*).ge.13.and.kz(11).ne.0)
+*
+*       CLIGHT  Velocity of light in N-body units (unless read by CHAIN).
+*
+* CHAIN:  if compiled with ARChain
 *
 *       CLIGHT  Velocity of light in N-body units (e.g. 3.0D+05/VSTAR).
 *       NBH     Number of BHs for special treatment (redundant but keep).
@@ -181,9 +184,9 @@
 *       1  COMMON save unit 1 (=1: 'touch STOP'; =2: every 100*NMAX steps).
 *       2  COMMON save unit 2 (=1: at output; =2: restart if DE/E > 5*QE).
 *       3  Basic data unit 3 at output time (unformatted, frequency NFIX;
-*             =1/2: standard /and tail; =3: tail only; >3: cluster + tail).
+*             =1/2: standard and tail; =3: tail only; >3: cluster + tail).
 *       4  Binary diagnostics on unit 4 (# threshold levels = KZ(4) < 10);
-*                                       (currently suppressed in ksint.f).
+*                                       (suppressed in input.f & ksint.f).
 *       5  Initial conditions (#22 =0; =0: uniform & isotropic sphere);
 *                =1: Plummer; =2: two Plummer models in orbit, extra input;
 *                =3: massive perturber and planetesimal disk, extra input;
@@ -194,7 +197,7 @@
 *                =1: soft & regularized binaries on unit 6;
 *                =2: regularized binaries only;
 *                >2: individual bodies (loop from 1 to KZ(6)).
-*       7  Lagrangian radii (>0: RSCALE; =2, 3, 4: output units 6, 7, 12);
+*       7  Lagrangian radii (>0: RSCALE; =2, 3, 4: output units 6, 7);
 *                >=2: half-mass radii of 50% mass, also 1% heavies, unit 6;
 *                >=2: Lagrangian radii for two mass groups on unit 31 & 32;
 *                >=2: geometric radii for three mass groups on unit 6;
@@ -228,8 +231,8 @@
 *      19  Mass loss (=1: old supernova scheme; =3: Eggleton, Tout & Hurley;
 *                                               >3: extra diagnostics).
 *      20  Initial mass function (=0: Salpeter type using ALPHAS; =1: Scalo;
-*              =2, 4, 6: Kroupa; =3, 5: Eggleton; > 1: primordial binaries;
-*              =7: binary correlated m1/m2 also for brown dwarf IMF;
+*              =2, 4: Kroupa 1993; =3, 5: Eggleton; > 1: primordial binaries;
+*              =6, 7: Kroupa 201; binary correlated m1/m2, also brown dwarfs.
 *              Note: Use PARAMETER (MAXM=1) for setting BODY(1) = BODY10).
 *      21  Extra output (>0: MODEL #, TCOMP, DMIN, AMIN; >1: NESC by JACOBI).
 *      22  Initial m, r, v on #10 (=1: output; >=2: input; >2: no scaling;
@@ -276,8 +279,7 @@
 *                          =1: plotting output for BH (one or two);
 *                          >1: BH in KS binary (NCH = 0, unit 45);
 *                          >2: KS & perturber diagnostics (E > 0.9, EX > 0.9);
-*                          >3: output for 2nd innermost BH orbit (unit #49);
-*                          <0: strong three-body events (impact.f, unit #49).
+*                          >3: output for 2nd innermost BH orbit (unit #49).
 *      46  Reserved for data analysis project on NBODY6++.
 *      47  Reserved for data analysis project on NBODY6++.
 *      48  GPU initialization of neighbour lists and forces (FPOLY0).
@@ -352,6 +354,7 @@
 *       NSN     Neutron stars.
 *       NBH     Black holes.
 *       NBS     Blue stragglers.
+*       NTZ     Thorne-Zytkow objects.
 *       ---------------------------------------------------------------------
 *
 *
@@ -375,10 +378,21 @@
 *      13       Neutron star.
 *      14       Black hole.
 *      15       Massless supernova remnant.
-*      19       Circularizing binary (c.m. value).
-*      20       Circularized binary.
-*      21       First Roche stage (inactive).
-*      22       Second Roche stage.
+*       ---------------------------------------------------------------------
+*
+*       Binary types
+*       ************
+*
+*       ---------------------------------------------------------------------
+*       0       Standard case.
+*      -1       Chaotic (option 27 = 2).
+*      -2       Continuous circularizing (option 27 = 2).
+*       9       Sequential circularization (option 27 = 1).
+*      10       Circularized.
+*      11       First Roche stage (option 34 = 1/2).
+*      12       End of first Roche stage.
+*      13       Start of second Roche stage.
+*      xx       Further Roche stages.
 *       ---------------------------------------------------------------------
 *
       RETURN

@@ -70,7 +70,7 @@
 *        if (kz(5).eq.3)
 *
 *       APO     Initial apocentre distance from the Sun (N-body units).
-*       ECC     Eccentricity of orbit (assumed < 0.90).
+*       ECC     Eccentricity of two-orbit (assumed < 0.90).
 *       SCALE   Perturber mass scale factor (=1 for Msun).
 *
 *        if (kz(5).eq.4)
@@ -170,7 +170,11 @@
 *       CLM     Individual cloud masses in solar masses (maximum MCL).
 *       RCL2    Half-mass radii of clouds in pc (square is saved).
 ***
-* CHAIN: if compiled with ARChain
+* BRAKE4: if (max(K*).ge.13.and.kz(11).ne.0)
+*
+*       CLIGHT  Velocity of light in N-body units (unless read by CHAIN).
+*
+* CHAIN:  if compiled with ARChain
 *
 *       CLIGHT  Velocity of light in N-body units (e.g. 3.0D+05/VSTAR).
 *       NBH     Number of BHs for special treatment (redundant but keep).
@@ -187,7 +191,7 @@
 *       3  Basic data unit 3 at output time (unformatted, frequency NFIX;
 *             =1/2: standard and tail; =3: tail only; >3: cluster + tail).
 *       4  Binary diagnostics on unit 4 (# threshold levels = KZ(4) < 10);
-*                                       (suppressed in all routines).
+*                                       (suppressed in input.f & ksint.f).
 *       5  Initial conditions (#22 =0; =0: uniform & isotropic sphere);
 *                =1: Plummer; =2: two Plummer models in orbit, extra input;
 *                =3: massive perturber and planetesimal disk, extra input;
@@ -232,8 +236,8 @@
 *      19  Mass loss (=1: old supernova scheme; =3: Eggleton, Tout & Hurley;
 *                                               >3: extra diagnostics).
 *      20  Initial mass function (=0: Salpeter type using ALPHAS; =1: Scalo;
-*              =2, 4, 6: Kroupa; =3, 5: Eggleton; > 1: primordial binaries;
-*              =7: binary correlated m1/m2 also for brown dwarf IMF;
+*              =2, 4: Kroupa 1993; =3, 5: Eggleton; > 1: primordial binaries;
+*              =6, 7: Kroupa 201; binary correlated m1/m2, also brown dwarfs.
 *              Note: Use PARAMETER (MAXM=1) for setting BODY(1) = BODY10).
 *      21  Extra output (>0: MODEL #, TCOMP, DMIN, AMIN; >1: NESC by JACOBI).
 *      22  Initial m, r, v on #10 (=1: output; >=2: input; >2: no scaling;
@@ -255,7 +259,7 @@
 *                         =4 and #27 = 3: neutron star capture (instar.f).
 *      29  Boundary reflection for hot system (suppressed).
 *      30  Multiple regularization (=1: all; >1: BEGIN/END; >2: each step);
-*                                               =-1: CHAIN only for BH KS.
+*                                =-1: CHAIN only; =-2: TRIPLE & QUAD only. 
 *      31  Centre of mass correction after ADJUST (don't use with #23 = 0).
 *      32  Increase output intervals & SMAX based on single particle energy.
 *      33  Histograms at main output (>=1: STEP; =2: STEPR, NBHIST & BINARY).

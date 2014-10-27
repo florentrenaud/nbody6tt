@@ -438,7 +438,7 @@
               IF (NAM1.EQ.LISTQ(L)) K = K + 1
    32     CONTINUE
 *       Generate diagnostics of first five outer orbits every half period.
-          IF (K.LE.5.AND.TIME.GT.QCHECK.AND.KZ(37).GT.0) THEN
+          IF (K.LE.5.AND.TIME.GT.QCHECK.AND.KZ(15).GE.3) THEN
               ZMB = BODY(I) + BODY(JCL)
               RI = SQRT(RI2)
               TK = SEMI1*SQRT(SEMI1/ZMB)
@@ -693,8 +693,15 @@
               EOUT = MIN(EOUT - DE,0.9999D0)
               PMIN = SEMI1*(1.0 - EOUT)
           END IF
-          NST = NSTAB(SEMI,SEMI1,ECC,EOUT,ANGLE,BODY(I1),BODY(I2),BJ)
+*       Restrict Mardling 2008 stability criterion to modest mass ratios.
+          Q1 = BODY(I1)/BODY(I2)
+          IF (Q1.GT.0.1.AND.Q1.LT.10.0) THEN
+             NST = NSTAB(SEMI,SEMI1,ECC,EOUT,ANGLE,BODY(I1),BODY(I2),BJ)
+          ELSE
+             NST = 0
+          END IF
           IF (NST.EQ.0) THEN
+*       Employ Mardling & Aarseth 1999 stability test outside the mass range.
               PCRIT = 0.98*PMIN*(1.0 - PERT)
               PCR = stability(BODY(I1),BODY(I2),BODY(JCL),ECC,EOUT,
      &                                                          ANGLE)
