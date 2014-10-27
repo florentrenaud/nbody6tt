@@ -276,6 +276,58 @@
       END
 
 
+************************************************************************
+      SUBROUTINE nfwcosmo(ttphig,x,y,z,mscale,rscale,tscale,vscale)
+! Buist & Helmi
+      implicit none
+      logical first
+      real*8 x, y, z, t, ttphig, mscale, rscale, tscale, vscale
+      
+      real*8 p1, p2, mgm, rs, expmz, r, h0, omega_m, t0
+
+      save p1, p2, mgm, rs, h0, omega_m, t0
+
+      save first
+      data first /.TRUE./
+      IF(first) THEN
+* compute constants here
+
+! age of the universe at t = 0   (Myr -> Nbody units)
+        t0 = 1169.16 / tscale 
+
+! Omega_matter
+        omega_m = 0.31
+        
+! (1 - Omega_m / Omega_m )^(1/3)
+        p1 = ((1.0-omega_m)/omega_m)**(1.0/3.0)
+
+! Hubble constant km/s/Mpc -> pc / Myr / Mpc -> 1/Myr -> nbody units
+        h0 = 68.0 * 1.023 * 1.0e-6 / tscale
+
+! 2 / 3  * 1/ ( H0 * sqrt(1-Omega_m)  )  : unit of time in nbody units
+        p2 = 2.0/(3.0 * h0 * sqrt(1.0-omega_m))
+
+        mgm = 1.5d11 / mscale ! 1.5e11 Msun
+        rs = 16.0d3 / rscale ! 16 kpc
+
+        first = .false.
+      ENDIF
+
+* compute variables here
+      r = sqrt(x**2 + y**2 + z**2)
+
+
+      zz = p1 * (sinh((t+t0)/p2))**(-2.0/3.0) -1.0
+!     zz = 0 ! static version
+
+      ! exp(-0.1*z)
+      expmz = EXP(-0.1*zz)
+      
+      ttphig = ttphig - mgm * expmz**2 / r * log(1.0 + r/(rs*expmz))
+      
+      RETURN
+      END
+
 
 ************************************************************************
 ************************************************************************
