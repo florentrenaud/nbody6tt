@@ -57,6 +57,7 @@
 *
 *       Apply the Hermite corrector.
       CALL KSCORR(IPAIR,UI,UIDOT,FP,FD,TD2,TDOT4,TDOT5,TDOT6)
+      IF (IPHASE.LT.0) GO TO 90
 *
 *       Increase regularization time-step counter and update the time.
 *     NSTEPU = NSTEPU + 1
@@ -189,7 +190,7 @@
 *             A0 = 1.5*SEMI/RI
 *             GA = GI*A0*A0*A0
 *             IF (GA.GT.0.25.AND.RI.GT.SEMI) IQ = .TRUE.
-              IF (RI.GT.10*RMIN.AND.NNB0.GT.0.8*LIST(1,I)) IQ = .TRUE.
+              IF (RI.GT.20*RMIN.AND.NNB0.GT.0.8*LIST(1,I)) IQ = .TRUE.
               IF (GI.GT.0.1.AND.RI.GT.RMIN) IQ = .TRUE.
               IF (GI.GT.0.01.AND.RI.GT.5.0*RMIN) IQ = .TRUE.
               IF (GI.GT.0.25) IQ = .TRUE.

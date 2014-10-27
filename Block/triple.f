@@ -267,7 +267,7 @@
 *
 *       Evaluate the two-body energy for diagnostic purposes.
               CALL EREL3(IM,EBS,SEMI)
-              DMINC = MIN(RCOLL,DMINC)  ! note DMINC not in common6.
+              DMINC = MIN(RCOLL,DMINC)
 *
 *       Form composite body and begin KS regularization of new pair.
               CALL CMBODY(H3,3)

@@ -31,15 +31,17 @@ c      DATA  G1,G2,G3,G4  /0.28,1.14,0.010,0.1/
       DO 10 I = 1,N+NBIN0
     5     XX = RAN2(KDUM)
 *
-*       Choose between Kroupa et al. (M.N. 262, 545) & Eggleton (Book).
+*       Adopt KGT93 as first optional choice (MNRAS 262, 545, 1993).
           IF (KZ(20).EQ.2.OR.KZ(20).EQ.4) THEN
               ZM = 0.08 + (G1*XX**G2 + G3*XX**G4)/(1.0 - XX)**0.58
+*       Check option for simplified generating function (Eggleton Book).
           ELSE IF (KZ(20).EQ.3.OR.KZ(20).EQ.5) THEN
               ZM = 0.3*XX/(1.0 - XX)**0.55
 *       Allow discrimination between correlated & uncorrelated binary masses.
           ELSE IF (KZ(20).EQ.6.OR.KZ(20).EQ.7) THEN
               LM = BODYN
               UM = BODY10
+*       Use Kroupa MNRAS 322, 231, 2001 based on five-part power-law.
               ZM = IMFBD(XX,LM,UM)
 !     MGi
            ELSE IF (KZ(20).EQ.8) THEN

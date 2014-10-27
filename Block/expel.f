@@ -22,7 +22,7 @@
       ELSE
           I1 = J2
           I2 = J1
-      ENDIF
+      END IF
 *
 *       Switch to #I2 if #I1 is a BH (standard case not affected).
       IF (KSTAR(I1).EQ.14) THEN
@@ -71,18 +71,17 @@
           M2 = M2 + DM1
           R1 = RADIUS(I1)*SU
           R2 = RADIUS(I2)*SU
-*       Transform to positive radial velocity and obtain global coordinates.
-          ITER = 0
-    2     JPAIR = 0
-          CALL KSAPO(JPAIR)   ! note JPAIR = KSPAIR on return.
-*       Note zero argument which advances eccentric anomaly by 0.02.
-          T0(I1) = TBLOCK
-          ITER = ITER + 1
-          IF (ITER.EQ.1.OR.ITER.GT.25) THEN
-              WRITE (6,70)  ITER, R(IPAIR), TDOT2(IPAIR)
-   70         FORMAT (' KSAPO!    IT R TD2 ',I4,1P,2E10.2)
+          IF (TDOT2(IPAIR).LT.0.0D0) THEN
+              CALL KSPERI(IPAIR)
+              TIME = TBLOCK
           END IF
-          IF (ITER.LT.50.AND.R(IPAIR).LT.RMIN) GO TO 2
+*       Transform to positive radial velocity and obtain global coordinates.
+          JPAIR = 0
+          CALL KSAPO(JPAIR)   ! note JPAIR = KSPAIR on return.
+*       Note zero argument which advances eccentric anomaly to R = SEMI.
+          T0(I1) = TBLOCK
+          WRITE (6,2)  R(IPAIR), TDOT2(IPAIR)
+    2     FORMAT (' KSAPO TRANSF    R TD2 ',1P,2E10.2)
           CALL RESOLV(IPAIR,1)
           COALS = .FALSE.
           SEMI = SEMI0
@@ -350,7 +349,11 @@
               END IF
 *       Terminate KS binary and assign kick velocity to single star #I.
               I = I1 + 2*(NPAIRS - IPAIR)
-      IF (BODY(I1).GT.0.5*BODY(N+IPAIR)) STOP
+              IF (BODY(I1).GT.0.5*BODY(N+IPAIR)) THEN
+                  WRITE (6,32)  NAME(I1), BODY(I1)*SMU
+   32             FORMAT (' DANGER EXPEL!    NM M ',I7,F7.2)
+                  STOP
+              END IF
               CALL KSTERM
               CALL KICK(I,1,KW1,DM)
 *       Initialize new KS polynomials after velocity kick (H > 0 is OK).
