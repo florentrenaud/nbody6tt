@@ -59,7 +59,6 @@
       NCH = 0
       NBIN0 = 0
       NHI0 = 0
-      NDISR = 0
       IFIRST = 1
       IPHASE = 0
       ICOMP = 0
@@ -76,6 +75,7 @@
       NTAIL = 0
       NTTOT = 0
       NRSAVE = 0
+      NDISR = 0
       NNBOPT = 0  ! NBODY6++ compatibility.
 *
       DO 10 J = 1,KMAX

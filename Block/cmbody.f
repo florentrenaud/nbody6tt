@@ -168,6 +168,7 @@
               IF(ICASE.GT.100)THEN
                   IQCOLL = 4
                   CALL EXPEL(I1,I2,ICASE)
+                  IF (K1+K2.GT.6) GO TO 100
                   IF (ICASE.LT.0) GO TO 100
 *       Treat collision as before in case of CE without coalescence.
                   ICOMP = I1
@@ -208,9 +209,8 @@
 *       Terminate KS pair and set relevant indices for collision treatment.
           KSTARI = KSTAR(I)
           T0(I1) = TIME
-          DMINC = MIN(DMINC,RCOLL)
           SEMI = -0.5*BODY(I)/H(KSPAIR)
-          TK = DAYS*SEMI*SQRT(SEMI/BODY(I))
+          TK = DAYS*SEMI*SQRT(ABS(SEMI)/BODY(I))
           CALL DTCHCK(TIME,STEP(I1),DTK(40))
           CALL KSTERM
           I1 = 2*NPAIRS + 1
@@ -227,13 +227,14 @@
           IF (NSYS.GT.4) I5 = JLIST(5)
           IQCOLL = 5
           KSTARI = 0
-          VINF = 0.0
+          DMINC = MIN(DMINC,RCOLL)
           SEMI = -0.5*BODY(I1)*BODY(I2)/EBS
 *       Note the QUAD common also used for TRIPLE.
           ECC = 1.0 - RCOLL4/SEMI
           ECC = MAX(ECC,0.001D0)
+          VINF = 0.0
           IF (EBS.GT.0) THEN
-              HI = EBS*(BODY(I1) + BODY(I2))/(BODY(I1)*BODY(I2))
+              HI = -0.5*(BODY(I1) + BODY(I2))/SEMI
               VINF = SQRT(2.0*HI)*VSTAR
           END IF
 *

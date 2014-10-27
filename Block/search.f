@@ -24,7 +24,7 @@
 *
 *       Check first whether any c.m. with small step is within range.
       J = LIST(L,I)
-      IF (STEP(J).GT.STEP4) GO TO 2
+      IF (STEP(J).GT.STEP4.AND.BODY(J).LT.10.0*BODY(I)) GO TO 2
       A1 = X(1,J) - X(1,I)
       A2 = X(2,J) - X(2,I)
       A3 = X(3,J) - X(3,I)
@@ -69,7 +69,7 @@
 *       See whether dominant component is a single particle inside RMIN.
       IF (JCOMP.LT.IFIRST.OR.JCOMP.GT.N) GO TO 10
 *       Accept one single candidate inside 2*RMIN (which makes PERT = 0).
-      IF (RJMIN2.GT.RMIN22.OR.  ! note RJMIN2 set to 1 in case NCLOSE = 0.
+      IF (RJMIN2.GT.4.0*RMIN22.OR.  ! note RJMIN2 set to 1 in case NCLOSE = 0.
      &   (RJMIN2.GT.RMIN2.AND.NCLOSE.GT.1)) GO TO 10
 *
       RDOT = (X(1,I) - X(1,JCOMP))*(XDOT(1,I) - XDOT(1,JCOMP)) +

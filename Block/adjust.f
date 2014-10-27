@@ -181,7 +181,7 @@
           RMIN = 4.0*RSCALE/(FLOAT(N)*RHOD**0.3333)
 *       Include alternative expression based on core radius (experimental).
           IF (KZ(16).GT.1.AND.NC.LT.0.01*N) THEN
-              RMIN = 0.01*RC/FLOAT(NC)**0.3333
+              RMIN = 0.05*RC/FLOAT(NC)**0.3333
           END IF
 *       Use harmonic mean to reduce fluctuations (avoid initial value).
           IF (TIME.GT.0.0D0) RMIN = SQRT(RMIN0*RMIN)

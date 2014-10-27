@@ -16,7 +16,7 @@
 *
 *
 *       Decide between regularized and/or soft binaries (#9 <= 2 for KS).
-      IF (KZ(9).GE.3) GO TO 50
+      IF (KZ(9).GE.3.OR.NPAIRS.EQ.0) GO TO 50
 *       Form binding energy and central distance for each KS pair.
       ZMBIN = 0.0
       DO 10 JPAIR = 1,NPAIRS

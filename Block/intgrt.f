@@ -387,9 +387,9 @@
       END IF
 *
 *       Check option for general binary search.
-      IF (KZ(4).GT.0.AND.TIME - TLASTS.GT.DELTAS) THEN  
-          CALL EVOLVE(0,0)
-      END IF
+*     IF (KZ(4).GT.0.AND.TIME - TLASTS.GT.DELTAS) THEN  
+*         CALL EVOLVE(0,0)
+*     END IF
 *
 *       Include facility for termination of run (create dummy file STOP).
       OPEN (99,FILE='STOP',STATUS='OLD',FORM='FORMATTED',IOSTAT=IO)

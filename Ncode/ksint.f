@@ -370,7 +370,8 @@
 *  55         CONTINUE
 *             CALL EVOLVE(IPAIR,K)
 *         END IF
-          GO TO 90
+*       Avoid repeated terminations for large distances (other limits above).
+          IF (NNB0.GT.2.AND.LIST(1,I).GT.2) GO TO 90
       END IF
 *
 *       End integration cycle for hyperbolic motion.

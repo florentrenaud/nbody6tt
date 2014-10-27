@@ -961,9 +961,9 @@
 *
 *       Perform total force & energy corrections (delay dF if DMSUN > 0.1).
             IF (DMSUN.LT.0.05.AND.(KW.LT.10.OR..NOT.IKICK)) THEN
-                CALL FICORR(I,DM)
+               CALL FICORR(I,DM)
             ELSE
-                CALL FCORR(I,DM,KW)
+               CALL FCORR(I,DM,KW)
             END IF
 *
 *       Set flag to ensure new sorting after CALL FPOLY (need IPHASE < 0).
@@ -1237,10 +1237,10 @@
             IF(IQCOLL.NE.0.OR.IPHASE.LT.0) GO TO 1
 *
 *       Include optional look-up time control for compact object binaries.
-            IF (KSX.GE.13.AND.KZ(28).GT.2) THEN
-               WRITE (6,944)  TTOT, NAME(2*IPAIR-1),KSTAR(2*IPAIR),
-     &                        DTGR/TSTAR
-  944          FORMAT (' GR CHECK   T NAM K* DTGR ',F8.2,I6,I4,1P,E9.1)
+*           IF (KSX.GE.13.AND.KZ(28).GT.2) THEN
+*              WRITE (6,944)  TTOT, NAME(2*IPAIR-1),KSTAR(2*IPAIR),
+*    &                        DTGR/TSTAR
+* 944          FORMAT (' GR CHECK   T NAM K* DTGR ',F8.2,I6,I4,1P,E9.1)
 *              IF (KSX.GE.13.AND.KZ(28).GT.0) THEN
 *              GE = (1.0 - ECC2)**3.5/(1.0 + 3.0*ECC2)
 *              ZMX = MAX(BODY(2*IPAIR-1),BODY(2*IPAIR))
@@ -1257,7 +1257,7 @@
 *              TEV(2*IPAIR-1) = TIME + 0.01*TZ
 *              TEV(2*IPAIR) = TEV(2*IPAIR-1)
 *              TMDOT = MIN(TMDOT,TEV(2*IPAIR))
-            END IF
+*           END IF
 *
             IF(KSTAR(I).GT.0.AND.KZ(34).GT.0)THEN
 *       Ensure optional updating of orbit before possible Roche test (1/2013).
