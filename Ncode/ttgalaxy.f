@@ -57,8 +57,8 @@
       logical first
       real*8 x, y, z, t, ttphig, mscale, rscale, tscale, vscale
 
-      real*8 m
-      save m
+      real*8 mass
+      save mass
 
       save first
       data first /.TRUE./
@@ -134,7 +134,7 @@
 * compute variables here
       r = sqrt(x**2+y**2+z**2)
       ttphig = ttphig - mvir / r * log(1D0 + r/rs) 
-    &  / (log(1D0 + c) - c/ (1D0 + c))
+     &  / (log(1D0 + c) - c/ (1D0 + c))
 
       
       RETURN
@@ -176,9 +176,9 @@
       integer i
       real*8 mb1, rb1, mb2, rb2, phib
       real*8 md(3), a(3), b2, phid
-      real*8 vh2 r02, phih
+      real*8 vh2h, r02, phih
       real*8 r2
-      save mb1, rb1, mb2, rb2, md, a, b2, vh2, r02
+      save mb1, rb1, mb2, rb2, md, a, b2, vh2h, r02
 
       save first
       data first /.TRUE./
@@ -186,11 +186,11 @@
 * compute constants here
 
 *     Bulge parameters
-        mc1 = 3.0e9 / mscale   ! Msun -> Nbody units
-        rc1 = 2700.0 / rscale  ! pc -> Nbody units
+        mb1 = 3.0e9 / mscale   ! Msun -> Nbody units
+        rb1 = 2700.0 / rscale  ! pc -> Nbody units
       
-        mc2 = 1.6e10 / mscale  ! Msun -> Nbody units
-        rc2 = 420.0 / rscale   ! pc -> Nbody units
+        mb2 = 1.6e10 / mscale  ! Msun -> Nbody units
+        rb2 = 420.0 / rscale   ! pc -> Nbody units
 
 *     Disk parameters
         md(1) = 8.9e10 / mscale   ! Msun -> Nbody units
@@ -236,7 +236,6 @@
       integer N
       real*8 pi, alpha, H, Rs, r0, A, omega
       real*8 theta, xp, yp, r, KH, beta, D
-      real*8 theta, xp, yp, r
 
       save N, pi, alpha, H, Rs, r0, A, omega
 
@@ -246,7 +245,7 @@
       IF(first) THEN
 * compute constants here
 
-        pi = 4.0D*atan(1.0)
+        pi = 4.0D0*atan(1.0)
 *     Spiral arm parameters for Cox & Gomez (2002), A&A
         N = 2
         alpha = 15.5*pi/180.0
@@ -270,8 +269,8 @@
       D = (1.0 + KH + 0.3*(KH)**2)/(1+0.3*KH)
       
       ttphig = ttphig + ( -4.0*pi*H*A*exp(-(r-r0)/Rs) *
-    &    cos(2.0*(atan2(yp,xp) - log(r/r0)/tan(alpha))) ) /
-    &    (cosh(K*z/beta)**beta*(K*D))
+     &    cos(2.0*(atan2(yp,xp) - log(r/r0)/tan(alpha))) ) /
+     &    (cosh(KH*z/beta)**beta*(KH*D))
       
       RETURN
       END

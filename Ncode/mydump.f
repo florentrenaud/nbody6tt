@@ -59,7 +59,7 @@
       IF (II.NE.0) THEN
 *** FlorentR - save previous restart file
         IF (j.EQ.2) THEN
-           CALL RENAM('restart.tmp','restart.prev')
+           CALL RENAME('restart.tmp','restart.prev')
         ENDIF
 *** FRenaud
 
@@ -114,7 +114,7 @@
 *       (x=1 or 2) is fully written. To avoid that, fort.x is renamed 
 *       into restart.tmp when it is complete.
         WRITE(FILENAME,'("fort.",I1)') J
-	CALL RENAME(FILENAME,'restart.tmp')
+	    CALL RENAME(FILENAME,'restart.tmp')
 *** FRenaud
 *       Restore standard array pointer.
         NTOT = NTSAVE
