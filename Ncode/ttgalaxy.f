@@ -43,6 +43,7 @@
 !      CALL isothermal(ttphig, x, y, z, mscale,rscale,tscale,vscale)
 !      CALL bulgediskhalo(ttphig, x, y, z, mscale,rscale,tscale,vscale)
 !      CALL spiralarms(ttphig, x, y, z, mscale,rscale,tscale,vscale)
+      CALL nfwcosmo(ttphig, x, y, z, mscale,rscale,tscale,vscale)
 
 
       RETURN
@@ -283,7 +284,7 @@
       logical first
       real*8 x, y, z, t, ttphig, mscale, rscale, tscale, vscale
       
-      real*8 p1, p2, mgm, rs, expmz, r, h0, omega_m, t0
+      real*8 p1, p2, mgm, rs, expmz, zz, r, h0, omega_m, t0
 
       save p1, p2, mgm, rs, h0, omega_m, t0
 

@@ -73,9 +73,6 @@ In Ncode
 * (mode A) read the tensor data from file 'tt.dat', scale and initialize
 * (mode B) read the initial coordinates of the cluster and initialize
 
-### xtrnl0.f
-* adjust initial velocities in the case of tidal tensor
-
 ### xtrnlf.f
 * include the computation of the external force from the tidal tensor
 
