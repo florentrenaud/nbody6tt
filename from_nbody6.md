@@ -1,5 +1,5 @@
 
-Based on Nbody6 downloaded on 27 October 2014.
+Based on Nbody6 downloaded on 28 October 2014.
 
 List of changes made to Sverre's Nbody6. Discard this document if you don't want to dig in the code.
 All the changes are commented in the .f and .h files. They start with the tag '*** FlorentR' and end with '*** FRenaud'.
