@@ -304,7 +304,7 @@
         p1 = ((1.0-omega_m)/omega_m)**(1.0/3.0)
 
 ! Hubble constant km/s/Mpc -> pc / Myr / Mpc -> 1/Myr -> nbody units
-        h0 = 68.0 * 1.023 * 1.0e-6 / tscale
+        h0 = 68.0 * 1.023 * 1.0e-6 * tscale
 
 ! 2 / 3  * 1/ ( H0 * sqrt(1-Omega_m)  )  : unit of time in nbody units
         p2 = 2.0/(3.0 * h0 * sqrt(1.0-omega_m))
