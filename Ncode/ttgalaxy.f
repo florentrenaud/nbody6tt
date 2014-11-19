@@ -37,13 +37,13 @@
 
       TTPHIG = 0.D0 ! init (= no galaxy)
 
-!      CALL pointmass(ttphig, x, y, z, mscale,rscale,tscale,vscale)
-!      CALL nfw(ttphig, x, y, z, mscale,rscale,tscale,vscale)
-!      CALL nfw2(ttphig, x, y, z, mscale,rscale,tscale,vscale)
-!      CALL isothermal(ttphig, x, y, z, mscale,rscale,tscale,vscale)
-!      CALL bulgediskhalo(ttphig, x, y, z, mscale,rscale,tscale,vscale)
-!      CALL spiralarms(ttphig, x, y, z, mscale,rscale,tscale,vscale)
-      CALL nfwcosmo(ttphig, x, y, z, mscale,rscale,tscale,vscale)
+!      CALL pointmass(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
+!      CALL nfw(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
+!      CALL nfw2(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
+!      CALL isothermal(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
+!      CALL bulgediskhalo(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
+!      CALL spiralarms(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
+      CALL nfwcosmo(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
 
 
       RETURN
@@ -52,7 +52,7 @@
 ************************************************************************
 ************************************************************************
 ************************************************************************
-      SUBROUTINE pointmass(ttphig,x,y,z,mscale,rscale,tscale,vscale)
+      SUBROUTINE pointmass(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
 
       implicit none
       logical first
@@ -78,7 +78,7 @@
       END
 
 ************************************************************************
-      SUBROUTINE nfw(ttphig,x,y,z,mscale,rscale,tscale,vscale)
+      SUBROUTINE nfw(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
 
       implicit none
       logical first
@@ -106,7 +106,7 @@
       END
 
 ************************************************************************
-      SUBROUTINE nfw2(ttphig,x,y,z,mscale,rscale,tscale,vscale)
+      SUBROUTINE nfw2(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
 
       implicit none
       logical first
@@ -142,7 +142,7 @@
       END
 
 ************************************************************************
-      SUBROUTINE isothermal(ttphig,x,y,z,mscale,rscale,tscale,vscale)
+      SUBROUTINE isothermal(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
 
       implicit none
       logical first
@@ -168,7 +168,8 @@
       END
 
 ************************************************************************
-      SUBROUTINE bulgediskhalo(ttphig,x,y,z,mscale,rscale,tscale,vscale)
+      SUBROUTINE bulgediskhalo(ttphig,x,y,z,t,mscale,rscale,tscale,
+     &                          vscale)
 
       implicit none
       logical first
@@ -227,7 +228,7 @@
       END
 
 ************************************************************************
-      SUBROUTINE spiralarms(ttphig,x,y,z,mscale,rscale,tscale,vscale)
+      SUBROUTINE spiralarms(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
 
       implicit none
       logical first
@@ -278,7 +279,7 @@
 
 
 ************************************************************************
-      SUBROUTINE nfwcosmo(ttphig,x,y,z,mscale,rscale,tscale,vscale)
+      SUBROUTINE nfwcosmo(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
 ! Buist & Helmi
       implicit none
       logical first
@@ -334,7 +335,7 @@
 ************************************************************************
 ************************************************************************
 **** Subroutine template
-      SUBROUTINE mynewpot(ttphig,x,y,z,mscale,rscale,tscale,vscale)
+      SUBROUTINE mynewpot(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
 
       implicit none
       logical first

@@ -56,7 +56,7 @@ How to install the GPU version
 Get the nbody6tt directory, including the subdirectories
 	Chain, GPU2, Nchain, Ncode
 Link common6.h and params.h in the GPU2 and Nchain directories to common6.h and params.h in the Ncode directory:
-	cd GP2
+	cd GPU2
 	ln -s ../Ncode/common6.h common6.h 
 	ln -s ../Ncode/params.h params.h    
 	cd ../Nchain
