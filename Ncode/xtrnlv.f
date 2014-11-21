@@ -7,6 +7,9 @@
       INCLUDE 'common6.h'
       COMMON/GALAXY/ GMG,RG(3),VG(3),FG(3),FGD(3),TG,
      &               OMEGA,DISK,A,B,V02,RL2,GMB,AR,GAM,ZDUM(7)
+*** FlorentR - define TTTDEP (not used but necessary to call ttgalaxy)
+      INTEGER TTTDEP
+*** FRenaud
       REAL*8 XI(3),XIDOT(3),FIRR(3),FREG(3),FD(3),FDR(3)
       SAVE FIRST
       LOGICAL FIRST
@@ -125,9 +128,9 @@
             ETI = 0.0D0
 *       Form the differential potential energy due to tides.
             CALL TTGALAXY( X(1,I)+RG(1), X(2,I)+RG(2), X(3,I)+RG(3),
-     &        TG, RBAR, ZMBAR, VSTAR, TSTAR, ETI)
+     &        TG, RBAR, ZMBAR, VSTAR, TSTAR, ETI, TTTDEP)
             CALL TTGALAXY( RG(1), RG(2), RG(3),
-     &        TG, RBAR, ZMBAR, VSTAR, TSTAR, ETG)
+     &        TG, RBAR, ZMBAR, VSTAR, TSTAR, ETG, TTTDEP)
             ET = ET + BODY(I) * (ETI - ETG)
           END DO
         ENDIF

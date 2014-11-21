@@ -1,4 +1,5 @@
-      SUBROUTINE TTGALAXY(X,Y,Z,T,RSCALE,MSCALE,VSCALE,TSCALE,TTPHIG)
+      SUBROUTINE TTGALAXY(X,Y,Z,T,RSCALE,MSCALE,VSCALE,TSCALE,TTPHIG,
+    &                      TTTDEP)
 *
 *       User-defined galactic potential
 *       -------------------------------
@@ -32,7 +33,7 @@
 * do not overwrite the potential. Do this instead: ttphig = ttphig + ...
 * This way, you can easily sum up multiple components!
 *
-
+      INTEGER TTTDEP
       REAL*8 X,Y,Z,T, MSCALE, RSCALE, TSCALE, VSCALE, TTPHIG
 
       TTPHIG = 0.D0 ! init (= no galaxy)
@@ -45,6 +46,13 @@
 !      CALL spiralarms(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
       CALL nfwcosmo(ttphig,x,y,z,t,mscale,rscale,tscale,vscale)
 
+
+* set TTTDEP to 0 is the potential is time-independent or adiabatically
+* (slowly compared to the motion of the cluster)changing.
+* This allows to skip 12 evaluations of phi per star per timestep.
+* Set TTTDEP to 1 if the potential is strongly time-dependent.
+
+      TTTDEP = 0
 
       RETURN
       END

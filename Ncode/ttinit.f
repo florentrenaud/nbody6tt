@@ -115,7 +115,7 @@
           WRITE (6,*) '*** ERROR: set NBTTMAX to 1 in param.h'
           STOP
         END IF
-
+        
         READ (5,*)  (RG(K),K=1,3), (VG(K),K=1,3)
         DO I=1,3
           RG(I) = RG(I)*1000.0/RBAR
