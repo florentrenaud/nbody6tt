@@ -59,7 +59,7 @@
       DO K=1,3
 * compute step size 
 * for guiding centre and stars far from guiding centre
-        IF(TTGET .GT. 0 .OR. XI(K) .GT. 10.0*TTDXS(K)) THEN
+        IF(TTGET .GT. 0 .OR. ABS(XI(K)-RG(K)) .GT. 10.0*TTDXS(K)) THEN
           TTCOUNT = TTCOUNT + 1
 * ste flog to rebuild the stencil
           TTBUILD = 1
