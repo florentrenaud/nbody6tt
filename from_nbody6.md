@@ -8,7 +8,7 @@ In Ncode
 ========
 
 ### Makefile
-* add the ttcal.f, ttinit.f, ttforce.f, ttgalaxy.f files to the source list
+* add the ttcal.f, ttinit.f, ttforce.f, ttgalaxy.f ttstep.f files to the source list
 * add a target all to make cpu version (not related to tides)
 
 ### adjust.f
@@ -73,6 +73,9 @@ In Ncode
 * (mode A) read the tensor data from file 'tt.dat', scale and initialize
 * (mode B) read the initial coordinates of the cluster and initialize
 
+### ttstep.f	(new file)
+* (mode B) evaluated the step size used in the derivation of the user-defined galactic potential
+
 ### xtrnlf.f
 * include the computation of the external force from the tidal tensor
 
@@ -88,7 +91,7 @@ In GPU2
 =====
 
 ### Makefile.build
-* add the ttcal.f, ttinit.f, ttforce.f, ttgalaxy.f files to the source list
+* add the ttcal.f, ttinit.f, ttforce.f, ttgalaxy.f, ttstep.f files to the source list
 
 ### adjust.f
 * set the tidal radius to 10x the half-mass radius as in Ncode/adjust.f

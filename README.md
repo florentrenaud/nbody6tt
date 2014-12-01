@@ -1,7 +1,7 @@
 nbody6tt
 ========
 
-Version 5.3.1
+Version 5.3.2
 
 nbody6tt is based on Sverre Aarseth's nbody6, including the GPU2 package. The original version has been downloaded on the 28 October 2014 from http://www.ast.cam.ac.uk/~sverre/web/pages/nbody.htm (files nbody6.tar.gz and gpu2.tar.gz). Bug fixes and patches from Sverre since this date are NOT taken into account.
 

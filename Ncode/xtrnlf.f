@@ -49,8 +49,8 @@
             XGDOT(K) = VG(K) + XIDOT(K)
  37      CONTINUE
 
-         CALL TTFORCE(RG,VG,FS,FSD)
-         CALL TTFORCE(XG,XGDOT,FM,FMD)
+         CALL TTFORCE(RG,VG,FS,FSD,0)
+         CALL TTFORCE(XG,XGDOT,FM,FMD,0)
          DO 38 K = 1,3
             FREG(K) = FREG(K) + (FM(K) - FS(K))
             FDR(K) = FDR(K) + (FMD(K) - FSD(K))
