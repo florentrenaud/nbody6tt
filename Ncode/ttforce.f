@@ -14,12 +14,12 @@
       REAL*8 XI(3),XIDOT(3),FM(3),FD(3), TTTMP
 
       REAL*8 TTCX(75), TTCDX(4), TTC2DX(4), TTC12DX(4)
-      REAL*8 TTX(75), TTDX(4), TT2DX(4), TT12DX(4)
+      REAL*8 TTX(75), TTDX(4), TT2DX(4), TT12DX(4), TTDXS
 
       REAL*8 TTPHI(25), TTPHIT(6)
 
 
-      SAVE TTCX, TTCDX, TTC2DX, TTC12DX
+      SAVE TTCX, TTCDX, TTC2DX, TTC12DX, TTDXS, TTCOUNT
 
 
 * evaluate potential at current position
@@ -59,8 +59,8 @@
       DO K=1,3
 * compute step size 
 * for guiding centre and stars far from guiding centre
-        IF(TTGET .GT. 0 .OR. XI(K) .GT. TTDX(K)) THEN
-
+        IF(TTGET .GT. 0 .OR. XI(K) .GT. 10.0*TTDXS(K)) THEN
+          TTCOUNT = TTCOUNT + 1
 * ste flog to rebuild the stencil
           TTBUILD = 1
 
@@ -107,10 +107,13 @@
 
 * save the step size and stencil used for the guiding centre
         IF(TTGET .EQ. 1) THEN
+          write(666,*) TTCOUNT
+          TTCOUNT = 0
           DO K=1,4
             TTCDX(K) = TTDX(K)
             TTC2DX(K) = TT2DX(K)
             TTC12DX(K) = TT12DX(K)
+            TTDXS(K) = TTDX(K)**5 / 2.220446D-16
           ENDDO
           DO K=1,75
             TTCX(K) = TTX(K)

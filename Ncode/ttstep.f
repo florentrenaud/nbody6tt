@@ -182,7 +182,9 @@
 
 ! if derivative is zero, return a dummy step size
       IF(TTDF(BESTJ,BESTK) .EQ. 0.0) THEN
-        TTH(TTAXIS) = 1.0 ! what to do here?
+          TTTMP = TTPOS(TTAXIS) + 
+     &       ABS(1d-5 * TTPOS(TTAXIS))
+          TTH(TTAXIS) = TTTMP - TTPOS(TTAXIS)
       ENDIF
       
 C      write(1,*) XI(1), TTH(TTAXIS), TTERR(L), L
