@@ -1,4 +1,4 @@
-      SUBROUTINE TTGALAXY(X,Y,Z,T,RSC,MSC,VSC,TSC,TTPHIG,TTTDEP)
+      SUBROUTINE TTGALAXY(X,Y,Z,T,MSC,RSC,TSC,VSC,TTPHIG,TTTDEP)
 *
 *       User-defined galactic potential
 *       -------------------------------
@@ -44,9 +44,10 @@
 !      CALL nfw(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL nfw2(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL isothermal(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
+      CALL nakedmndisk(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL bulgediskhalo(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL spiralarms(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
-      CALL nfwcosmo(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
+!      CALL nfwcosmo(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 
 
 * set TTTDEP to 0 is the potential is time-independent or adiabatically
@@ -227,6 +228,35 @@
 
 * compute variables here
       ttphig = ttphig + v02H * log(x**2+y**2+z**2)
+      
+      RETURN
+      END
+
+
+************************************************************************
+      SUBROUTINE nakedmndisk(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
+
+      implicit none
+      logical first
+      real*8 x, y, z, t, ttphig, msc, rsc, tsc, vsc
+
+      integer i
+      real*8 md, a, b2
+      save md, a, b2
+
+      save first
+      data first /.TRUE./
+      IF(first) THEN
+* compute constants here
+
+        md = 8.9e10 / msc   ! Msun -> Nbody units
+        a = 5d3 / rsc       ! pc -> Nbody units
+        b2 = (300.0 / rsc)**2  ! pc -> Nbody units
+
+        first = .false.
+      ENDIF
+      
+      ttphig = ttphig - md/sqrt(x**2+y**2+(a+sqrt(z**2+b2))**2)
       
       RETURN
       END

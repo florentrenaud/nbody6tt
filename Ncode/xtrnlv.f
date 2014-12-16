@@ -127,10 +127,10 @@
             ETG = 0.0D0
             ETI = 0.0D0
 *       Form the differential potential energy due to tides.
-            CALL TTGALAXY( X(1,I)+RG(1), X(2,I)+RG(2), X(3,I)+RG(3),
-     &        TG, RBAR, ZMBAR, VSTAR, TSTAR, ETI, TTTDEP)
+            CALL TTGALAXY(X(1,I)+RG(1), X(2,I)+RG(2), X(3,I)+RG(3),
+     &        TG, ZMBAR, RBAR, TSTAR, VSTAR, ETI, TTTDEP)
             CALL TTGALAXY( RG(1), RG(2), RG(3),
-     &        TG, RBAR, ZMBAR, VSTAR, TSTAR, ETG, TTTDEP)
+     &        TG, ZMBAR, RBAR, TSTAR, VSTAR, ETG, TTTDEP)
             ET = ET + BODY(I) * (ETI - ETG)
           END DO
         ENDIF

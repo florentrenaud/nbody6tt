@@ -126,9 +126,6 @@
    20   FORMAT (/,12X,'TIDAL TENSOR MODE B:  RG =',1P,E10.3,E10.3,E10.3,
      &    ' VG =',E10.3,E10.3,E10.3)
 
-* get step sizes and build stencil
-       CALL TTFORCE(RG,VG,FM,FD,1)
-
       END IF
 
 *** FRenaud

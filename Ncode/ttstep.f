@@ -1,4 +1,4 @@
-      SUBROUTINE TTSTEP(XI, TTH, TTAXIS, TTP, TTORDER)
+      SUBROUTINE TTSTEP(XI, TTH, TTAXIS, TTFLAG, TTP, TTORDER)
 *
 *
 *       Compute the step size used in the evaluation of the galactic 
@@ -11,17 +11,17 @@
       COMMON/GALAXY/ GMG,RG(3),VG(3),FG(3),FGD(3),TG,
      &               OMEGA,DISK,A,B,V02,RL2,GMB,AR,GAM,ZDUM(7)
 
-      INTEGER NTAB, J,K,L,TTAXIS,TTTDEP, BESTJ, BESTK, TTDIR
+      INTEGER NTAB, J,K,L,TTAXIS,TTTDEP, BESTJ, BESTK, TTDIR, TTFLAG(4)
       REAL*8 TTORDER, TTH(4), TTHH, XI(3), TTCON, TTCON2, TTSAFE
       PARAMETER (TTCON=1.4,TTCON2=TTCON*TTCON,NTAB=10,TTSAFE=2.)
       REAL*8 TTFAC, TTHA(4), TTDF(NTAB,NTAB), TTERR(NTAB), TTERRT
       REAL*8 TTP, TTTMP, TTPHI(6), TTPOS(4)
 
-
       TTPOS(1) = XI(1)
       TTPOS(2) = XI(2)
       TTPOS(3) = XI(3)
       TTPOS(4) = TG
+      TTFLAG(TTAXIS) = 0
       TTHA = (/ 0, 0, 0, 0 /)
       TTHA(TTAXIS) = 1
       TTDIR = 1
@@ -51,20 +51,30 @@
 
         CALL TTGALAXY(XI(1)+TTHA(1)*TTHH, XI(2)+TTHA(2)*TTHH, 
      &        XI(3)+TTHA(3)*TTHH, TG+TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
         TTPHI(1) = TTTMP
         CALL TTGALAXY(XI(1)-TTHA(1)*TTHH, XI(2)-TTHA(2)*TTHH, 
      &        XI(3)-TTHA(3)*TTHH, TG-TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
         TTPHI(2) = TTTMP
+
+
+        IF(TTPHI(1) .EQ. TTPHI(2)) THEN
+          TTH(TTAXIS) = 1.0
+          TTFLAG(TTAXIS) = 1
+          RETURN
+        ENDIF
+
+
         CALL TTGALAXY(XI(1)+2.*TTHA(1)*TTHH, XI(2)+2.*TTHA(2)*TTHH, 
      &        XI(3)+2.*TTHA(3)*TTHH, TG+2.*TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
         TTPHI(3) = TTTMP
         CALL TTGALAXY(XI(1)-2.*TTHA(1)*TTHH, XI(2)-2.*TTHA(2)*TTHH, 
      &        XI(3)-2.*TTHA(3)*TTHH, TG-2.*TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
         TTPHI(4) = TTTMP
+
 
 ! form the first estimate of the 3rd order derivative
         IF(TTORDER .EQ. 3.0) THEN
@@ -76,11 +86,11 @@
         IF(TTORDER .EQ. 5.0) THEN
           CALL TTGALAXY(XI(1)+3.*TTHA(1)*TTHH, XI(2)+3.*TTHA(2)*TTHH, 
      &        XI(3)+3.*TTHA(3)*TTHH, TG+3.*TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
           TTPHI(5) = TTTMP
           CALL TTGALAXY(XI(1)-3.*TTHA(1)*TTHH, XI(2)-3.*TTHA(2)*TTHH, 
      &        XI(3)-3.*TTHA(3)*TTHH, TG-3.*TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
           TTPHI(6) = TTTMP
 
           TTDF(1,1) = (-TTPHI(6) + 4.*TTPHI(4) - 5.*TTPHI(2)
@@ -95,19 +105,19 @@
 ! re-evaluate derivative at the relevant order
           CALL TTGALAXY(XI(1)+TTHA(1)*TTHH, XI(2)+TTHA(2)*TTHH, 
      &        XI(3)+TTHA(3)*TTHH,TG+TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
           TTPHI(1) = TTTMP
           CALL TTGALAXY(XI(1)-TTHA(1)*TTHH, XI(2)-TTHA(2)*TTHH, 
      &        XI(3)-TTHA(3)*TTHH, TG-TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
           TTPHI(2) = TTTMP
           CALL TTGALAXY(XI(1)+2.*TTHA(1)*TTHH, XI(2)+2.*TTHA(2)*TTHH, 
      &        XI(3)+2.*TTHA(3)*TTHH, TG+2.*TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
           TTPHI(3) = TTTMP
           CALL TTGALAXY(XI(1)-2.*TTHA(1)*TTHH, XI(2)-2.*TTHA(2)*TTHH, 
      &        XI(3)-2.*TTHA(3)*TTHH, TG-2.*TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTMP, TTTDEP)
           TTPHI(4) = TTTMP
 
           IF(TTORDER .EQ. 3.0) THEN
@@ -118,12 +128,12 @@
           IF(TTORDER .EQ. 5.0) THEN
             CALL TTGALAXY(XI(1)+3.*TTHA(1)*TTHH, XI(2)+3.*TTHA(2)*TTHH, 
      &        XI(3)+3.*TTHA(3)*TTHH, TG+3.*TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
             TTPHI(5) = TTTMP
             
             CALL TTGALAXY(XI(1)-3.*TTHA(1)*TTHH, XI(2)-3.*TTHA(2)*TTHH, 
      &        XI(3)-3.*TTHA(3)*TTHH, TG-3.*TTHA(4)*TTHH,
-     &        RBAR, ZMBAR, VSTAR, TSTAR, TTTMP, TTTDEP)
+     &        ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
             TTPHI(6) = TTTMP
 
             TTDF(1,K) = (-TTPHI(6) + 4.*TTPHI(4) - 5.*TTPHI(2)
@@ -180,14 +190,14 @@
       ENDDO
 ! end loop over L
 
+      write(888,*) TTAXIS, TTH(TTAXIS), TTERR(L), L
+      call flush(888)
+
 ! if derivative is zero, return a dummy step size
-      IF(TTDF(BESTJ,BESTK) .EQ. 0.0) THEN
-          TTTMP = TTPOS(TTAXIS) + 
-     &       ABS(1d-5 * TTPOS(TTAXIS))
-          TTH(TTAXIS) = TTTMP - TTPOS(TTAXIS)
+      IF(TTDF(BESTJ,BESTK) .EQ. 0.0 .OR. TTH(TTAXIS) .EQ. 0.0) THEN
+        TTH(TTAXIS) = 1.0
+        TTFLAG(TTAXIS) = 1
       ENDIF
-      
-C      write(1,*) XI(1), TTH(TTAXIS), TTERR(L), L
 
       RETURN
       END
