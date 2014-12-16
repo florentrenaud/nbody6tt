@@ -73,9 +73,6 @@ In Ncode
 * (mode A) read the tensor data from file 'tt.dat', scale and initialize
 * (mode B) read the initial coordinates of the cluster and initialize
 
-### ttstep.f	(new file)
-* (mode B) evaluated the step size used in the derivation of the user-defined galactic potential
-
 ### xtrnlf.f
 * include the computation of the external force from the tidal tensor
 
