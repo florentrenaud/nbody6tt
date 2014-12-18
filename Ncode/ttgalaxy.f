@@ -38,13 +38,13 @@
 
       TTPHIG = 0.D0 ! init (= no galaxy)
 
-!      CALL pointmass(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
+      CALL pointmass(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL plummer(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL hernquist(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL nfw(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL nfw2(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL isothermal(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
-      CALL nakedmndisk(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
+!      CALL nakedmndisk(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL bulgediskhalo(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL spiralarms(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL nfwcosmo(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
@@ -249,7 +249,7 @@
       IF(first) THEN
 * compute constants here
 
-        md = 8.9e10 / msc   ! Msun -> Nbody units
+        md = 1e11 / msc   ! Msun -> Nbody units
         a = 5d3 / rsc       ! pc -> Nbody units
         b2 = (300.0 / rsc)**2  ! pc -> Nbody units
 
