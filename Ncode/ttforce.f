@@ -1,4 +1,4 @@
-      SUBROUTINE TTFORCE(XI,XIDOT,FM,FD)
+      SUBROUTINE TTFORCE(XI,XIDOT,FM,FD,DT)
 *
 *
 *       Compute the galactic force and its time derivative (mode B)
@@ -9,90 +9,85 @@
       INCLUDE 'common6.h'
       COMMON/GALAXY/ GMG,RG(3),VG(3),FG(3),FGD(3),TG,
      &               OMEGA,DISK,A,B,V02,RL2,GMB,AR,GAM,ZDUM(7)
+
+      INTEGER TTTDEP
+      REAL*8 XI(3),XIDOT(3),FM(3),FD(3), DT, TTTMP
+
+      REAL*8 TTX(75), TTDX(4), TT2DX(4), TT12DX(4)
+      REAL*8 TTPHI(25)
+
+      SAVE TTDX
+
+      TTDX(1) = 4d-5 * SQRT(XI(1)**2+XI(2)**2+XI(3)**2)
+      IF(TTDX(1) .EQ. 0) TTDX(1) = 1.0
+      TTDX(2) = TTDX(1)
+      TTDX(3) = TTDX(1)
+
+* update the timestep only for the guiding centre. Else, use the stored
+* value
+      IF(DT .NE. 0.0) THEN
+        TTDX(4) = DT
+      ENDIF
+
+      DO K=1,4
+        TT2DX(K) = 2.0 * TTDX(K)
+        TT12DX(K) = 12.0 * TTDX(K)
+      ENDDO
       
-      REAL*8 XI(3),XIDOT(3),FM(3),FD(3)
-      REAL*8 TT2DX, TT12DX, TT4DX2, TTTMP
-      REAL*8 TTX(75), TTPHI(25)
-
-* Evaluate the potential at the position of the cluster, plus
-* at 6 points around the cluster and 6 points around these 6 points
-* = 25 points (some are counted twice).
-
-* TTX contains the position of the 25 points, relative to the cluster.
-* Points are ordered by increasing z, then y, then x. (See below)
-* The cluster is number 13.
+* Build the stencil using the value of TTDX
+* TTX contains the position of the 25 points, relative to XI
+* The position XI is number 1
 * TTX(1:25)  = x positions
 * TTX(26:50) = y positions
 * TTX(51:75) = z positions
 
       TTX = (/ 0, 
-     &             0, -1, 0, 1, 0,
-     &             0, -1, 0, 1, -2, -1, 0, 1, 2, -1, 0, 1, 0,
-     &             0, -1, 0, 1, 0,
-     &             0,
-     &           0,
-     &             -1, 0, 0, 0, 1,
-     &             -2, -1, -1, -1, 0, 0, 0, 0, 0, 1, 1, 1, 2,
-     &             -1, 0, 0, 0, 1,
-     &             0,
-     &           -2,
-     &             -1, -1, -1, -1, -1,
-     &             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     &             1, 1, 1, 1, 1,
-     &             2 /)
-
-
-      TTDX = (2.2D-16)**0.25D0 * 0.33D0
-     &  * SQRT(XI(1)**2 + XI(2)**2 + XI(3)**2)
-
-      TT2DX = 2.0 * TTDX
-      TT12DX = 6.0 * TT2DX
-      TT4DX2 = TT2DX**2
-      DO I=1,75
-        TTX(I) = TTX(I)*TTDX
+     &        0, 0,-1, 1, 0, 0,
+     &        0, 0,-1, 1, 0, 0,-1, 1,-2, 2,-1, 1, 0, 0,-1, 1, 0, 0,
+     &        0, 
+     &        0,-1, 0, 0, 1, 0,
+     &        0,-1, 0, 0, 1,-2,-1,-1, 0, 0, 1, 1, 2,-1, 0, 0, 1, 0,
+     &        0,
+     &        -1, 0, 0, 0, 0, 1,
+     &        -2,-1,-1,-1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2 /)
+        
+      DO I=1,25
+        TTX(I) = TTX(I)*TTDX(1)
+        TTX(I+25) = TTX(I+25)*TTDX(2)
+        TTX(I+50) = TTX(I+50)*TTDX(3)
       END DO
 
-* Get the galactic potential around the position XI using
-* user-defined formula in ttgalaxy.f
-
+* Get the galactic potential around the position XI
       DO I=1,25
-         CALL TTGALAXY( XI(1)+TTX(I), XI(2)+TTX(I+25), XI(3)+TTX(I+50),
-     &        TG, RBAR, ZMBAR, VSTAR, TSTAR, TTTMP)
+         CALL TTGALAXY(XI(1)+TTX(I), XI(2)+TTX(I+25), XI(3)+TTX(I+50),
+     &        TG, ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
          TTPHI(I) = TTTMP
       END DO
 
-* Get the galactic force at the position XI:   F = -grad phi
-* by second-order difference using the points 1,4,7,9,11,12,14,15,17,19,22,25
-      FM(1) = (TTPHI(15)-8.*TTPHI(14)+8.*TTPHI(12)-TTPHI(11))/TT12DX
-      FM(2) = (TTPHI(19)-8.*TTPHI(17)+8.*TTPHI(9) -TTPHI(7) )/TT12DX
-      FM(3) = (TTPHI(25)-8.*TTPHI(22)+8.*TTPHI(4) -TTPHI(1) )/TT12DX
+* Get the galactic force at XI:
 
-*  first-order difference using the points 4,9,12,14,17,22
-*      FM(1) = ( TTPHI(12) - TTPHI(14) ) / TT2DX
-*      FM(2) = ( TTPHI(9)  - TTPHI(17) ) / TT2DX
-*      FM(3) = ( TTPHI(4)  - TTPHI(22) ) / TT2DX
+      FM(1) = (TTPHI(17)-8.*TTPHI(5)+8.*TTPHI(4)-TTPHI(16))/TT12DX(1)
+      FM(2) = (TTPHI(20)-8.*TTPHI(6)+8.*TTPHI(3)-TTPHI(13))/TT12DX(2)
+      FM(3) = (TTPHI(25)-8.*TTPHI(7)+8.*TTPHI(2)-TTPHI(8))/TT12DX(3)
 
+* Get the tidal tensor at XI:
 
-* Get the tidal tensor at XI
-* Note that, contrary to mode A,
-* the tidal tensor is not used to compute the tidal force in mode B.
-
-*  first-order difference on the force at the points 4,9,12,14,17,22
-      TTENS(1,1,1) = (TTPHI(13)-TTPHI(15)-TTPHI(11)+TTPHI(13)) / TT4DX2
-      TTENS(1,2,1) = (TTPHI(16)-TTPHI(18)-TTPHI(8)+TTPHI(10)) / TT4DX2
-      TTENS(1,3,1) = (TTPHI(21)-TTPHI(23)-TTPHI(3)+TTPHI(5)) / TT4DX2
+      TTENS(1,1,1) = (TTPHI(1)-TTPHI(17)-TTPHI(16)+TTPHI(1)) 
+     &        / (TT2DX(1)*TT2DX(1))
+      TTENS(1,2,1) = (TTPHI(18)-TTPHI(19)-TTPHI(14)+TTPHI(15))
+     &        / (TT2DX(1)*TT2DX(2))
+      TTENS(1,3,1) = (TTPHI(22)-TTPHI(23)-TTPHI(10)+TTPHI(11))
+     &        / (TT2DX(1)*TT2DX(3))
+      TTENS(2,2,1) = (TTPHI(1)-TTPHI(20)-TTPHI(13)+TTPHI(1))
+     &        / (TT2DX(2)*TT2DX(2))
+      TTENS(2,3,1) = (TTPHI(21)-TTPHI(24)-TTPHI(9)+TTPHI(12))
+     &        / (TT2DX(2)*TT2DX(3))
+      TTENS(3,3,1) = (TTPHI(1)-TTPHI(25)-TTPHI(8)+TTPHI(1))
+     &        / (TT2DX(3)*TT2DX(3))
       TTENS(2,1,1) = TTENS(1,2,1)
-      TTENS(2,2,1) = (TTPHI(13)-TTPHI(19)-TTPHI(7)+TTPHI(13)) / TT4DX2
-      TTENS(2,3,1) = (TTPHI(20)-TTPHI(24)-TTPHI(2)+TTPHI(6)) / TT4DX2
       TTENS(3,1,1) = TTENS(1,3,1)
       TTENS(3,2,1) = TTENS(2,3,1)
-      TTENS(3,3,1) = (TTPHI(13)-TTPHI(25)-TTPHI(1)+TTPHI(13)) / TT4DX2
 
-* Get the time derivative of the tidal force:
-* dF/dt = dF/dx * dx/dt = T * v
-* where T is the tidal tensor
-* In 3D: dF_x/dt = dF_x/dx v_x + dF_x/dy v_y + dF_x/dz v_z
-*                = T_{x,x} v_x + T_{x,y} v_y + T_{x,z} v_z
 
       FD(1) = TTENS(1,1,1) * XIDOT(1) + TTENS(1,2,1) * XIDOT(2) 
      &   + TTENS(1,3,1) * XIDOT(3)
@@ -101,21 +96,49 @@
       FD(3) = TTENS(3,1,1) * XIDOT(1) + TTENS(3,2,1) * XIDOT(2)
      &   + TTENS(3,3,1) * XIDOT(3)
 
+* if the potential is time dependent
+      IF(TTTDEP .GT. 0 .AND. TTDX(4) .NE. 0.0) THEN
+
+* compute partial F / partial t at t+dt and t-dt.
+        DO I=2,7
+           CALL TTGALAXY(XI(1)+TTX(I), XI(2)+TTX(I+25), XI(3)+TTX(I+50),
+     &        TG-TTDX(4), ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
+           TTPHI(I) = TTTMP
+
+           CALL TTGALAXY(XI(1)+TTX(I), XI(2)+TTX(I+25), XI(3)+TTX(I+50),
+     &        TG+TTDX(4), ZMBAR, RBAR, TSTAR, VSTAR, TTTMP, TTTDEP)
+           TTPHI(I+6) = TTTMP
+        END DO
+
+* sum T*v and partial F / partial t
+        FD(1) = FD(1)+(-TTPHI(4)+TTPHI(5)+TTPHI(10)-TTPHI(11)) 
+     &        / (TT2DX(4)*TT2DX(1))
+        FD(2) = FD(2)+(-TTPHI(3)+TTPHI(6)+TTPHI(9)-TTPHI(12))
+     &        / (TT2DX(4)*TT2DX(2))
+        FD(3) = FD(3)+(-TTPHI(2)+TTPHI(7)+TTPHI(8)-TTPHI(13))
+     &        / (TT2DX(4)*TT2DX(3))
+      ENDIF
+
       RETURN
       END
-          
-*  Positions of the TTX points, wrt the cluster (number 13)
+
+* Positions of the TTX points
+*              
+*                     Z ^
+*                       |    ^  Y
+*                       |   /
+*                       |  /
+*                       | / 
+*                       +--------> X
 *
-*                          TTDX
-*                       <-------->
 *
-*                      +--------+--------+--------+--------+       ^
-*                     /        /        /        /        /       / TTDX
-*                    /        /        /        /        /       /
-*                   +--------+--------+--------+--------+       V
+*                      +--------+--------+--------+--------+  
+*                     /        /        /        /        / 
+*                    /        /        /        /        /
+*                   +--------+--------+--------+--------+
 *                  /        /        /        /        /
 *                 /        /        /        /        /
-*                +--------+------- 25 ------+--------+     z = +2 * TTDX
+*                +--------+------- 25 ------+--------+    z = +2 * TTDX
 *               /        /        /        /        /
 *              /        /        /        /        /
 *             +--------+--------+--------+--------+
@@ -130,40 +153,40 @@
 *                   +--------+------- 24 ------+--------+
 *                  /        /        /        /        /
 *                 /        /        /        /        /
-*                +------- 21 ----- 22 ----- 23 ------+     z = +1 * TTDX
+*                +------- 22 ----- 7 ------ 23 ------+    z = +1 * TTDX
 *               /        /        /        /        /
 *              /        /        /        /        /
-*             +--------+------- 20 ------+--------+
+*             +--------+------- 21 ------+--------+
 *            /        /        /        /        /
 *           /        /        /        /        /
 *          +--------+--------+--------+--------+
 *          
 *          
-*                      +--------+------- 19 ------+--------+
+*                      +--------+------- 20 ------+--------+
 *                     /        /        /        /        /
 *                    /        /        /        /        /
-*                   +------- 16 ----- 17 ----- 18 ------+
+*                   +------- 18----- 6 ------ 19 ------+
 *                  /        /        /        /        /
 *                 /        /        /        /        /
-*                11 ----- 12 ----- 13 ----- 14 ---- 15     z = 0
+*                16 ----- 4 ----- 1 ------- 5 ----- 17     z = 0
 *               /        /        /        /        /
 *              /        /        /        /        /
-*             +------- 8 ------ 9 ------ 10 ------+
+*             +------ 14 ------ 3 ------ 15 ------+
 *            /        /        /        /        /
 *           /        /        /        /        /
-*          +--------+------- 7 -------+--------+
+*          +--------+------ 13 -------+--------+
 *          
 *          
 *                      +--------+--------+--------+--------+
 *                     /        /        /        /        /
 *                    /        /        /        /        /
-*                   +--------+------- 6 -------+--------+
+*                   +--------+------ 12 -------+--------+
 *                  /        /        /        /        /
 *                 /        /        /        /        /
-*                +------- 3 ------ 4 ------ 5 -------+     z = -1 * TTDX
+*                +------ 10 ------ 2 ------ 11 ------+     z = -1 * TTDX
 *               /        /        /        /        /
 *              /        /        /        /        /
-*             +--------+------- 2 -------+--------+
+*             +--------+------- 9 -------+--------+
 *            /        /        /        /        /
 *           /        /        /        /        /
 *          +--------+--------+--------+--------+
@@ -175,36 +198,11 @@
 *                   +--------+--------+--------+--------+
 *                  /        /        /        /        /
 *                 /        /        /        /        /
-*                +--------+------- 1 -------+--------+     z = -2 * TTDX
+*                +--------+------- 8 -------+--------+     z = -2 * TTDX
 *               /        /        /        /        /
 *              /        /        /        /        /
 *             +--------+--------+--------+--------+
 *            /        /        /        /        /
 *           /        /        /        /        /
 *          +--------+--------+--------+--------+
-*
-*     Force at 4
-*        Fx = ( TTPHI(3)  - TTPHI(5)  ) / TT2DX
-*        Fy = ( TTPHI(2)  - TTPHI(6)  ) / TT2DX
-*        Fz = ( TTPHI(1)  - TTPHI(13) ) / TT2DX
-*     Force at 9
-*        Fx = ( TTPHI(8) - TTPHI(10)  ) / TT2DX
-*        Fy = ( TTPHI(7) - TTPHI(13)  ) / TT2DX
-*        Fz = ( TTPHI(2) - TTPHI(20)  ) / TT2DX
-*     Force at 12
-*        Fx = ( TTPHI(11) - TTPHI(13) ) / TT2DX
-*        Fy = ( TTPHI(8)  - TTPHI(16) ) / TT2DX
-*        Fz = ( TTPHI(3)  - TTPHI(21) ) / TT2DX
-*     Force at 14
-*        Fx = ( TTPHI(13) - TTPHI(15) ) / TT2DX
-*        Fy = ( TTPHI(10) - TTPHI(18) ) / TT2DX
-*        Fz = ( TTPHI(5)  - TTPHI(23) ) / TT2DX
-*     Force at 17
-*        Fx = ( TTPHI(16) - TTPHI(18) ) / TT2DX
-*        Fy = ( TTPHI(13) - TTPHI(19) ) / TT2DX
-*        Fz = ( TTPHI(6)  - TTPHI(24) ) / TT2DX
-*     Force at 22
-*        Fx = ( TTPHI(21) - TTPHI(23) ) / TT2DX
-*        Fy = ( TTPHI(20) - TTPHI(24) ) / TT2DX
-*        Fz = ( TTPHI(13) - TTPHI(25) ) / TT2DX
 *

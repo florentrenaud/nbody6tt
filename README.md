@@ -1,7 +1,7 @@
 nbody6tt
 ========
 
-Version 5.3.1
+Version 5.4
 
 nbody6tt is based on Sverre Aarseth's nbody6, including the GPU2 package. The original version has been downloaded on the 28 October 2014 from http://www.ast.cam.ac.uk/~sverre/web/pages/nbody.htm (files nbody6.tar.gz and gpu2.tar.gz). Bug fixes and patches from Sverre since this date are NOT taken into account.
 
@@ -9,7 +9,7 @@ nbody6tt is based on Sverre Aarseth's nbody6, including the GPU2 package. The or
 Description
 ===========
 
-nbody6tt includes the treatment of external tidal fields in nbody6. Theory and method are detailed in Renaud, Gieles & Boily (2011).
+nbody6tt includes the treatment of external tidal fields in nbody6. Theory and method are detailed in Renaud, Gieles & Boily (2011) and Renaud & Gieles (2015).
 
 Since v3.0, nbody6tt offers two modes:
 * (A) a table a tidal tensors computed separatly is provided to the code. Mode A allows arbitrarily complex configurations (e.g. galaxy mergers). Tidal tensors are usually extracted from galaxy simulations and thus are known at a frequency larger than the smaller timestep. Therefore their values are interpolated in time (quadratic interpolation) at the times required by the simulation. Before the timestamp of the second tensor is reached, the interpolation is linear.
@@ -56,7 +56,7 @@ How to install the GPU version
 Get the nbody6tt directory, including the subdirectories
 	Chain, GPU2, Nchain, Ncode
 Link common6.h and params.h in the GPU2 and Nchain directories to common6.h and params.h in the Ncode directory:
-	cd GP2
+	cd GPU2
 	ln -s ../Ncode/common6.h common6.h 
 	ln -s ../Ncode/params.h params.h    
 	cd ../Nchain

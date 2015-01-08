@@ -27,7 +27,7 @@
 *** FlorentR - Compute the force from the user-definition of the pot.
 *      equivalent to the FNUC call below  
       IF( (KZ(14).EQ.9).AND.(.NOT. TTMODE) ) THEN
-         CALL TTFORCE(RG,VG,FM,FD)
+         CALL TTFORCE(RG,VG,FM,FD,DT)
         GO TO 35
       END IF
 *** FRenaud

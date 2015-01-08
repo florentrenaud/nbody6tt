@@ -51,7 +51,7 @@
 
 *** FlorentR - Compute the force from the user-definition of the pot.
       IF( (KZ(14).EQ.9).AND.(.NOT. TTMODE) ) THEN
-        CALL TTFORCE(XI,XIDOT,FM,FMD)
+        CALL TTFORCE(XI,XIDOT,FM,FMD,0)
           DO 40 K = 1,3
             FREG(K) = FREG(K) + FM(K)
             FDR(K) = FDR(K) + FMD(K)

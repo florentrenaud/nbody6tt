@@ -76,7 +76,7 @@ chpert.f chpot.f chterm.f expel2.f fchain.f ghost.f giant2.f kcpert.f \
 reduce.f reinit.f renew.f setsys.f tchain.f xcpred.f xtpert.f \
 brake4.f ksrot.f deform2.f expand2.f circ.f spinup.f \
 ttcal.f ttinit.f ttforce.f ttgalaxy.f
-### FlorentR - add ttinit.f, ttcal.f, ttforce.f and ttgalaxy.f (above)
+### FlorentR - add ttinit.f, ttcal.f, ttforce.f, ttgalaxy.f (above)
 
 OBJECTS = $(SOURCE:.f=.o)
 
