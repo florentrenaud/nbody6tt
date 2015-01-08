@@ -8,7 +8,7 @@ In Ncode
 ========
 
 ### Makefile
-* add the ttcal.f, ttinit.f, ttforce.f, ttgalaxy.f ttstep.f files to the source list
+* add the ttcal.f, ttinit.f, ttforce.f, ttgalaxy.f files to the source list
 * add a target all to make cpu version (not related to tides)
 
 ### adjust.f
@@ -88,7 +88,7 @@ In GPU2
 =====
 
 ### Makefile.build
-* add the ttcal.f, ttinit.f, ttforce.f, ttgalaxy.f, ttstep.f files to the source list
+* add the ttcal.f, ttinit.f, ttforce.f, ttgalaxy.f files to the source list
 
 ### adjust.f
 * set the tidal radius to 10x the half-mass radius as in Ncode/adjust.f
