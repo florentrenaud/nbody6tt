@@ -19,6 +19,7 @@
       SAVE TTDX
 
       TTDX(1) = 4d-5 * SQRT(XI(1)**2+XI(2)**2+XI(3)**2)
+      IF(TTDX(1) .EQ. 0) TTDX(1) = 1.0
       TTDX(2) = TTDX(1)
       TTDX(3) = TTDX(1)
 
@@ -27,7 +28,6 @@
       IF(DT .NE. 0.0) THEN
         TTDX(4) = DT
       ENDIF
-        
 
       DO K=1,4
         TT2DX(K) = 2.0 * TTDX(K)
