@@ -77,7 +77,7 @@
 *
 *       Include velocity dispersion in terms of VSTAR (Parameter statement!).
       IF (VFAC.GT.0.0D0) THEN
-          DISP = VFAC*VSTAR
+          DISP = VFAC*VSTAR  !  For zero kicks set VFAC = 0.001.
       END IF
 *
 *       Allow for optional type-dependent WD kick.

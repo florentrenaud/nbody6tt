@@ -76,8 +76,8 @@
       DISP = 190.0
 *
 *       Include velocity dispersion in terms of VSTAR (Parameter statement!).
-      IF (VFAC.GT.0.0D0) THEN
-          DISP = VFAC*VSTAR
+      IF (VFAC.GT.0.001D0) THEN
+          DISP = VFAC*VSTAR   ! For zero kicks set VFAC = 0.001.
       END IF
 *
 *       Allow for optional type-dependent WD kick.
@@ -173,7 +173,7 @@
       END IF
 *
 *       Highlight BH/NS velocities below 4 times rms velocity.
-      IF (VKICK.LT.4.0*SQRT(0.5).AND.KW.GE.13) THEN
+      IF (VKICK.LT.4.0*SQRT(0.5).AND.KW.GE.13.AND.VKICK.GT.0.05) THEN
           WRITE (6,25)  I, NAME(I), KW, VKICK*VSTAR, SQRT(VF2)*VSTAR
    25     FORMAT (' LOW KICK:    I NAM K* VK VF ',2I7,I4,2F7.2)
       END IF

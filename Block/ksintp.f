@@ -217,7 +217,7 @@
 *       Include termination for rare tidal capture starting at pericentre.
           IF (KSTAR(I).LT.0.AND.RI.GT.5.0*RMIN) GO TO 90
 *       Impose a limit using size of neighbour sphere (100*R > 0.80*RS).
-          IF (RI.GT.8.0D-03*RS(I).AND.GT.GT.1.0D-04) GO TO 90
+          IF (RI.GT.8.0D-03*RS(I).AND.GT.GT.1.0D-03) GO TO 90
 *       See whether termination can be delayed for sufficient perturbers.
           IF (NNB0.LT.0.80*LIST(1,I).AND.GI.LT.0.1) GO TO 60
 *       Check updating of R0 for newly hardened binary orbit.

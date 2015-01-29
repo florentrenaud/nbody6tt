@@ -58,37 +58,59 @@
 *     CALL XVPRED(ICM,-1)
 *
 *       Copy c.m. coordinates & velocities.
-      DO 30 K = 1,3
+      DO 25 K = 1,3
           CM(K) = X(K,ICM)
           CM(K+3) = XDOT(K,ICM)
-   30 CONTINUE
+   25 CONTINUE
 *
 *       Set configuration pointers for KS candidates.
       JLIST(7) = I1
       JLIST(8) = I2
 *
 *       Place new global coordinates in the original locations.
-      DO 40 L = 1,NN
+      DO 30 L = 1,NN
           J = JLIST(L)
 *       Copy the respective masses (BODY(ICM) holds the sum).
           IF (L.EQ.1) BODY(J) = BODYC(1)
           IF (L.EQ.2) BODY(J) = BODYC(2)
 *       Transform to global coordinates & velocities using c.m. values.
           LL = JLIST(L+6)
-          DO 35 K = 1,3
+          DO 28 K = 1,3
               X(K,J) = X4(K,LL) + CM(K)
               XDOT(K,J) = XDOT4(K,LL) + CM(K+3)
               X0(K,J) = X(K,J)
               X0DOT(K,J) = XDOT(K,J)
-   35     CONTINUE
-   40 CONTINUE
+   28     CONTINUE
+   30 CONTINUE
 *
 *       Ensure new neighbour list (may be zero for ICOMP).
       RS0 = RS(ICM)
       CALL NBLIST(ICOMP,RS0)
 *
+*       Save index of dominant bodies for neighbour list check.
+      IC1 = ICOMP
+      IC2 = JCOMP
+*
 *       Perform KS regularization of dominant components.
       CALL KSREG
+*
+*       Search LISTC for missing dominant bodies in nearby neighbour lists.
+      NP = LISTC(1)
+      DO 40 L = 2,NP
+          J = LISTC(L)
+          NB1 = LIST(1,J) + 1
+          I0 = 0
+*       Check whether IC1 & IC2 are members.
+          DO 33 LL = 2,NB1
+              IF (LIST(LL,J).EQ.IC1.OR.LIST(LL,J).EQ.IC2) I0 = I0 + 1
+   33     CONTINUE
+*
+*       Add new c.m. at the end after failed search (NBREST not used).
+          IF (I0.EQ.0) THEN
+              LIST(NB1+1,J) = NTOT
+              LIST(1,J) = LIST(1,J) + 1
+          END IF
+   40 CONTINUE
 *
 *       Include optional kick velocity of 3*VRMS km/s after GR coalescence.
       IF (KZ(43).GT.0.AND.NBH2.EQ.2) THEN
@@ -103,7 +125,7 @@
               X0DOT(K,NTOT) = XDOT(K,NTOT)
    44     CONTINUE
           ECD0 = ECDOT
-          VESC = 3.0*VRMS
+          VESC = 5.0*VRMS
           ECDOT = ECDOT + 0.5*BODY(NTOT)*VI20*(1.0 - VF**2)
           WRITE (6,45)  LIST(1,2*NPAIRS-1), VF, ECD0-ECDOT, VESC
    45     FORMAT (' COALESCENCE KICK    NP VF ECDOT VESC ',
@@ -113,21 +135,22 @@
       END IF
 *
       IF (NSTEP1.GT.100.OR.NBH2.EQ.2) THEN
-      NP = LIST(1,2*NPAIRS-1)
-      ZMU = BODY(2*NPAIRS-1)*BODY(2*NPAIRS)/BODY(NTOT)
-      EBH = ZMU*H(NPAIRS)
-      WRITE (6,50)  NSTEP1, NP, LIST(1,NTOT), EBH, ECH, H(NPAIRS),
-     &              R(NPAIRS), STEP(NTOT)
-   50 FORMAT (' TERMINATE ARC    # NP NNB EBH ECH H R STEP ',
-     &                             I10,2I4,F11.6,1P,4E10.2)
+          NP = LIST(1,2*NPAIRS-1)
+          ZMU = BODY(2*NPAIRS-1)*BODY(2*NPAIRS)/BODY(NTOT)
+          EB = ZMU*H(NPAIRS)
+          WRITE (6,50)  NSTEP1, NP, LIST(1,NTOT), EB, ECH, H(NPAIRS),
+     &                  R(NPAIRS), STEP(NTOT)
+   50     FORMAT (' TERMINATE ARC    # NP NNB EB ECH H R STEP ',
+     &                                 I10,2I4,F11.6,1P,4E10.2)
       END IF
 *       Reduce subsystem counter and initialize membership & internal energy.
       NSUB = MAX(NSUB - 1,0)
       NCH = 0
       NN = 0
+      ECH = 0.0
       NSTEPC = NSTEPC + NSTEP1
 *
-*       Note stellar collisions energies are accumulated in ECOLL by DECORR.
+*       Note stellar collision energies are accumulated in ECOLL by DECORR.
       ECH = 0.0
 *       Subtract accumulated energy loss to compensate for KS binding energy.
       ECOLL = ECOLL - DEGR

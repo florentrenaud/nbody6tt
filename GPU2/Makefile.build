@@ -141,8 +141,9 @@ endif
 
 #routines added by GPU modules
 SOURCE += \
-check3.f checkl2.f cmfirr2.f energy2.f fpcorr2.f fpoly2a.f gpucor.f \
-jpred2.f jpred.f ksres3.f nbintp.f phicor.f repair.f sweep2.f bhplot.f fpoly0.f
+check3.f checkl2.f cmfirr2.f energy2.f fpcorr2.f gpucor.f \
+jpred2.f jpred.f ksres3.f nbintp.f phicor.f repair.f sweep2.f bhplot.f \
+fpoly0.f kspinit.f kspreg.f
 
 OBJECTS = $(SOURCE:.f=.o)
 OBJECTS += gpuirr.o gpunb.o gpupot.o wtime.o cnbint.o cxvpred.o 

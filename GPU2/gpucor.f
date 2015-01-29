@@ -174,9 +174,16 @@
           END IF
           NBVOID = NBVOID + 1
           IRSKIP = 1
+          NBGAIN = 0
+          NBLOSS = NNB0
+          DO 28 L = 1,NNB0
+              JJLIST(L) = LIST(L+1,I)
+   28     CONTINUE
+          IF (KZ(14).EQ.3) THEN
+              ETIDE = ETIDE + BODY(I)*(0.5*W2DOT*DTR - WDOT)*DTR
+          END IF
 *       Skip another full N loop (necessary for GPU/OpenMP case).
-          GO TO 50
-*         GO TO 1
+          GO TO 70
       END IF
 *
 *       Restrict neighbour number < NBMAX to permit one normal addition.
@@ -347,7 +354,7 @@
       END IF
 *
 *       Find loss or gain of neighbours at the same time.
-   50 NBLOSS = 0
+      NBLOSS = 0
       NBGAIN = 0
 *
 *       Accumulate tidal energy change for general galactic potential.
@@ -367,12 +374,11 @@
 *       Check case of zero old membership (NBGAIN = NNB specifies net gain).
       IF (NNB0.EQ.0) THEN
           NBGAIN = NNB
-*       Copy current neighbours for use by FPCORR2 (NNB = 0 has GO TO 50).
+*       Copy current neighbours for use by FPCORR2 (NNB = 0 has GO TO 70).
           DO 52 L = 1,NNB
               JJLIST(NNB0+L) = KLIST(L+1)
    52     CONTINUE
           DF2 = 1.0
-          FI2 = 0.0
           FR2 = 0.0
           GO TO 70
       END IF
@@ -380,13 +386,9 @@
 *       Form expressions for deciding on corrections and time-step.
       DF2 = 0.0
       FR2 = 0.0
-      FI2 = 0.0
-      FDR2 = 0.0
       DO 55 K = 1,3
           DF2 = DF2 + (FREG(K) - FR(K,I))**2
           FR2 = FR2 + FREG(K)**2
-          FI2 = FI2 + FIRR(K)**2
-          FDR2 = FDR2 + FDR(K)**2
    55 CONTINUE
 *
 *       Skip neighbour list comparison without derivative corrections.
@@ -525,8 +527,10 @@
 *       Suppress corrector for DTR/STEP > 100 and large derivative change.
       IF (DTR.GT.100.0*STEP(I)) THEN
           DFD2 = 0.0
+          FDR2 = 0.0
           DO 71 K = 1,3
               DFD2 = DFD2 + (FIDOT(K,I) - FD(K))**2
+              FDR2 = FDR2 + FDR(K)**2
    71     CONTINUE
           IF (DFD2.GT.1.0D+06*FDR2) THEN
               DTR13 = 0.0

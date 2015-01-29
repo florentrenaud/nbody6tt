@@ -11,6 +11,8 @@
 *
 *
 *       Check counter for stellar evolution events.
+      NS = 0
+      NB = 0
       IF (NMDOT.GT.0) THEN
           DO 5 J = 1,16
               NTYPE(J) = 0
@@ -20,8 +22,6 @@
           ZMX = 0.0
           ZMS = 0.0
           NSS = 0
-          NS = 0
-          NB = 0
           DO 10 J = 1,N
               KW = KSTAR(J) + 1
               KW = MIN(KW,16)
@@ -71,14 +71,14 @@
           DEGRAV = EBIN + ESUB + EBESC + EMESC + EMERGE + EGRAV - EBIN0
           WRITE (6,30)
    30     FORMAT (/,5X,'NDISS  NTIDE  NSYNC  NCOLL  NCOAL  NDD  NCIRC',
-     &                 '  NROCHE  NRO  NCE  NHYP  NHYPC    EBIN ',
+     &                 '  NROCHE  NRO  NCE  NHYP  NKICK    EBIN ',
      &                 '  EMERGE  ECOLL  EMDOT  ECDOT  EKICK  ESESC ',
-     &                 '  EBESC  EMESC  DEGRAV   EBIND  MAXM  MLUM',
+     &                 '  EBESC  EMESC  DEGRAV   EBIND  MAXM  TURN',
      &                 '  NS  NB')
           WRITE (6,35)  NDISS, NTIDE, NSYNC, NCOLL, NCOAL, NDD, NCIRC,
-     &                  NROCHE, NRO, NCE, NHYP, NHYPC, EBIN, EMERGE,
+     &                  NROCHE, NRO, NCE, NHYP, NKICK, EBIN, EMERGE,
      &                  ECOLL, EMDOT, ECDOT, EKICK, ESESC, EBESC,
-     &                  EMESC, DEGRAV, E(3), ZMX*SMU, ZMS*SMU, NS, NB
+     &                  EMESC, DEGRAV, E(3), ZMX*SMU, TURN, NS, NB
    35     FORMAT (' #5',I8,I6,3I7,I5,I7,I8,2I5,I6,I7,3F8.3,4F7.3,F8.3,
      &                  F7.3,2F8.3,F6.1,F6.2,2I4)
       END IF

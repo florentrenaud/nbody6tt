@@ -57,21 +57,21 @@ else
 all: gpu sse
 endif
 
-gpu: gpunb.gpu.o gpupot.gpu.o intgrt.o gpucor.o nbintp.o cnbint.o nbint.o start.o fpoly2a.o adjust.o energy2.o phicor.o cmfirr.o cmfirr2.o checkl2.o kspert.o swap.o scale.o wtime.o cxvpred.o gpuirr.o jpred.o jpred2.o fpcorr2.o repair.o sweep2.o ksres3.o check3.o bhplot.o fpoly0.o
+gpu: gpunb.gpu.o gpupot.gpu.o intgrt.o gpucor.o nbintp.o cnbint.o nbint.o start.o adjust.o energy2.o phicor.o cmfirr.o cmfirr2.o checkl2.o kspert.o swap.o scale.o wtime.o cxvpred.o gpuirr.o jpred.o jpred2.o fpcorr2.o repair.o sweep2.o ksres3.o check3.o bhplot.o fpoly0.o kspinit.o kspreg.o
 	cp -f gpunb.gpu.o gpunb.o
 	cp -f gpupot.gpu.o gpupot.o
 	cp -f *.o ./Build
 	make gpu -C ./Build -f $(shell pwd)/Makefile.build -j4 $(MKOPTIONS)
 	mv -f ./Build/nbody6tt $(RUNDIR)/$(BINNAME).gpu
 
-avx: gpunb.avx.o gpupot.avx.o intgrt.o gpucor.o nbintp.o cnbint.o nbint.o start.o fpoly2a.o adjust.o energy2.o phicor.o cmfirr.o cmfirr2.o checkl2.o kspert.o swap.o scale.o wtime.o cxvpred.o gpuirr.o jpred.o jpred2.o fpcorr2.o repair.o sweep2.o ksres3.o check3.o bhplot.o fpoly0.o
+avx: gpunb.avx.o gpupot.avx.o intgrt.o gpucor.o nbintp.o cnbint.o nbint.o start.o adjust.o energy2.o phicor.o cmfirr.o cmfirr2.o checkl2.o kspert.o swap.o scale.o wtime.o cxvpred.o gpuirr.o jpred.o jpred2.o fpcorr2.o repair.o sweep2.o ksres3.o check3.o bhplot.o fpoly0.o kspinit.o kdpreg.o
 	cp -f gpunb.avx.o gpunb.o
 	cp -f gpupot.avx.o gpupot.o
 	cp -f *.o ./Build
 	make sse -C ./Build -f $(shell pwd)/Makefile.build -j4 $(MKOPTIONS)
 	mv -f ./Build/nbody6tt $(RUNDIR)/$(BINNAME).avx
 
-sse: gpunb.sse.o gpupot.sse.o intgrt.o gpucor.o nbintp.o cnbint.o nbint.o start.o fpoly2a.o adjust.o energy2.o phicor.o cmfirr.o cmfirr2.o checkl2.o kspert.o swap.o scale.o wtime.o cxvpred.o gpuirr.o jpred.o jpred2.o fpcorr2.o repair.o sweep2.o ksres3.o check3.o bhplot.o fpoly0.o
+sse: gpunb.sse.o gpupot.sse.o intgrt.o gpucor.o nbintp.o cnbint.o nbint.o start.o adjust.o energy2.o phicor.o cmfirr.o cmfirr2.o checkl2.o kspert.o swap.o scale.o wtime.o cxvpred.o gpuirr.o jpred.o jpred2.o fpcorr2.o repair.o sweep2.o ksres3.o check3.o bhplot.o fpoly0.o kspinit.o kspreg.o
 	cp -f gpunb.sse.o gpunb.o
 	cp -f gpupot.sse.o gpupot.o
 	cp -f *.o ./Build
@@ -107,9 +107,6 @@ intgrt.o: intgrt.omp.f
 
 intgrt.s: intgrt.omp.f
 	$(FC) $(FFLAGS) -fopenmp $^ -S -o $@
-
-start.o: start.omp.F
-	$(FC) $(FFLAGS) -fopenmp $^ -c -o $@
 
 gpunb.gpu.o: lib/gpunb.velocity.cu
 	$(NVCC) $^ -c -o $@

@@ -112,7 +112,9 @@
               GO TO 20
           END IF
           ITERM = 1
-      ELSE IF (GJ.LT.0.7*GAMMA(IPAIR).AND.RD.LE.0.0) THEN
+*       Terminate for chain candidate but exclude H > 0 (avoids NEW KS).
+      ELSE IF (GJ.LT.0.7*GAMMA(IPAIR).AND.RD.LE.0.0.AND.
+     &         H(IPAIR).LT.0) THEN
           ITERM = 2
       END IF
 *
