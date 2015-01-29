@@ -11,7 +11,7 @@
 *
 ************ IMPORTANT NOTES:    (please read carefully)
 *
-* common6 is not included to avoid the user to name its variables at
+* common6 is not included to avoid the user to name its variables as
 * those of the common6. Instead, the parameters are passed as arguments.
 *
 * To convert a value in physical units into nbody6 units, *divide* the
@@ -50,8 +50,8 @@
 !      CALL nfwcosmo(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 
 
-* set TTTDEP to 0 is the potential is time-independent or adiabatically
-* (slowly compared to the motion of the cluster)changing.
+* set TTTDEP to 0 if the potential is time-independent or adiabatically
+* (slowly compared to the motion of the cluster) changing.
 * Set TTTDEP to 1 if the potential is strongly time-dependent.
 
       TTTDEP = 0
