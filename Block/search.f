@@ -3,7 +3,7 @@
 *
 *       Close encounter search.
 *       -----------------------
-*
+
       INCLUDE 'common6.h'
       COMMON/CLUMP/   BODYS(NCMAX,5),T0S(5),TS(5),STEPS(5),RMAXS(5),
      &                NAMES(NCMAX,5),ISYS(5)
@@ -12,7 +12,6 @@
 *       Increase counter for regularization attempts and set critical step.
       NKSTRY = NKSTRY + 1
       RJMIN2 = 1.0
-      STEP4 = 4.0*STEP(I)
 *
       FMAX = 0.0
       NCLOSE = 0
@@ -24,7 +23,8 @@
 *
 *       Check first whether any c.m. with small step is within range.
       J = LIST(L,I)
-      IF (STEP(J).GT.STEP4.AND.BODY(J).LT.10.0*BODY(I)) GO TO 2
+*       Include mass condition (STEP may be large).
+      IF (STEP(J).GT.SMIN.AND.BODY(J).LT.10.0*BODY(I)) GO TO 2
       A1 = X(1,J) - X(1,I)
       A2 = X(2,J) - X(2,I)
       A3 = X(3,J) - X(3,I)
@@ -47,12 +47,12 @@
 *
       DO 6 K = L,2,-1
           J = LIST(K,I)
-          IF (STEP(J).GT.STEP4) GO TO 6
+          IF (STEP(J).GT.SMIN) GO TO 6
           A1 = X(1,J) - X(1,I)
           A2 = X(2,J) - X(2,I)
           A3 = X(3,J) - X(3,I)
           RIJ2 = A1*A1 + A2*A2 + A3*A3
-          IF (RIJ2.LT.RMIN22) THEN
+          IF (RIJ2.LT.2.0*RMIN22) THEN
               NCLOSE = NCLOSE + 1
               JLIST(NCLOSE) = J
 *       Record index of every single body with small step inside 2*RMIN.
@@ -68,9 +68,8 @@
 *
 *       See whether dominant component is a single particle inside RMIN.
       IF (JCOMP.LT.IFIRST.OR.JCOMP.GT.N) GO TO 10
-*       Accept one single candidate inside 2*RMIN (which makes PERT = 0).
-      IF (RJMIN2.GT.4.0*RMIN22.OR.  ! note RJMIN2 set to 1 in case NCLOSE = 0.
-     &   (RJMIN2.GT.RMIN2.AND.NCLOSE.GT.1)) GO TO 10
+*       Accept one single candidate inside RMIN (which makes PERT = 0).
+      IF (RJMIN2.GT.RMIN2) GO TO 10
 *
       RDOT = (X(1,I) - X(1,JCOMP))*(XDOT(1,I) - XDOT(1,JCOMP)) +
      &       (X(2,I) - X(2,JCOMP))*(XDOT(2,I) - XDOT(2,JCOMP)) +
@@ -108,9 +107,9 @@
 *       Evaluate vectorial perturbation due to the close bodies.
       CALL FPERT(I,JCOMP,NCLOSE,PERT)
 *
-*       Accept #I & JCOMP if the relative motion is dominant (GI < 0.25).
+*       Accept #I & JCOMP if the relative motion is dominant (GI < 0.10).
       GI = PERT*RJMIN2/BCM
-      IF (GI.GT.0.25) THEN
+      IF (GI.GT.0.10) THEN
 *         IF (KZ(4).GT.0.AND.TIME-TLASTT.GT.4.44*TCR/FLOAT(N))
 *    &                                             CALL EVOLVE(JCOMP,0)
           GO TO 10

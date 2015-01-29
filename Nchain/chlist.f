@@ -25,8 +25,8 @@
       RPERT = MIN(RPERT,RMIN)
       RCRIT2 = 2.0*RPERT**2/BODY(I)
       RCRIT3 = RCRIT2*RPERT/GMIN
-*       Base fast search on maximum binary mass (2*BODY1).
-      RCRIT2 = 2.0*RCRIT2*BODY1*CMSEP2
+*       Base fast search on maximum single mass (BODY1).
+      RCRIT2 = RCRIT2*BODY1*CMSEP2
       PMAX = 0.0
 *
 *       Select new perturbers from chain c.m. neighbour list.
