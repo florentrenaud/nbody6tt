@@ -56,7 +56,7 @@
       VIR = POT - VIR
 *       Note angular momentum term is contained in virial energy (#14=1/2).
       Q = ZKIN/VIR
-      E(3) = ZKIN - POT
+      E(3) = ZKIN - POT + EPL
 *       Modify single particle energy by tidal energy (except pure 3D).
       IF (KZ(14).NE.3) THEN
           E(3) = E(3) + ETIDE
@@ -74,7 +74,7 @@
           TCR = TCR*SQRT(2.0*Q)
       END IF
 *       Form provisional total energy.
-      ETOT = ZKIN - POT + ETIDE
+      ETOT = ZKIN - POT + ETIDE + EPL
 *
 *       Include KS pairs, triple, quad, mergers, collisions & chain.
       ETOT = ETOT + EBIN + ESUB + EMERGE + ECOLL + EMDOT + ECDOT
@@ -184,7 +184,7 @@
           RMIN = 4.0*RSCALE/(FLOAT(N)*RHOD**0.3333)
 *       Include alternative expression based on core radius (experimental).
           IF (KZ(16).GT.1.AND.NC.LT.0.01*N) THEN
-              RMIN = 0.01*RC/FLOAT(NC)**0.3333
+              RMIN = MAX(RMIN,0.01*RC/FLOAT(NC)**0.3333)
           END IF
 *       Use harmonic mean to reduce fluctuations (avoid initial value).
           IF (TIME.GT.0.0D0) RMIN = SQRT(RMIN0*RMIN)
@@ -381,7 +381,7 @@
       END IF
 *
 *       Include optional KS reg of binaries outside standard criterion.
-      IF (KZ(8).GT.0.AND.N.GE.5000.AND.DMOD(TIME,DTK(10)).EQ.0.0D0) THEN
+      IF (KZ(8).GE.3.AND.N.GE.5000.AND.DMOD(TIME,DTK(10)).EQ.0.0D0) THEN
 *       Note DMOD condition needed for CALL KSREG and CALL STEPS.
           DTCL = 30.0*DTMIN
           RCL = 10.0*RMIN

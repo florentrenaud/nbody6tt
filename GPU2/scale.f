@@ -383,7 +383,7 @@
       IF (KZ(24).GT.0) THEN
           K = KZ(24)
           DO 90 I = 1,K
-              J = 10000 + I   ! use address well above possible primordials.
+              J = 2*NBIN0 + I   ! use address above possible primordials.
               READ (5,*)  BODY(J), (X(KK,J),KK=1,3), (XDOT(KK,J),KK=1,3)
               BODY(J) = BODY(J)/(ZMBAR*FLOAT(N))
               WRITE (6,89)  J, BODY(J), BODY(J)*ZMBAR*FLOAT(N), X(1,J)

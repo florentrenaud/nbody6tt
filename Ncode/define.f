@@ -203,7 +203,7 @@
 *                >=2: geometric radii for three mass groups on unit 6;
 *                 =5: density, rms velocity & mean mass on unit 26, 27 & 36;
 *                 =6: pairwise values of mean mass and radii on unit 28.
-*       8  Primordial binaries (=1 & >=3 routine BINPOP):
+*       8  Primordial binaries (=1 & >=3 routine BINPOP; >=3: SWEEP;
 *                               =4: Kroupa 1995 period distribution;
 *                               >4: standard setup using RANGE & SEMI0).
 *       9  Binary output  (=1, 2, 3 in BINDAT):
@@ -232,8 +232,9 @@
 *                                               >3: extra diagnostics).
 *      20  Initial mass function (=0: Salpeter type using ALPHAS; =1: Scalo;
 *              =2, 4: Kroupa 1993; =3, 5: Eggleton; > 1: primordial binaries;
-*              =6, 7: Kroupa 201; binary correlated m1/m2, also brown dwarfs.
+*              =6, 7: Kroupa 2001; binary correlated m1/m2, also brown dwarfs.
 *              Note: Use PARAMETER (MAXM=1) for setting BODY(1) = BODY10).
+*              KGT93 (Kroupa, Gilmore & Tout 1993) not recommended.
 *      21  Extra output (>0: MODEL #, TCOMP, DMIN, AMIN; >1: NESC by JACOBI).
 *      22  Initial m, r, v on #10 (=1: output; >=2: input; >2: no scaling;
 *              =2: m, r, v on #10 in any units; scaled to standard units;
@@ -283,7 +284,7 @@
 *                          <0: strong three-body events (impact.f, unit #49).
 *      46  Reserved for data analysis project on NBODY6++.
 *      47  Reserved for data analysis project on NBODY6++.
-*      48  GPU initialization of neighbour lists and forces (FPOLY0).
+*      48  Not used.
 *      49  Post-Newtonian perturbations included in KS (dir Block).
 *      50  Not used.
 *       ---------------------------------------------------------------------
@@ -343,7 +344,7 @@
 *       NDISS   Tidal dissipations at pericentre (option 27).
 *       NTIDE   Tidal captures from hyperbolic motion (option 27).
 *       NSYNC   Number of synchronous binaries (option 27).
-*       NCOLL   Stellar collisions (option 27).
+*       NCOLL   Stellar collisions.
 *       NSESC   Escaped single particles (option 23).
 *       NBESC   Escaped binaries (option 23).
 *       NMESC   Escaped mergers (options 15 & 23).

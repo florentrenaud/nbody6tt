@@ -58,7 +58,7 @@
       CALL XVPRED(ICOMP,NNB)
 *
 *       Choose between full FPOLY1/2 or just neighbours (skip non-standard).  
-      IF (N.LT.5000.OR.IPHASE.NE.1) THEN
+      IF (N.LT.50000.OR.IPHASE.NE.1) THEN
 *
 *       Obtain new polynomials & steps (first F & FDOT, then F2DOT & F3DOT).
           CALL FPOLY1(ICOMP,JCOMP,1)
@@ -138,6 +138,11 @@
 *
 *       Obtain irregular time-step and check commensurability.
           DT = ETAI*SQRT(FIRR/FDIRR)
+*     IF (NSTEPI.GE.1485988180) THEN
+      DT = MIN(0.1*DT,STEP(ICM))
+*     WRITE (6,155)  FIRR, FDIRR, DT, STEP(ICM)
+* 155 FORMAT (' KSINIT!!   FI FDI DT SICM ',1P,4E10.2)
+*     END IF
           CALL STEPK(DT,DTN)
           STEP(ICM) = DTN
           ITER = 0

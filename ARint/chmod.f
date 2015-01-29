@@ -464,7 +464,7 @@
       IF (KCASE.EQ.0) GO TO 60
 *
 *       Ensure enforced escape of binary in wide four-body system.
-      IF (KCASE.EQ.2.AND.NCH.EQ.4.AND.1.0/RINV(2).GT.20.0*RMIN) THEN
+      IF (KCASE.EQ.2.AND.NCH.EQ.4.AND.1.0/RINV(2).GT.10.0*RMIN) THEN
           WRITE (6,11)  IESC, JESC, NPERT, 1.0/RINV(IBIN), 1.0/RINV(2)
    11     FORMAT (' ENFORCED ESCAPE    IESC JESC NP RB R2 ',
      &                                 3I4,1P,2E10.2)

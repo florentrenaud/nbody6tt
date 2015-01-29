@@ -348,6 +348,12 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
                       ICOLL = I
                       JCOLL = J
                   END IF
+*       Note final check condition for ordinary stars.
+              ELSE IF (RIJ2.LT.RDIS2) THEN
+                  RDIS2 = RIJ2
+                  RDIS = SQRT(RDIS2)
+                  I1 = I
+                  I2 = J
               END IF
   134     CONTINUE
   135 CONTINUE
@@ -622,7 +628,6 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           WRITE (6,147)  TNOW, NPERT, IPN, ECC, SEMI, DEGR, TZ
   147     FORMAT (' INSPIRAL    T NP IP E A DEGR TZ ',
      &                          F10.3,2I4,F9.5,1P,3E10.2)
-          CALL FLUSH(6)
       END IF
 *
 *       Look for additional GR interaction terms (suppressed by IGR.LT.0).
@@ -842,8 +847,8 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           END IF
           DELTAT = TMAX - TIME
           IF (DELTAT.LT.0.0) THEN
-              WRITE (6,188)  TSMIN, STEPS(ISUB), DELTAT
-  188         FORMAT (' NEGATIVE!    TSMIN SS DT  ',1P,3E10.2)
+              WRITE (6,185)  TSMIN, STEPS(ISUB), DELTAT
+  185         FORMAT (' NEGATIVE!    TSMIN SS DT  ',1P,3E10.2)
               DELTAT = 0.001*TSMIN
           END IF
           STEPS(ISUB) = DELTAT
@@ -852,57 +857,63 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
           GO TO 30
       END IF
 *
-*       Check absorption or escape (ISUB = 0 for cluster escape).
-      KCASE = 0
-*       Determine largest chain distance (potential escaper).
-      RX = 0.0
-      DO 189 I = 1,N-1
-          IF (1.0/RINV(I).GT.RX) THEN
-              RX = 1.0/RINV(I)
-          END IF
-  189 CONTINUE
-*       Consider removal of distant member (consistent with acceptance).
-      XFAC = 30.0
-      IF (IPN.GE.1) XFAC = 500.0    ! Retain outlier as long as possible.
-      IF (NPERT.EQ.0) XFAC = 2.0*XFAC
-      IF (RX.GT.XFAC*SEMIGR.OR.GPERT.GT.1.0D-03) THEN
-*     WRITE (6,1233)  NSTEP1, IPN, RX, GPERT, DEGR, (NAMEC(K),K=1,N)
-*1233 FORMAT (' WATCH    # IPN RX GP DEGR NMC  ',I5,I4,1P,3E10.2,0P,4I6)
-          CALL CHMOD(ISUB,KCASE,IESC,JESC)    ! Controls decision-making.
-	  IF (N.EQ.2.AND.IPN.GE.2) GO TO 30
-      END IF
-      IF (KCASE.EQ.0.OR.ISUB.EQ.0) GO TO 400
-*       Decide between increased membership, escape removal or termination.
-      IF (KCASE.EQ.1) THEN
-          IF (IESC.EQ.0) GO TO 30
-          GO TO 258
-      END IF
-*       Note KCASE = 0 for standard return.
-      IF (KCASE.EQ.-1) THEN
-          CALL CONST(X,V,M,N,ENER0,G0,AL)
-          ERR = (ENER0 - (ENERGY + EnerGR))/ENER0
-          IF (ABS(ERR).GT.1.0D-04) THEN
-              WRITE (6,190)  N, KCASE, TNOW, NSTEP1, ERR
-  190         FORMAT (' CHAIN CHANGE    N KCASE T # ERR ',
-     &                                  2I4,F10.3,I9,1P,E11.2)
-              WRITE (6,195)  (1.0/RINV(K),K=1,N-1)
-  195         FORMAT (' DISTANCES   ',1P,5E10.2)
-          END IF
-          GO TO 250
-      END IF
-*
 *       Perform three-body stability test every 1000 steps (IPN = 0).
       IF (IPN.EQ.0.AND.N.EQ.3.AND.MOD(NSTEP1,1000).EQ.0) THEN
           CALL CHSTAB(ITERM)
           IF (ITERM.LT.0) GO TO 250
       END IF
 *
-*       Check enforced termination (N = 2, GPERT < 1D-06, DW > 1.0D-04).
-      IF (N.EQ.2.AND.GPERT.LT.1.0D-06.AND.DW.LT.1.0D-03) THEN
-          WRITE (6,196)  IPN, 1.0/RINV(1), PMIN, RZ, GPERT, TZ
-  196     FORMAT (' ENFORCED CHAIN TERM    IPN R PM RZ G TZ ',
+*       Check enforced termination (N = 2, GPERT < 1D-03, DW < 1.0D-04).
+      IF (N.EQ.2.AND.(GPERT.LT.1.0D-03.OR.GPERT.GT.0.5).AND.
+     &    (IX.LT.13.OR.DW.LT.1.0D-04)) THEN   ! also include standard stars.
+          WRITE (6,188)  IPN, 1.0/RINV(1), PMIN, RZ, GPERT, TZ
+  188     FORMAT (' ENFORCED CHAIN TERM    IPN R PM RZ G TZ ',
      &                                     I4,1P,5E10.2)
-          CALL FLUSH(6)
+          GO TO 250
+      END IF
+*
+*       Include termination after 10,000 steps for standard case.
+      IF (IPN.EQ.0.AND.NSTEP1.GT.10000) THEN
+          GO TO 250
+      END IF
+*
+*       Determine largest chain distance (potential escaper).
+      KCASE = 0
+      RX = 0.0
+      DO 190 I = 1,N-1
+          IF (1.0/RINV(I).GT.RX) THEN
+              RX = 1.0/RINV(I)
+          END IF
+  190 CONTINUE
+*
+*       Consider removal of distant member (consistent with acceptance).
+      XFAC = 30.0
+      IF (IPN.GE.1) XFAC = 500.0    ! Retain outlier as long as possible.
+      IF (NPERT.EQ.0) XFAC = 2.0*XFAC
+      IF (RX.GT.XFAC*SEMI.OR.
+     &   (RX.GT.50.0*RGRAV.AND.GPERT.GT.1.0D-03)) THEN
+          CALL CHMOD(ISUB,KCASE,IESC,JESC)    ! Controls decision-making.
+	  IF (N.EQ.2.AND.IPN.GE.2) GO TO 30   ! Continue for significant PN.
+      END IF
+      IF (KCASE.EQ.0.OR.ISUB.EQ.0) GO TO 400
+*       Decide between increased membership, escape removal or termination.
+      IF (KCASE.EQ.1) THEN
+          IF (IESC.EQ.0) GO TO 30
+          ITERM = -1
+          GO TO 258
+      END IF
+*
+*       Note KCASE = 0 for standard return.
+      IF (KCASE.EQ.-1) THEN
+          CALL CONST(X,V,M,N,ENER0,G0,AL)
+          ERR = (ENER0 - (ENERGY + EnerGR))/ENER0
+          IF (ABS(ERR).GT.1.0D-04) THEN
+              WRITE (6,192)  N, KCASE, TNOW, NSTEP1, ERR
+  192         FORMAT (' CHAIN CHANGE    N KCASE T # ERR ',
+     &                                  2I4,F10.3,I9,1P,E11.2)
+              WRITE (6,195)  (1.0/RINV(K),K=1,N-1)
+  195         FORMAT (' DISTANCES   ',1P,5E10.2)
+          END IF
           GO TO 250
       END IF
 *
@@ -923,6 +934,7 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
      &                       F10.4,I9,2I4,F9.5,1P,3E10.2)
 *       Distinguish between GR coalescence and standard terminations.
       IF (ICOAL.EQ.0) NBH2 = 0
+      ITERM = -1
 *
 *       Treat different termination cases separately: N = 1, 2 or > 2.
   258 IF (N.LE.2) THEN
@@ -939,7 +951,7 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
       ELSE
 *
 *       Determine most distant member for removal (binary may be central).
-  260     RX = 0.0
+          RX = 0.0
           LK = 0
           DO 275 L = 1,N
               RI2 = 0.0
@@ -952,14 +964,20 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
               END IF
               LK = LK + 3
   275     CONTINUE
-          IF (IESC.EQ.0) IESC = LX
+          RX = SQRT(RX)
 *
+          IF (IESC+JESC.EQ.0) IESC = LX
 *       Remove body #IESC using the standard procedure (repeat for N > 2).
-          CALL REDUCE(IESC,JESC,ISUB)
-          IF (N.GT.2) THEN
-	  IF (N.EQ.2.AND.IPN.GE.2) GO TO 30
-              IF (JESC.GT.0) GO TO 260
-              GO TO 30
+          IF (IESC.GT.0) CALL REDUCE(IESC,JESC,ISUB)
+          IF (N.GE.2) THEN
+	      IF (N.EQ.2.AND.IPN.GE.2) GO TO 30
+              IF (N.GE.3) THEN
+                  IESC = 0
+                  JESC = 0
+                  GO TO 30
+              END IF
+              IF (IESQ+JESC.EQ.0.AND.ITERM.GE.0) GO TO 30
+              GO TO 250
           END IF
 *       Terminate chain for two last members and exit after setting IGR = 0.
           CALL CHTERM2(NBH2,DEGR)
@@ -1036,7 +1054,6 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
               KDUM = 1
               CALL CHLIST(KDUM)
           END IF
-          CALL FLUSH(6)
       ELSE IF (IPN.EQ.0.AND.MOD(NSTEP1,10000).EQ.0) THEN
           WRITE (23,308)  N, NPERT, TNOW, ECC, SEMI, GPERT, TZ
   308     FORMAT (' CHECK    N NP T E A G TZ ',2I3,F11.4,F8.4,1P,3E10.2)
@@ -1050,7 +1067,7 @@ c     Ixc=1 ! 1 for exact time, 0 for not exact time
       END IF
 *
 *       Update time and energy (STEPS(ISUB) may change by TSMIN on entry).
-  400 TS(ISUB) = T0S(ISUB) + TIMEC
+  400 IF (ISUB.GT.0) TS(ISUB) = T0S(ISUB) + TIMEC
       ECH = ENERGY + EnerGR - DEGR
 *
       RETURN

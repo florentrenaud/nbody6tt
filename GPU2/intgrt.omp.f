@@ -226,6 +226,7 @@
       I = NXTLST(1)
       TIME = T0(I) + STEP(I)
       TBLOCK = TIME
+      TTOT = TIME + TOFF
 *
 *       Include diagnostics for negative TIME and block-step diagnostics.
 *     IF (TIME.LT.TLAST.AND.TIME.LT.TLISTQ) THEN
@@ -678,9 +679,6 @@
       CALL GPUIRR_CLOSE
       STOP
 *
-*       Set current global time.
-  100 TTOT = TIME + TOFF
-*
-      RETURN
+  100 RETURN
 *
       END

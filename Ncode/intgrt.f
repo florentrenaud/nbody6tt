@@ -110,6 +110,7 @@
       I = NXTLST(1)
       TIME = T0(I) + STEP(I)
       TBLOCK = TIME
+      TTOT = TIME + TOFF
       LI = 0
       IPRED = 0
 *
@@ -424,9 +425,6 @@
 *
       STOP
 *
-*       Set current global time.
-  100 TTOT = TIME + TOFF
-*
-      RETURN
+  100 RETURN
 *
       END

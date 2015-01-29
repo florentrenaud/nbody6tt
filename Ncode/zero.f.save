@@ -43,7 +43,6 @@
       EKICK = 0.0
       ESYNC = 0.0D0
       ETIDE = 0.0D0
-      EPL = 0.0
       ESESC = 0.0D0
       EBESC = 0.0D0
       EMESC = 0.0D0

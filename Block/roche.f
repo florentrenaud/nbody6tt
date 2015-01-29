@@ -366,6 +366,7 @@
 *
 *       Check for blue straggler formation (TM < TPHYS).
             IF(TM.LT.TPHYS)THEN
+               NBS = NBS + 1
                WRITE(6,16)NAME(J2),MASS(2),TM,TPHYS,AJ(2)
    16          FORMAT(' NEW BS (ROCHE):  NAM M3 TM TP AGE ',
      &                                   I6,F6.2,3F8.1)

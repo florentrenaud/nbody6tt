@@ -56,7 +56,7 @@
       VIR = POT - VIR
 *       Note angular momentum term is contained in virial energy (#14=1/2).
       Q = ZKIN/VIR
-      E(3) = ZKIN - POT
+      E(3) = ZKIN - POT + EPL
 *       Modify single particle energy by tidal energy (except pure 3D).
       IF (KZ(14).NE.3) THEN
           E(3) = E(3) + ETIDE
@@ -74,7 +74,7 @@
           TCR = TCR*SQRT(2.0*Q)
       END IF
 *       Form provisional total energy.
-      ETOT = ZKIN - POT + ETIDE
+      ETOT = ZKIN - POT + ETIDE + EPL
 *
 *       Include KS pairs, triple, quad, mergers, collisions & chain.
       ETOT = ETOT + EBIN + ESUB + EMERGE + ECOLL + EMDOT + ECDOT
