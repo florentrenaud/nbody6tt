@@ -111,39 +111,6 @@
           CALL CLOUD0
       END IF
 *
-*       Decide between fast initialization on GPU and standard way (#38).
-      RS0 = RC
-      IF (KZ(48).GT.0) THEN
-          CALL FPOLY0(RS0)
-      ELSE
-*       Evaluate initial neighbour list & corresponding radius on the host.
-          DO 40 I = 1,N
-              CALL NBLIST(I,RS0)
-   40     CONTINUE
-*
-*       Obtain force & first derivative.
-#if 0
-          CALL FPOLY1(1,N,0)
-#else
-!$omp parallel do
-          DO I=1, N
-            CALL FPOLY1(I,I,0)
-          END DO
-#endif
-      END IF
-*
-*       Form second & third force derivatives and set time-steps.
-#if 0
-      CALL FPOLY2(1,N,0)
-#else
-!$omp parallel do
-      DO I=1, N
-        CALL FPOLY2A(I,I,0)
-      END DO
-!$omp end parallel do
-      CALL STEPS(1,N)
-#endif
-*
 *       Regularize any hard primordial binaries (assume sequential ordering).
       IF (NBIN0.GT.0) THEN
           DO 50 IPAIR = 1,NBIN0
@@ -155,10 +122,20 @@
                   RIJ2 = RIJ2 + (X(K,ICOMP) - X(K,JCOMP))**2
    45         CONTINUE
               IF (RIJ2.LT.RMIN**2) THEN
-                  CALL KSREG
+                  CALL KSPREG
               END IF
    50     CONTINUE
       END IF
+*
+*       Perform fast initialization on GPU.
+      RS0 = RC
+      CALL FPOLY0(RS0)
+*
+*       Initialize force polynomials and time-steps (standard way).
+      CALL FPOLY2(IFIRST,NTOT,0)
+*
+*       Generate perturber lists for primordial binaries.
+      CALL KSPINIT
 *
 *       Include optional regularization of primordial triples.
       IF (KZ(18).GT.1.AND.NHI0.GT.0) THEN
@@ -179,7 +156,7 @@
               END IF
    70     CONTINUE
 *       Increase KS pointer for rejected separation (include possible exit).
-          IF (SQRT(RX2).GT.RMIN) THEN
+          IF (RX2.GT.RMIN**2) THEN
               KSPAIR = KSPAIR + 1
               IF (KSPAIR.GT.NPAIRS) GO TO 80
               GO TO 60

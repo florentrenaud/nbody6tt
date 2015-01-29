@@ -147,6 +147,8 @@
               IF (ITER.LT.16.OR.STEP(ICM).GT.DTK(40)) GO TO 160
               STEP(ICM) = DTK(40)
           END IF
+*       Include reduction due to missing higher derivatives.
+          STEP(ICM) = 0.25*STEP(ICM)
           T0(ICM) = TIME
           T0R(ICM) = TIME
           TNEW(ICM) = TIME + STEP(ICM)
@@ -176,7 +178,7 @@
   175     CONTINUE
           DT = ETAR*SQRT(FIRR/FDIRR)
           CALL STEPK(DT,DTN)
-          STEPR(ICM) = DTN
+          STEPR(ICM) = 0.25*DTN
           ITER = 0
   180     IF (DMOD(TIME,STEPR(ICM)).NE.0.0D0) THEN
               STEPR(ICM) = 0.5D0*STEPR(ICM)

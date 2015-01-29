@@ -322,7 +322,7 @@
 *             IF (GA.GT.0.25.AND.RI.GT.SEMI) IQ = .TRUE.
               IF (RI.GT.10*RMIN.AND.NNB0.GT.0.8*LIST(1,I)) IQ = .TRUE.
               IF (GI.GT.0.1.AND.RI.GT.RMIN) IQ = .TRUE.
-              IF (GI.GT.0.01.AND.RI.GT.5.0*RMIN) IQ = .TRUE.
+              IF (GI.GT.0.02.AND.RI.GT.5.0*RMIN) IQ = .TRUE.
               IF (GI.GT.0.25) IQ = .TRUE.
 *       Include extra condition for planet case.
               IF (MIN(BODY(I1),BODY(I2)).LT.0.05*BODYM) THEN
@@ -348,7 +348,7 @@
 *       Include termination for rare tidal capture starting at pericentre.
           IF (KSTAR(I).LT.0.AND.RI.GT.5.0*RMIN) GO TO 90
 *       Impose a limit using size of neighbour sphere (100*R > 0.80*RS).
-          IF (RI.GT.8.0D-03*RS(I).AND.GI.GT.1.0D-04) GO TO 90
+          IF (RI.GT.8.0D-03*RS(I).AND.GI.GT.1.0D-03) GO TO 90
 *       See whether termination can be delayed for sufficient perturbers.
           IF (NNB0.LT.0.80*LIST(1,I).AND.GI.LT.0.1) GO TO 60
 *       Check updating of R0 for newly hardened binary orbit.

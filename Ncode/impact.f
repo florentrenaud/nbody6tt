@@ -572,6 +572,7 @@
 *       Estimate relative perturbation at apocentre from actual value.
       GI = PERT*(SEMI1*(1.0 + ECC1)/RIJ)**3
       IF (PERT.GT.GMAX.OR.GI.GT.0.02) GO TO 100
+      IF (SEMI1.LT.0.0.AND.RIJ.GT.10.0*SEMI) GO TO 100
 *
 *       Switch to direct integration for planetary systems if GI > 1D-04.
       IF (MIN(BODY(I1),BODY(I2)).LT.0.05*BODYM) THEN
