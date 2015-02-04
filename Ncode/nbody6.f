@@ -33,7 +33,7 @@
 *
 *** FlorentR - add a little head to the ouptut to identify the version number
       WRITE (6,*) '     ********* NBODY6TT *********'
-      WRITE (6,*) '     ********* v 5.4.1 **********'
+      WRITE (6,*) '     ********* v 5.4.2 **********'
       CALL FLUSH(6)
 *** FRenaud
 *
