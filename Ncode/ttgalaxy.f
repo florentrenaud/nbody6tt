@@ -11,7 +11,7 @@
 *
 ************ IMPORTANT NOTES:    (please read carefully)
 *
-* common6 is not included to avoid the user to name its variables at
+* common6 is not included to avoid the user to name its variables as
 * those of the common6. Instead, the parameters are passed as arguments.
 *
 * To convert a value in physical units into nbody6 units, *divide* the
@@ -45,13 +45,14 @@
 !      CALL nfw2(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL isothermal(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL nakedmndisk(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
+!      CALL pseudoexpdisk(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL bulgediskhalo(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL spiralarms(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 !      CALL nfwcosmo(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
 
 
-* set TTTDEP to 0 is the potential is time-independent or adiabatically
-* (slowly compared to the motion of the cluster)changing.
+* set TTTDEP to 0 if the potential is time-independent or adiabatically
+* (slowly compared to the motion of the cluster) changing.
 * Set TTTDEP to 1 if the potential is strongly time-dependent.
 
       TTTDEP = 0
@@ -257,6 +258,58 @@
       ENDIF
       
       ttphig = ttphig - md/sqrt(x**2+y**2+(a+sqrt(z**2+b2))**2)
+      
+      RETURN
+      END
+
+************************************************************************
+      SUBROUTINE pseudoexpdisk(ttphig,x,y,z,t,msc,rsc,tsc,vsc)
+! mimic an exponential disk with 3 Miyamoto-Nagai disks
+! Details in Smith et al. (2015)  
+
+      implicit none
+      logical first
+      real*8 x, y, z, t, ttphig, msc, rsc, tsc, vsc
+
+      real*8 mb, rd, hz, hzrd, brd, m1, m2, m3, a1, a2, a3, b2
+      save m1, m2, m3, a1, a2, a3, b2
+
+      save first
+      data first /.TRUE./
+      IF(first) THEN
+* compute constants here
+*      exponential disk parameters
+        md = 1e11 / msc ! Msun -> Nbody units
+        rd = 5e3 / rsc ! pc -> Nbody units
+        hz = 1e2 / rsc! pc -> Nbody units
+        
+* MN b (from Smith et al. 2015, Fig 5)
+        hzrd = hz / rd
+        brd = -0.269* hzrd**3 + 1.080* hzrd**2 + 1.092 * hzrd
+        
+* MN parameters (from Smith et al. 2015, Table 2 and Eq 7)
+        m1=0.0036*brd**4-0.0330*brd**3+0.1117*brd**2-0.1335*brd+0.1749
+        m2=-0.0131*brd**4+0.1090*brd**3-0.3035*brd**2+0.2921*brd-5.7976
+        m3=-0.0048*brd**4+0.0454*brd**3-0.1425*brd**2+0.1012*brd+6.7120
+        a1=-0.0158*brd**4+0.0993*brd**3-0.2070*brd**2-0.7089*brd+0.6445
+        a2=-0.0319*brd**4+0.1514*brd**3-0.1279*brd**2-0.9325*brd+2.6836
+        a3=-0.0326*brd**4+0.1816*brd**3-0.2943*brd**2-0.6329*brd+2.3193
+        m1 = m1 * md
+        m2 = m2 * md
+        m3 = m3 * md
+        a1 = a1 * rd
+        a2 = a2 * rd
+        a3 = a3 * rd
+        b2 = (brd * rd)**2
+        
+        first = .false.
+      ENDIF
+
+* compute variables here
+
+      ttphig = ttphig - m1/sqrt(x**2+y**2+(a1+sqrt(z**2+b2))**2)
+     &                - m2/sqrt(x**2+y**2+(a2+sqrt(z**2+b2))**2)
+     &                - m3/sqrt(x**2+y**2+(a3+sqrt(z**2+b2))**2)
       
       RETURN
       END
