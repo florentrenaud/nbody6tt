@@ -271,7 +271,7 @@
       logical first
       real*8 x, y, z, t, ttphig, msc, rsc, tsc, vsc
 
-      real*8 mb, rd, hz, hzrd, brd, m1, m2, m3, a1, a2, a3, b2
+      real*8 md, rd, hz, hzrd, brd, m1, m2, m3, a1, a2, a3, b2
       save m1, m2, m3, a1, a2, a3, b2
 
       save first
